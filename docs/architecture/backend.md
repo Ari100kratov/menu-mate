@@ -1,0 +1,105 @@
+# Архитектура бэкенда
+
+## Стек
+
+- .NET 10
+- ASP.NET Core Minimal API
+- Aspire AppHost
+- OpenAPI + Scalar
+- EF Core + PostgreSQL
+- MinIO для изображений
+- JWT bearer-аутентификация
+- xUnit для доменных тестов
+
+## Shared Kernel
+
+`MenuMate.SharedKernel` содержит только стабильные примитивы:
+
+- `Result<T>`
+- `AppError`
+- `Entity<TId>`
+- marker доменных событий
+- нормализацию текста
+- явные межмодульные идентификаторы в `Identifiers`
+
+Feature-specific helpers сюда не добавляем.
+
+## Common проекты
+
+- `MenuMate.Common.Application` содержит CQRS-абстракции, `IUserContext` и общие прикладные контракты.
+- `MenuMate.Common.Presentation` содержит преобразование результатов в HTTP и формат проблем RFC 7807.
+- `MenuMate.Common.Infrastructure` содержит интеграции с внешней инфраструктурой, сейчас MinIO.
+- `MenuMate.Common.Domain` зарезервирован для стабильных доменных helper-типов, не привязанных к конкретному модулю.
+
+## Правила API
+
+- Конечные точки остаются тонкими.
+- Сценарии использования живут в Application проектах модулей.
+- Доменные правила живут в Domain проектах модулей.
+- Scalar и OpenAPI публикуются во всех окружениях.
+- Публичные XML summary должны быть на русском языке.
+
+## Структура модулей
+
+В Domain проектах используем каталоги:
+
+- `Models`
+- `ValueObjects`
+- `Enums`
+- `Errors`
+- `Services`
+
+В Infrastructure проектах persistence-типы лежат в `Database/Entities`, EF Core конфигурации лежат в `Database/Configurations`, а DbContext подключает их через `ApplyConfigurationsFromAssembly`.
+
+## Persistence
+
+Stateful модули владеют своим DbContext и схемой PostgreSQL:
+
+- Auth: `AuthDbContext`, схема `auth`
+- Recipes: `RecipesDbContext`, схема `recipes`
+- Tags: `TagsDbContext`, схема `tags`
+- MenuPlanning: `MenuPlanningDbContext`, схема `menu_planning`
+
+Изменения схемы выражаются миграциями EF Core в инфраструктурном проекте модуля. `MenuMate.Migrator` применяет миграции явно до старта API.
+
+## Доступ к данным
+
+Repository и Unit of Work остаются допустимыми для командных сценариев, где нужно загрузить агрегат и выполнить доменные операции.
+
+Для запросов чтения предпочтительны проекции через DbContext-интерфейс/read model или спецификации. Нельзя по умолчанию загружать полный агрегат, если конечная точка возвращает только список или небольшой DTO.
+
+## Auth
+
+Auth реализован как модуль внутри монолита:
+
+- PBKDF2 password hashing
+- JWT access tokens
+- opaque refresh tokens в PostgreSQL
+- роли `admin` и `user`, сидируемые миграцией
+- `IUserContext` для текущего пользователя
+
+## Файлы и изображения
+
+Все изображения должны храниться в MinIO. Бакет по умолчанию — `images`. API принимает новые изображения, проверяет владельца сущности, валидирует файл, сохраняет объект в MinIO и пишет metadata-запись в БД модуля-владельца.
+
+Для рецептов metadata хранится в `recipes.recipe_images`. Сущность хранит `BucketName`, `ObjectKey`, область привязки (`Cover` или `Step`), номер шага для step-изображений и технические атрибуты файла. Ключи объектов строятся по схеме:
+
+```text
+users/{ownerUserId:N}/recipes/{recipeId:N}/images/cover/{imageId:N}.{extension}
+users/{ownerUserId:N}/recipes/{recipeId:N}/images/steps/{stepNumber}/{imageId:N}.{extension}
+```
+
+Фронт читает изображения напрямую из MinIO по ссылке `readUrl`, которую возвращает API. API не проксирует обычную выдачу изображений. `SourceUrl` рецепта не является изображением: это внешняя ссылка на страницу-источник рецепта.
+
+Для рецепта поддерживается одна активная обложка. Загрузка новой обложки через `POST /api/recipes/{recipeId}/images` помечает старую cover-metadata удаленной и после сохранения пытается удалить старый объект из MinIO. Удаление изображения идет через `DELETE /api/recipes/{recipeId}/images/{imageId}`: backend проверяет владельца рецепта, меняет metadata и затем очищает объектное хранилище.
+
+## Тестирование
+
+Обязательные проверки:
+
+- масштабирование ингредиентов по порциям;
+- нормализация и дедупликация тегов;
+- инварианты пунктов меню;
+- нормализация единиц измерения;
+- агрегация и группировка списка покупок;
+- сохранение неопределенных количеств.

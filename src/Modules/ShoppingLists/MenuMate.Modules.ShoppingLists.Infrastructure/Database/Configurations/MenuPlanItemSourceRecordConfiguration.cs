@@ -1,0 +1,26 @@
+using MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source;
+using MenuMate.SharedKernel.Identifiers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Configurations;
+
+internal sealed class MenuPlanItemSourceRecordConfiguration : IEntityTypeConfiguration<MenuPlanItemSourceRecord>
+{
+    public void Configure(EntityTypeBuilder<MenuPlanItemSourceRecord> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        var recipeIdConverter = new ValueConverter<RecipeId?, Guid?>(
+            recipeId => recipeId.HasValue ? recipeId.Value.Value : null,
+            value => value.HasValue ? RecipeId.From(value.Value) : null);
+
+        builder.ToTable("menu_plan_items", "menu_planning", table => table.ExcludeFromMigrations());
+        builder.HasKey(item => item.Id);
+        builder.Property(item => item.Id).ValueGeneratedNever();
+        builder.Property(item => item.MenuPlanId)
+            .HasConversion(menuPlanId => menuPlanId.Value, value => MenuPlanId.From(value));
+        builder.Property(item => item.RecipeId).HasConversion(recipeIdConverter);
+    }
+}

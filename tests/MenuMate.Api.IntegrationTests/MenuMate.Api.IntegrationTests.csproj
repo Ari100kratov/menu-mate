@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MenuMate.Api\MenuMate.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Auth\MenuMate.Modules.Auth.Infrastructure\MenuMate.Modules.Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\MenuPlanning\MenuMate.Modules.MenuPlanning.Infrastructure\MenuMate.Modules.MenuPlanning.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Recipes\MenuMate.Modules.Recipes.Infrastructure\MenuMate.Modules.Recipes.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Infrastructure\MenuMate.Modules.ShoppingLists.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tags\MenuMate.Modules.Tags.Infrastructure\MenuMate.Modules.Tags.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

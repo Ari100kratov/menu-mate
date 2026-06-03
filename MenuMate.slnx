@@ -1,0 +1,90 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".env.example" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/README.md" />
+  </Folder>
+  <Folder Name="/docs/engineering/">
+    <File Path="docs/engineering/backend-guardrails.md" />
+  </Folder>
+  <Folder Name="/docs/architecture/">
+    <File Path="docs/architecture/backend.md" />
+    <File Path="docs/architecture/deployment.md" />
+    <File Path="docs/architecture/frontend.md" />
+    <File Path="docs/architecture/modules.md" />
+    <File Path="docs/architecture/overview.md" />
+  </Folder>
+  <Folder Name="/docs/adr/">
+    <File Path="docs/adr/0001-modular-monolith.md" />
+    <File Path="docs/adr/0002-data-ownership.md" />
+    <File Path="docs/adr/0003-tags-over-hard-categories.md" />
+    <File Path="docs/adr/0004-ingredient-normalization.md" />
+    <File Path="docs/adr/0005-auth-strategy.md" />
+    <File Path="docs/adr/0006-import-drafts.md" />
+    <File Path="docs/adr/0007-aspire-local-launch.md" />
+    <File Path="docs/adr/0008-database-migrator.md" />
+    <File Path="docs/adr/0009-backend-quality-security-guardrails.md" />
+    <File Path="docs/adr/0010-observability-and-serilog.md" />
+    <File Path="docs/adr/0011-data-access-strategy.md" />
+    <File Path="docs/adr/0012-frontend-api-generation-and-auth.md" />
+    <File Path="docs/adr/0013-image-storage-through-minio.md" />
+    <File Path="docs/adr/README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MenuMate.Api/MenuMate.Api.csproj" />
+    <Project Path="src/MenuMate.AppHost/MenuMate.AppHost.csproj" />
+    <Project Path="src/MenuMate.Common.Application/MenuMate.Common.Application.csproj" />
+    <Project Path="src/MenuMate.Common.Domain/MenuMate.Common.Domain.csproj" />
+    <Project Path="src/MenuMate.Common.Infrastructure/MenuMate.Common.Infrastructure.csproj" />
+    <Project Path="src/MenuMate.Common.Presentation/MenuMate.Common.Presentation.csproj" />
+    <Project Path="src/MenuMate.Contracts/MenuMate.Contracts.csproj" />
+    <Project Path="src/MenuMate.Migrator/MenuMate.Migrator.csproj" />
+    <Project Path="src/MenuMate.ServiceDefaults/MenuMate.ServiceDefaults.csproj" />
+    <Project Path="src/MenuMate.SharedKernel/MenuMate.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Auth/">
+    <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Application/MenuMate.Modules.Auth.Application.csproj" />
+    <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Domain/MenuMate.Modules.Auth.Domain.csproj" />
+    <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Infrastructure/MenuMate.Modules.Auth.Infrastructure.csproj" />
+    <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Presentation/MenuMate.Modules.Auth.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/MenuPlanning/">
+    <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Application/MenuMate.Modules.MenuPlanning.Application.csproj" />
+    <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Domain/MenuMate.Modules.MenuPlanning.Domain.csproj" />
+    <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Infrastructure/MenuMate.Modules.MenuPlanning.Infrastructure.csproj" />
+    <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Presentation/MenuMate.Modules.MenuPlanning.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Recipes/">
+    <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Application/MenuMate.Modules.Recipes.Application.csproj" />
+    <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Domain/MenuMate.Modules.Recipes.Domain.csproj" />
+    <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Infrastructure/MenuMate.Modules.Recipes.Infrastructure.csproj" />
+    <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Presentation/MenuMate.Modules.Recipes.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ShoppingLists/">
+    <Project Path="src/Modules/ShoppingLists/MenuMate.Modules.ShoppingLists.Application/MenuMate.Modules.ShoppingLists.Application.csproj" />
+    <Project Path="src/Modules/ShoppingLists/MenuMate.Modules.ShoppingLists.Domain/MenuMate.Modules.ShoppingLists.Domain.csproj" />
+    <Project Path="src/Modules/ShoppingLists/MenuMate.Modules.ShoppingLists.Infrastructure/MenuMate.Modules.ShoppingLists.Infrastructure.csproj" />
+    <Project Path="src/Modules/ShoppingLists/MenuMate.Modules.ShoppingLists.Presentation/MenuMate.Modules.ShoppingLists.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Tags/">
+    <Project Path="src/Modules/Tags/MenuMate.Modules.Tags.Application/MenuMate.Modules.Tags.Application.csproj" />
+    <Project Path="src/Modules/Tags/MenuMate.Modules.Tags.Domain/MenuMate.Modules.Tags.Domain.csproj" />
+    <Project Path="src/Modules/Tags/MenuMate.Modules.Tags.Infrastructure/MenuMate.Modules.Tags.Infrastructure.csproj" />
+    <Project Path="src/Modules/Tags/MenuMate.Modules.Tags.Presentation/MenuMate.Modules.Tags.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MenuMate.Api.IntegrationTests/MenuMate.Api.IntegrationTests.csproj" />
+    <Project Path="tests/MenuMate.Modules.MenuPlanning.Domain.UnitTests/MenuMate.Modules.MenuPlanning.Domain.UnitTests.csproj" />
+    <Project Path="tests/MenuMate.Modules.Recipes.Domain.UnitTests/MenuMate.Modules.Recipes.Domain.UnitTests.csproj" />
+    <Project Path="tests/MenuMate.Modules.ShoppingLists.Domain.UnitTests/MenuMate.Modules.ShoppingLists.Domain.UnitTests.csproj" />
+    <Project Path="tests/MenuMate.SharedKernel.UnitTests/MenuMate.SharedKernel.UnitTests.csproj" />
+  </Folder>
+</Solution>

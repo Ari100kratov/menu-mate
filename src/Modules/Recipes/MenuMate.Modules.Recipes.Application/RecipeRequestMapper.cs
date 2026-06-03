@@ -1,0 +1,263 @@
+using MenuMate.Contracts.Recipes;
+using MenuMate.Modules.Recipes.Domain.Enums;
+using MenuMate.Modules.Recipes.Domain.Models;
+using MenuMate.Modules.Recipes.Domain.ValueObjects;
+using MenuMate.SharedKernel;
+
+namespace MenuMate.Modules.Recipes.Application;
+
+internal static class RecipeRequestMapper
+{
+    public static Result<RecipeDraft> Map(CreateRecipeRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return Map(
+            request.Title,
+            request.Description,
+            request.Servings,
+            request.SourceUrl,
+            request.Ingredients,
+            request.Steps,
+            request.Tags);
+    }
+
+    public static Result<RecipeDraft> Map(UpdateRecipeRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return Map(
+            request.Title,
+            request.Description,
+            request.Servings,
+            request.SourceUrl,
+            request.Ingredients,
+            request.Steps,
+            request.Tags);
+    }
+
+    private static Result<RecipeDraft> Map(
+        string titleValue,
+        string? description,
+        int servingsValue,
+        Uri? sourceUrl,
+        IReadOnlyCollection<RecipeIngredientRequest> ingredients,
+        IReadOnlyCollection<PreparationStepRequest> steps,
+        IReadOnlyCollection<string> tags)
+    {
+        Result<RecipeTitle> title = RecipeTitle.Create(titleValue);
+        if (title.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(title.Error);
+        }
+
+        Result<Servings> servings = Servings.Create(servingsValue);
+        if (servings.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(servings.Error);
+        }
+
+        Result<Uri?> parsedSourceUrl = ValidateSourceUrl(sourceUrl);
+        if (parsedSourceUrl.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(parsedSourceUrl.Error);
+        }
+
+        Result<IReadOnlyCollection<RecipeIngredient>> mappedIngredients = MapIngredients(ingredients);
+        if (mappedIngredients.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(mappedIngredients.Error);
+        }
+
+        Result<IReadOnlyCollection<PreparationStep>> mappedSteps = MapSteps(steps);
+        if (mappedSteps.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(mappedSteps.Error);
+        }
+
+        Result<IReadOnlyCollection<RecipeTag>> mappedTags = MapTags(tags);
+        if (mappedTags.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(mappedTags.Error);
+        }
+
+        return new RecipeDraft(
+            title.Value,
+            description,
+            servings.Value,
+            parsedSourceUrl.Value,
+            mappedIngredients.Value,
+            mappedSteps.Value,
+            mappedTags.Value);
+    }
+
+    private static Result<Uri?> ValidateSourceUrl(Uri? sourceUrl)
+    {
+        if (sourceUrl is null)
+        {
+            return Result.Success<Uri?>(null);
+        }
+
+        return sourceUrl.IsAbsoluteUri
+            ? Result.Success<Uri?>(sourceUrl)
+            : Result.Failure<Uri?>(AppError.Validation("Recipes.InvalidSourceUrl", "Источник рецепта должен быть абсолютным URL."));
+    }
+
+    private static Result<IReadOnlyCollection<RecipeIngredient>> MapIngredients(
+        IReadOnlyCollection<RecipeIngredientRequest> ingredients)
+    {
+        var result = new List<RecipeIngredient>(ingredients.Count);
+
+        foreach (RecipeIngredientRequest ingredient in ingredients)
+        {
+            Result<IngredientName> name = IngredientName.Create(ingredient.ProductName);
+            if (name.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<RecipeIngredient>>(name.Error);
+            }
+
+            Result<IngredientQuantity> quantity = MapQuantity(ingredient);
+            if (quantity.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<RecipeIngredient>>(quantity.Error);
+            }
+
+            Result<ProductCategory> category = ParseProductCategory(ingredient.Category);
+            if (category.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<RecipeIngredient>>(category.Error);
+            }
+
+            result.Add(new RecipeIngredient(
+                name.Value,
+                quantity.Value,
+                category.Value,
+                ingredient.Comment,
+                ingredient.IsOptional));
+        }
+
+        return result;
+    }
+
+    private static Result<IngredientQuantity> MapQuantity(RecipeIngredientRequest ingredient)
+    {
+        Result<IngredientQuantityKind> kind = ParseQuantityKind(ingredient.QuantityKind);
+        if (kind.IsFailure)
+        {
+            return Result.Failure<IngredientQuantity>(kind.Error);
+        }
+
+        Result<MeasurementUnit> unit = ParseMeasurementUnit(ingredient.Unit);
+        if (unit.IsFailure)
+        {
+            return Result.Failure<IngredientQuantity>(unit.Error);
+        }
+
+        if (kind.Value == IngredientQuantityKind.ToTaste)
+        {
+            return IngredientQuantity.ToTaste();
+        }
+
+        if (ingredient.Amount is null)
+        {
+            return Result.Failure<IngredientQuantity>(AppError.Validation(
+                "Recipes.AmountRequired",
+                "Для точного или примерного количества нужно указать числовое значение."));
+        }
+
+        return kind.Value == IngredientQuantityKind.Exact
+            ? IngredientQuantity.Exact(ingredient.Amount.Value, unit.Value)
+            : IngredientQuantity.Approximate(ingredient.Amount.Value, unit.Value);
+    }
+
+    private static Result<IReadOnlyCollection<PreparationStep>> MapSteps(
+        IReadOnlyCollection<PreparationStepRequest> steps)
+    {
+        var result = new List<PreparationStep>(steps.Count);
+
+        for (int index = 0; index < steps.Count; index++)
+        {
+            Result<PreparationStep> step = PreparationStep.Create(index + 1, steps.ElementAt(index).Text);
+            if (step.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<PreparationStep>>(step.Error);
+            }
+
+            result.Add(step.Value);
+        }
+
+        return result;
+    }
+
+    private static Result<IReadOnlyCollection<RecipeTag>> MapTags(IReadOnlyCollection<string> tags)
+    {
+        var result = new List<RecipeTag>(tags.Count);
+
+        foreach (string tagValue in tags)
+        {
+            Result<RecipeTag> tag = RecipeTag.Create(tagValue);
+            if (tag.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<RecipeTag>>(tag.Error);
+            }
+
+            if (result.All(existing => existing.NormalizedValue != tag.Value.NormalizedValue))
+            {
+                result.Add(tag.Value);
+            }
+        }
+
+        return result;
+    }
+
+    private static Result<IngredientQuantityKind> ParseQuantityKind(string value) =>
+        Enum.TryParse(value, ignoreCase: true, out IngredientQuantityKind kind)
+            ? kind
+            : Result.Failure<IngredientQuantityKind>(AppError.Validation(
+                "Recipes.InvalidQuantityKind",
+                "Тип количества должен быть Exact, Approximate или ToTaste."));
+
+    private static Result<ProductCategory> ParseProductCategory(string value) =>
+        Enum.TryParse(value, ignoreCase: true, out ProductCategory category)
+            ? category
+            : Result.Failure<ProductCategory>(AppError.Validation(
+                "Recipes.InvalidProductCategory",
+                "Категория продукта указана в неизвестном формате."));
+
+    private static Result<MeasurementUnit> ParseMeasurementUnit(string value) =>
+        NormalizeUnit(value) is { } normalizedUnit
+            ? normalizedUnit
+            : Result.Failure<MeasurementUnit>(AppError.Validation(
+                "Recipes.InvalidMeasurementUnit",
+                "Единица измерения указана в неизвестном формате."));
+
+    private static MeasurementUnit? NormalizeUnit(string value)
+    {
+        string normalized = TextNormalizer.NormalizeSearchText(value);
+
+        return normalized switch
+        {
+            "Г" or "G" or "GRAM" or "GRAMS" or "GRAMM" or "GRAMMS" or "GRAMME" => MeasurementUnit.Gram,
+            "КГ" or "KG" or "KILOGRAM" or "KILOGRAMS" => MeasurementUnit.Kilogram,
+            "МЛ" or "ML" or "MILLILITER" or "MILLILITERS" => MeasurementUnit.Milliliter,
+            "Л" or "L" or "LITER" or "LITERS" => MeasurementUnit.Liter,
+            "ШТ" or "PIECE" or "PIECES" => MeasurementUnit.Piece,
+            "Ч. Л." or "Ч Л" or "TEASPOON" or "TEASPOONS" => MeasurementUnit.Teaspoon,
+            "СТ. Л." or "СТ Л" or "TABLESPOON" or "TABLESPOONS" => MeasurementUnit.Tablespoon,
+            "ЩЕПОТКА" or "PINCH" => MeasurementUnit.Pinch,
+            "УП" or "УП." or "PACK" or "PACKAGE" => MeasurementUnit.Pack,
+            "ПО ВКУСУ" or "TOTASTE" or "TO TASTE" => MeasurementUnit.ToTaste,
+            "UNKNOWN" or "НЕИЗВЕСТНО" => MeasurementUnit.Unknown,
+            _ => Enum.TryParse(value, ignoreCase: true, out MeasurementUnit unit) ? unit : null
+        };
+    }
+}
+
+internal sealed record RecipeDraft(
+    RecipeTitle Title,
+    string? Description,
+    Servings Servings,
+    Uri? SourceUrl,
+    IReadOnlyCollection<RecipeIngredient> Ingredients,
+    IReadOnlyCollection<PreparationStep> Steps,
+    IReadOnlyCollection<RecipeTag> Tags);

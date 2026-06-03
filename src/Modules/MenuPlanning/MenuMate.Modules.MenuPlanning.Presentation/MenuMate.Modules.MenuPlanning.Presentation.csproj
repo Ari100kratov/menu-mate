@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MenuMate.Common.Application\MenuMate.Common.Application.csproj" />
+    <ProjectReference Include="..\..\..\MenuMate.Common.Presentation\MenuMate.Common.Presentation.csproj" />
+    <ProjectReference Include="..\..\..\MenuMate.Contracts\MenuMate.Contracts.csproj" />
+    <ProjectReference Include="..\MenuMate.Modules.MenuPlanning.Application\MenuMate.Modules.MenuPlanning.Application.csproj" />
+  </ItemGroup>
+
+</Project>
