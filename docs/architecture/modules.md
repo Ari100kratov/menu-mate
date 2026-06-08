@@ -14,7 +14,7 @@
 
 ## Recipes
 
-Владеет рецептами, ингредиентами, шагами приготовления, флагом избранного, URL источника и snapshot тегов рецепта.
+Владеет рецептами, ссылками на продукты каталога, количеством ингредиентов, шагами приготовления, категорией блюда, временем, флагом избранного, URL источника и snapshot тегов рецепта.
 
 Сейчас реализовано:
 
@@ -26,6 +26,18 @@
 - Recipes CRUD API
 - масштабирование ингредиентов без изменения исходного рецепта
 - владение через `UserId`
+
+## Products
+
+Владеет общим каталогом продуктов для рецептов и списков покупок.
+
+Сейчас реализовано:
+
+- нормализованное уникальное название продукта;
+- категория продукта для группировки покупок;
+- поиск для автодополнения;
+- persistence в схеме `products`;
+- разрешение нового названия в существующий или новый продукт.
 
 ## Tags
 
@@ -69,7 +81,16 @@
 - ShoppingLists API;
 - генерация из плана меню через `MenuPlanId`;
 - ручное добавление, редактирование, удаление и отметки позиций;
+- связь позиций с общим каталогом продуктов;
+- объединение совместимых позиций по идентификатору продукта;
 - текстовая версия списка для копирования.
+
+## Cross-module recipe reuse
+
+- Recipes owns authorship, visibility, user library entries, immutable revisions, and copy lineage.
+- MenuPlanning stores both `RecipeId` and `RecipeRevisionId` for recipe-backed items.
+- ShoppingLists reads pinned revision ingredients and never reads mutable current recipe ingredients.
+- Recipe titles are presentation data and are intentionally not unique.
 
 ## Imports
 

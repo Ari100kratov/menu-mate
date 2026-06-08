@@ -45,6 +45,7 @@ public sealed record ShoppingListCategoryResponse(string Name, IReadOnlyCollecti
 /// Позиция списка покупок.
 /// </summary>
 /// <param name="Id">Идентификатор позиции.</param>
+/// <param name="ProductId">Идентификатор продукта общего каталога.</param>
 /// <param name="Name">Название продукта.</param>
 /// <param name="Amount">Числовое количество.</param>
 /// <param name="Unit">Единица измерения.</param>
@@ -56,6 +57,7 @@ public sealed record ShoppingListCategoryResponse(string Name, IReadOnlyCollecti
 /// <param name="IsInStock">Признак продукта, который уже есть дома.</param>
 public sealed record ShoppingListItemResponse(
     Guid Id,
+    Guid ProductId,
     string Name,
     decimal? Amount,
     string Unit,
@@ -78,6 +80,7 @@ public sealed record GenerateShoppingListRequest(
 /// <summary>
 /// Запрос на создание или обновление позиции списка покупок.
 /// </summary>
+/// <param name="ProductId">Идентификатор продукта общего каталога.</param>
 /// <param name="Name">Название продукта.</param>
 /// <param name="Amount">Числовое количество.</param>
 /// <param name="Unit">Единица измерения.</param>
@@ -85,6 +88,7 @@ public sealed record GenerateShoppingListRequest(
 /// <param name="Category">Категория продукта.</param>
 /// <param name="Comment">Комментарий.</param>
 public sealed record ShoppingListItemRequest(
+    Guid? ProductId,
     string Name,
     decimal? Amount,
     string Unit,

@@ -13,10 +13,8 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div className="space-y-1">
-        <h1 className="text-foreground text-2xl font-semibold tracking-normal md:text-3xl">
-          {title}
-        </h1>
-        <p className="text-muted-foreground max-w-2xl text-sm md:text-base">{description}</p>
+        <h1 className="type-page-title text-foreground">{title}</h1>
+        <p className="type-supporting text-muted-foreground max-w-2xl">{description}</p>
       </div>
       {action ? (
         <div className="flex w-full shrink-0 flex-wrap gap-2 md:w-auto">{action}</div>
@@ -40,8 +38,8 @@ export function EmptyState({ icon: Icon, title, description, action }: EmptyStat
           <Icon className="size-5" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold tracking-normal">{title}</h2>
-          <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>
+          <h2 className="type-section-title">{title}</h2>
+          <p className="type-supporting text-muted-foreground max-w-2xl">{description}</p>
           {action ? <div className="pt-2">{action}</div> : null}
         </div>
       </div>
@@ -68,8 +66,8 @@ export function PageSection({
       {title || description || action ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            {title ? <h2 className="text-lg font-semibold tracking-normal">{title}</h2> : null}
-            {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
+            {title ? <h2 className="type-section-title">{title}</h2> : null}
+            {description ? <p className="type-supporting text-muted-foreground">{description}</p> : null}
           </div>
           {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
         </div>

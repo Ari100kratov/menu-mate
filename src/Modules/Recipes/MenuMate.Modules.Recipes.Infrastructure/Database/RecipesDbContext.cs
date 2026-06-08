@@ -8,32 +8,47 @@ using Microsoft.EntityFrameworkCore;
 namespace MenuMate.Modules.Recipes.Infrastructure.Database;
 
 /// <summary>
-/// EF Core DbContext модуля Recipes.
+/// EF Core persistence and read projections for the Recipes module.
 /// </summary>
 public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
     : DbContext(options), IRecipesUnitOfWork, IRecipesReadDbContext
 {
     internal DbSet<RecipeRecord> Recipes => Set<RecipeRecord>();
-
     internal DbSet<RecipeImageRecord> RecipeImages => Set<RecipeImageRecord>();
+    internal DbSet<RecipeLibraryEntryRecord> RecipeLibraryEntries => Set<RecipeLibraryEntryRecord>();
+    internal DbSet<RecipeRevisionRecord> RecipeRevisions => Set<RecipeRevisionRecord>();
 
     /// <inheritdoc />
     public async Task<RecipeResponse?> GetRecipeAsync(
         Guid recipeId,
-        UserId ownerUserId,
+        UserId currentUserId,
         CancellationToken cancellationToken)
     {
-        RecipeDetailsProjection? recipeDetails = await Recipes
+        RecipeDetailsProjection? recipe = await Recipes
             .AsNoTracking()
-            .Where(recipe => recipe.Id == recipeId && recipe.OwnerUserId == ownerUserId && !recipe.IsDeleted)
-            .Select(recipe => new RecipeDetailsProjection(
-                recipe.Id,
-                recipe.Title,
-                recipe.Description,
-                recipe.Servings,
-                recipe.IsFavorite,
-                recipe.SourceUrl,
-                recipe.Images
+            .Where(item =>
+                item.Id == recipeId &&
+                !item.IsDeleted &&
+                (item.OwnerUserId == currentUserId ||
+                 item.Visibility == RecipeVisibility.Public))
+            .Select(item => new RecipeDetailsProjection(
+                item.Id,
+                item.CurrentRevisionId.Value,
+                item.RevisionNumber,
+                item.OwnerUserId == currentUserId,
+                item.LibraryEntries.Any(entry => entry.UserId == currentUserId),
+                item.SourceRecipeId,
+                item.SourceRevisionId.HasValue ? item.SourceRevisionId.Value.Value : null,
+                item.Title,
+                item.Description,
+                item.Servings,
+                item.Category,
+                item.Visibility,
+                item.TotalTimeMinutes,
+                item.ActiveTimeMinutes,
+                item.LibraryEntries.Any(entry => entry.UserId == currentUserId && entry.IsFavorite),
+                item.SourceUrl,
+                item.Images
                     .Where(image => !image.IsDeleted)
                     .OrderBy(image => image.Scope)
                     .ThenBy(image => image.StepNumber)
@@ -48,13 +63,11 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                         image.SizeBytes,
                         image.AltText))
                     .ToArray(),
-                recipe.Tags
-                    .OrderBy(tag => tag.Value)
-                    .Select(tag => tag.Value)
-                    .ToArray(),
-                recipe.Ingredients
+                item.Tags.OrderBy(tag => tag.Value).Select(tag => tag.Value).ToArray(),
+                item.Ingredients
                     .OrderBy(ingredient => ingredient.Order)
                     .Select(ingredient => new IngredientResponse(
+                        ingredient.IngredientId,
                         ingredient.ProductName,
                         ingredient.Amount,
                         ingredient.Unit.ToString(),
@@ -63,63 +76,63 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                         ingredient.QuantityKind.ToString(),
                         ingredient.Category.ToString()))
                     .ToArray(),
-                recipe.Steps
+                item.Steps
                     .OrderBy(step => step.Number)
                     .Select(step => new PreparationStepResponse(step.Number, step.Text))
                     .ToArray()))
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (recipeDetails is null)
+        if (recipe is null)
         {
             return null;
         }
 
-        Uri? sourceUrl = recipeDetails.SourceUrl is null
-            ? null
-            : new Uri(recipeDetails.SourceUrl, UriKind.Absolute);
-
         return new RecipeResponse(
-            recipeDetails.Id,
-            recipeDetails.Title,
-            recipeDetails.Description,
-            recipeDetails.Servings,
-            recipeDetails.IsFavorite,
-            sourceUrl,
-            recipeDetails.Tags,
-            recipeDetails.Images
-                .Select(image => new RecipeImageResponse(
-                    image.Id,
-                    image.Scope.ToString(),
-                    image.StepNumber,
-                    image.BucketName,
-                    image.ObjectKey,
-                    image.ContentType,
-                    image.SizeBytes,
-                    image.AltText,
-                    null))
-                .ToArray(),
-            recipeDetails.Ingredients,
-            recipeDetails.Steps);
+            recipe.Id,
+            recipe.CurrentRevisionId,
+            recipe.RevisionNumber,
+            recipe.IsOwnedByCurrentUser,
+            recipe.IsSaved,
+            recipe.SourceRecipeId,
+            recipe.SourceRevisionId,
+            recipe.Title,
+            recipe.Description,
+            recipe.Servings,
+            recipe.Category.ToString(),
+            recipe.Visibility.ToString(),
+            recipe.TotalTimeMinutes,
+            recipe.ActiveTimeMinutes,
+            recipe.IsFavorite,
+            recipe.SourceUrl is null ? null : new Uri(recipe.SourceUrl, UriKind.Absolute),
+            recipe.Tags,
+            recipe.Images.Select(ToResponse).ToArray(),
+            recipe.Ingredients,
+            recipe.Steps);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyCollection<RecipeListItemResponse>> GetRecipesAsync(
-        UserId ownerUserId,
+        UserId currentUserId,
+        bool catalog,
         string? search,
         string? normalizedTag,
         bool favoritesOnly,
         CancellationToken cancellationToken)
     {
-        IQueryable<RecipeRecord> query = Recipes
-            .AsNoTracking()
-            .Where(recipe => recipe.OwnerUserId == ownerUserId && !recipe.IsDeleted);
+        IQueryable<RecipeRecord> query = Recipes.AsNoTracking().Where(recipe => !recipe.IsDeleted);
+        query = catalog
+            ? query.Where(recipe => recipe.Visibility == RecipeVisibility.Public)
+            : query.Where(recipe =>
+                recipe.OwnerUserId == currentUserId ||
+                recipe.Visibility == RecipeVisibility.Public &&
+                recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId));
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            string searchPattern = $"%{search.Trim()}%";
+            string pattern = $"%{search.Trim()}%";
             query = query.Where(recipe =>
-                EF.Functions.ILike(recipe.Title, searchPattern) ||
-                recipe.Description != null && EF.Functions.ILike(recipe.Description, searchPattern));
+                EF.Functions.ILike(recipe.Title, pattern) ||
+                recipe.Description != null && EF.Functions.ILike(recipe.Description, pattern));
         }
 
         if (!string.IsNullOrWhiteSpace(normalizedTag))
@@ -129,21 +142,27 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
 
         if (favoritesOnly)
         {
-            query = query.Where(recipe => recipe.IsFavorite);
+            query = query.Where(recipe =>
+                recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId && entry.IsFavorite));
         }
 
         RecipeListItemProjection[] recipes = await query
             .OrderBy(recipe => recipe.Title)
             .Select(recipe => new RecipeListItemProjection(
                 recipe.Id,
+                recipe.CurrentRevisionId.Value,
+                recipe.RevisionNumber,
+                recipe.OwnerUserId == currentUserId,
+                recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId),
                 recipe.Title,
                 recipe.Description,
                 recipe.Servings,
-                recipe.IsFavorite,
-                recipe.Tags
-                    .OrderBy(tag => tag.Value)
-                    .Select(tag => tag.Value)
-                    .ToArray(),
+                recipe.Category,
+                recipe.Visibility,
+                recipe.TotalTimeMinutes,
+                recipe.ActiveTimeMinutes,
+                recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId && entry.IsFavorite),
+                recipe.Tags.OrderBy(tag => tag.Value).Select(tag => tag.Value).ToArray(),
                 recipe.Images
                     .Where(image => !image.IsDeleted && image.Scope == RecipeImageScope.Cover)
                     .OrderByDescending(image => image.CreatedAt)
@@ -159,43 +178,59 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                     .FirstOrDefault()))
             .ToArrayAsync(cancellationToken);
 
-        return recipes
-            .Select(recipe => new RecipeListItemResponse(
-                recipe.Id,
-                recipe.Title,
-                recipe.Description,
-                recipe.Servings,
-                recipe.IsFavorite,
-                recipe.Tags,
-                recipe.CoverImage is null
-                    ? null
-                    : new RecipeImageResponse(
-                        recipe.CoverImage.Id,
-                        recipe.CoverImage.Scope.ToString(),
-                        recipe.CoverImage.StepNumber,
-                        recipe.CoverImage.BucketName,
-                        recipe.CoverImage.ObjectKey,
-                        recipe.CoverImage.ContentType,
-                        recipe.CoverImage.SizeBytes,
-                        recipe.CoverImage.AltText,
-                        null)))
-            .ToArray();
+        return recipes.Select(recipe => new RecipeListItemResponse(
+            recipe.Id,
+            recipe.CurrentRevisionId,
+            recipe.RevisionNumber,
+            recipe.IsOwnedByCurrentUser,
+            recipe.IsSaved,
+            recipe.Title,
+            recipe.Description,
+            recipe.Servings,
+            recipe.Category.ToString(),
+            recipe.Visibility.ToString(),
+            recipe.TotalTimeMinutes,
+            recipe.ActiveTimeMinutes,
+            recipe.IsFavorite,
+            recipe.Tags,
+            recipe.CoverImage is null ? null : ToResponse(recipe.CoverImage))).ToArray();
     }
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-
         modelBuilder.HasDefaultSchema(RecipesSchema.Name);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(RecipesDbContext).Assembly);
     }
 
+    private static RecipeImageResponse ToResponse(RecipeImageProjection image) =>
+        new(
+            image.Id,
+            image.Scope.ToString(),
+            image.StepNumber,
+            image.BucketName,
+            image.ObjectKey,
+            image.ContentType,
+            image.SizeBytes,
+            image.AltText,
+            null);
+
     private sealed record RecipeDetailsProjection(
         Guid Id,
+        Guid CurrentRevisionId,
+        int RevisionNumber,
+        bool IsOwnedByCurrentUser,
+        bool IsSaved,
+        Guid? SourceRecipeId,
+        Guid? SourceRevisionId,
         string Title,
         string? Description,
         int Servings,
+        RecipeCategory Category,
+        RecipeVisibility Visibility,
+        int? TotalTimeMinutes,
+        int? ActiveTimeMinutes,
         bool IsFavorite,
         string? SourceUrl,
         IReadOnlyCollection<RecipeImageProjection> Images,
@@ -205,9 +240,17 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
 
     private sealed record RecipeListItemProjection(
         Guid Id,
+        Guid CurrentRevisionId,
+        int RevisionNumber,
+        bool IsOwnedByCurrentUser,
+        bool IsSaved,
         string Title,
         string? Description,
         int Servings,
+        RecipeCategory Category,
+        RecipeVisibility Visibility,
+        int? TotalTimeMinutes,
+        int? ActiveTimeMinutes,
         bool IsFavorite,
         IReadOnlyCollection<string> Tags,
         RecipeImageProjection? CoverImage);

@@ -1,3 +1,5 @@
+#pragma warning disable CS1573
+
 namespace MenuMate.Contracts.MenuPlanning;
 
 /// <summary>
@@ -31,6 +33,7 @@ public sealed record MenuPlanItemResponse(
     DateOnly Date,
     string MealType,
     Guid? RecipeId,
+    Guid? RecipeRevisionId,
     string? RecipeTitle,
     string? Text,
     int Servings,
@@ -66,6 +69,7 @@ public sealed record CreateMenuPlanItemRequest(
     DateOnly Date,
     string MealType,
     Guid? RecipeId,
+    Guid? RecipeRevisionId,
     string? RecipeTitle,
     string? Text,
     int Servings,
@@ -85,6 +89,7 @@ public sealed record UpdateMenuPlanItemRequest(
     DateOnly Date,
     string MealType,
     Guid? RecipeId,
+    Guid? RecipeRevisionId,
     string? RecipeTitle,
     string? Text,
     int Servings,

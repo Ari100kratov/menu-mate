@@ -35,6 +35,7 @@ public static class MenuPlanningInfrastructureDependencyInjection
         services.AddScoped<IMenuPlansRepository, EfMenuPlansRepository>();
         services.AddScoped<IMenuPlansUnitOfWork>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
         services.AddScoped<IMenuPlansReadDbContext>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
+        services.AddScoped<IRecipeRevisionAccessReader, RecipeRevisionAccessReader>();
 
         return services;
     }

@@ -1,6 +1,8 @@
-import { ArrowLeft } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { toast } from "sonner"
 
+import { uploadRecipeImage } from "@/features/recipes/api/recipes.api"
 import { useCreateRecipeMutation } from "@/features/recipes/api/recipes.queries"
 import {
   createEmptyRecipeFormValues,
@@ -8,42 +10,46 @@ import {
   type RecipeFormValues,
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
-import { Button } from "@/shared/ui/button"
-import { PageHeader } from "@/shared/ui/page"
 
 export default function RecipeCreatePage() {
   const navigate = useNavigate()
   const createRecipeMutation = useCreateRecipeMutation()
+  const [coverError, setCoverError] = useState<unknown>()
 
-  function handleSubmit(values: RecipeFormValues) {
+  function handleSubmit(values: RecipeFormValues, coverFile: File | null) {
+    setCoverError(undefined)
     createRecipeMutation.mutate(toRecipeRequest(values), {
       onSuccess: (recipe) => {
-        void navigate(`/recipes/${recipe.id}/edit`, { replace: true })
+        void uploadCoverAndNavigate(recipe.id, values.title, coverFile)
       },
     })
   }
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Новый рецепт"
-        description="Сохраните рецепт с ингредиентами, шагами и тегами."
-        action={
-          <Button asChild variant="outline">
-            <Link to="/recipes">
-              <ArrowLeft />К списку
-            </Link>
-          </Button>
-        }
-      />
+  async function uploadCoverAndNavigate(recipeId: string, title: string, coverFile: File | null) {
+    try {
+      if (coverFile) {
+        await uploadRecipeImage(recipeId, {
+          file: coverFile,
+          scope: "Cover",
+          altText: title,
+        })
+      }
+      toast.success("Рецепт создан")
+      void navigate(`/recipes/${recipeId}`, { replace: true })
+    } catch (error) {
+      setCoverError(error)
+      toast.warning("Рецепт создан, но обложку загрузить не удалось")
+      void navigate(`/recipes/${recipeId}/edit`, { replace: true })
+    }
+  }
 
-      <RecipeForm
-        initialValues={createEmptyRecipeFormValues()}
-        submitLabel="Создать рецепт"
-        isSubmitting={createRecipeMutation.isPending}
-        error={createRecipeMutation.error}
-        onSubmit={handleSubmit}
-      />
-    </div>
+  return (
+    <RecipeForm
+      initialValues={createEmptyRecipeFormValues()}
+      submitLabel="Создать рецепт"
+      isSubmitting={createRecipeMutation.isPending}
+      error={createRecipeMutation.error ?? coverError}
+      onSubmit={handleSubmit}
+    />
   )
 }

@@ -13,6 +13,8 @@ internal sealed class RecipeIngredientRecord
 
     public int Order { get; set; }
 
+    public Guid IngredientId { get; set; }
+
     public string ProductName { get; set; } = string.Empty;
 
     public string NormalizedProductName { get; set; } = string.Empty;
@@ -33,6 +35,8 @@ internal sealed class RecipeIngredientRecord
         new()
         {
             Order = index,
+            IngredientId = ingredient.IngredientId ?? throw new InvalidOperationException(
+                "Recipe ingredient must reference a catalog product before persistence."),
             ProductName = ingredient.Name.Value,
             NormalizedProductName = ingredient.Name.NormalizedValue,
             Amount = ingredient.Quantity.Amount,
@@ -63,6 +67,6 @@ internal sealed class RecipeIngredientRecord
             throw new DomainException(quantity.Error);
         }
 
-        return new RecipeIngredient(name.Value, quantity.Value, Category, Comment, IsOptional);
+        return new RecipeIngredient(IngredientId, name.Value, quantity.Value, Category, Comment, IsOptional);
     }
 }

@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/register": {
         parameters: {
             query?: never;
@@ -191,6 +207,38 @@ export interface paths {
         put?: never;
         post: operations["MarkRecipeAsFavorite"];
         delete: operations["UnmarkRecipeAsFavorite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recipes/{recipeId}/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SaveRecipeToLibrary"];
+        delete: operations["RemoveRecipeFromLibrary"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recipes/{recipeId}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CopyRecipe"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -438,6 +486,8 @@ export interface components {
              * @description Идентификатор рецепта для пункта на основе рецепта.
              */
             recipeId: null | string;
+            /** Format: uuid */
+            recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
             /** @description Свободный текст для пункта без рецепта. */
@@ -476,6 +526,19 @@ export interface components {
              * @description Количество персон в исходном рецепте.
              */
             servings: number | string;
+            /** @description Основная категория блюда. */
+            category: string;
+            visibility: string;
+            /**
+             * Format: int32
+             * @description Общее время приготовления в минутах.
+             */
+            totalTimeMinutes: null | number | string;
+            /**
+             * Format: int32
+             * @description Активное время приготовления в минутах.
+             */
+            activeTimeMinutes: null | number | string;
             /**
              * Format: uri
              * @description URL источника рецепта.
@@ -509,6 +572,11 @@ export interface components {
         IFormFile: string;
         /** @description Ингредиент рецепта во внешнем контракте. */
         IngredientResponse: {
+            /**
+             * Format: uuid
+             * @description Идентификатор продукта общего каталога.
+             */
+            ingredientId: null | string;
             /** @description Название продукта. */
             productName: string;
             /**
@@ -553,6 +621,8 @@ export interface components {
              * @description Идентификатор рецепта для пункта на основе рецепта.
              */
             recipeId: null | string;
+            /** Format: uuid */
+            recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
             /** @description Свободный текст для пункта без рецепта. */
@@ -614,6 +684,13 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        /** @description Продукт из общего каталога. */
+        ProductResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            category: string;
+        };
         /** @description Изображение, привязанное к рецепту или его части. */
         RecipeImageResponse: {
             /**
@@ -649,6 +726,11 @@ export interface components {
         };
         /** @description Ингредиент рецепта во входящем API-запросе. */
         RecipeIngredientRequest: {
+            /**
+             * Format: uuid
+             * @description Идентификатор продукта общего каталога.
+             */
+            ingredientId: null | string;
             /** @description Название продукта. */
             productName: string;
             /**
@@ -674,6 +756,12 @@ export interface components {
              * @description Идентификатор рецепта.
              */
             id: string;
+            /** Format: uuid */
+            currentRevisionId: string;
+            /** Format: int32 */
+            revisionNumber: number | string;
+            isOwnedByCurrentUser: boolean;
+            isSaved: boolean;
             /** @description Название блюда. */
             title: string;
             /** @description Краткое описание. */
@@ -683,6 +771,14 @@ export interface components {
              * @description Количество персон в исходном рецепте.
              */
             servings: number | string;
+            /** @description Основная категория блюда. */
+            category: string;
+            visibility: string;
+            /**
+             * Format: int32
+             * @description Общее время приготовления в минутах.
+             */
+            totalTimeMinutes: null | number | string;
             /** @description Признак избранного рецепта. */
             isFavorite: boolean;
             /** @description Теги рецепта. */
@@ -696,6 +792,16 @@ export interface components {
              * @description Идентификатор рецепта.
              */
             id: string;
+            /** Format: uuid */
+            currentRevisionId: string;
+            /** Format: int32 */
+            revisionNumber: number | string;
+            isOwnedByCurrentUser: boolean;
+            isSaved: boolean;
+            /** Format: uuid */
+            sourceRecipeId: null | string;
+            /** Format: uuid */
+            sourceRevisionId: null | string;
             /** @description Название блюда. */
             title: string;
             /** @description Краткое описание. */
@@ -705,6 +811,19 @@ export interface components {
              * @description Количество персон в исходном рецепте.
              */
             servings: number | string;
+            /** @description Основная категория блюда. */
+            category: string;
+            visibility: string;
+            /**
+             * Format: int32
+             * @description Общее время приготовления в минутах.
+             */
+            totalTimeMinutes: null | number | string;
+            /**
+             * Format: int32
+             * @description Активное время приготовления в минутах.
+             */
+            activeTimeMinutes: null | number | string;
             /** @description Признак избранного рецепта. */
             isFavorite: boolean;
             /**
@@ -746,6 +865,11 @@ export interface components {
         };
         /** @description Запрос на создание или обновление позиции списка покупок. */
         ShoppingListItemRequest: {
+            /**
+             * Format: uuid
+             * @description Идентификатор продукта общего каталога.
+             */
+            productId: null | string;
             /** @description Название продукта. */
             name: string;
             /**
@@ -769,6 +893,11 @@ export interface components {
              * @description Идентификатор позиции.
              */
             id: string;
+            /**
+             * Format: uuid
+             * @description Идентификатор продукта общего каталога.
+             */
+            productId: string;
             /** @description Название продукта. */
             name: string;
             /**
@@ -913,6 +1042,8 @@ export interface components {
              * @description Идентификатор рецепта для пункта на основе рецепта.
              */
             recipeId: null | string;
+            /** Format: uuid */
+            recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
             /** @description Свободный текст для пункта без рецепта. */
@@ -951,6 +1082,19 @@ export interface components {
              * @description Количество персон в исходном рецепте.
              */
             servings: number | string;
+            /** @description Основная категория блюда. */
+            category: string;
+            visibility: string;
+            /**
+             * Format: int32
+             * @description Общее время приготовления в минутах.
+             */
+            totalTimeMinutes: null | number | string;
+            /**
+             * Format: int32
+             * @description Активное время приготовления в минутах.
+             */
+            activeTimeMinutes: null | number | string;
             /**
              * Format: uri
              * @description URL источника рецепта.
@@ -1059,6 +1203,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ModuleResponse"][];
                 };
+            };
+        };
+    };
+    GetProducts: {
+        parameters: {
+            query?: {
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1234,6 +1414,7 @@ export interface operations {
     GetRecipes: {
         parameters: {
             query: {
+                scope?: string;
                 search?: string;
                 tag?: string;
                 favoritesOnly: boolean;
@@ -1526,6 +1707,143 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveRecipeToLibrary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveRecipeFromLibrary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CopyRecipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recipeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {

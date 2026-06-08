@@ -11,7 +11,8 @@ internal sealed class UpdateShoppingListItemCommandHandler(
     IShoppingListsReadDbContext readDbContext,
     IShoppingListsUnitOfWork unitOfWork,
     IUserContext userContext,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    ShoppingProductResolver productResolver)
     : ICommandHandler<UpdateShoppingListItemCommand, ShoppingListResponse>
 {
     public async Task<Result<ShoppingListResponse>> Handle(
@@ -29,7 +30,10 @@ internal sealed class UpdateShoppingListItemCommandHandler(
             return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.AccessDenied);
         }
 
-        Result<SavedShoppingListItem> item = ShoppingListItemRequestMapper.Map(command.ItemId, command.Request);
+        Result<SavedShoppingListItem> item = await productResolver.ResolveAsync(
+            command.ItemId,
+            command.Request,
+            cancellationToken);
         if (item.IsFailure)
         {
             return Result.Failure<ShoppingListResponse>(item.Error);

@@ -21,8 +21,11 @@ internal sealed class GetRecipesQueryHandler(
             ? null
             : TextNormalizer.NormalizeSearchText(query.Tag);
 
+        bool catalog = string.Equals(query.Scope, "catalog", StringComparison.OrdinalIgnoreCase);
+
         IReadOnlyCollection<RecipeListItemResponse> recipes = await dbContext.GetRecipesAsync(
             userContext.UserId,
+            catalog,
             query.Search,
             normalizedTag,
             query.FavoritesOnly,

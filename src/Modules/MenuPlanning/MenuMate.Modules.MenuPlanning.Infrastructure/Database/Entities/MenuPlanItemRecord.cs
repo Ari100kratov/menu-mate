@@ -20,6 +20,8 @@ internal sealed class MenuPlanItemRecord
 
     public RecipeId? RecipeId { get; set; }
 
+    public RecipeRevisionId? RecipeRevisionId { get; set; }
+
     public string? RecipeTitle { get; set; }
 
     public string? Text { get; set; }
@@ -34,6 +36,7 @@ internal sealed class MenuPlanItemRecord
             MealType = item.MealType,
             Servings = item.Servings.Value,
             RecipeId = item.RecipeId,
+            RecipeRevisionId = item.RecipeRevisionId,
             RecipeTitle = item.RecipeTitle,
             Text = item.Text,
             Comment = item.Comment
@@ -53,6 +56,7 @@ internal sealed class MenuPlanItemRecord
             MealType,
             servings.Value,
             RecipeId,
+            RecipeRevisionId,
             RecipeTitle,
             Text,
             Comment);

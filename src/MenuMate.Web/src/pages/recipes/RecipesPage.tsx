@@ -2,89 +2,76 @@ import { Plus } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
-import { getTagOptions } from "@/features/recipes/model/recipe-list-filters"
+import { useRecipesQuery, useSetRecipeFavoriteMutation } from "@/features/recipes/api/recipes.queries"
 import { RecipeCard } from "@/features/recipes/ui/RecipeCard"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
-import {
-  useDeleteRecipeMutation,
-  useRecipesQuery,
-  useSetRecipeFavoriteMutation,
-} from "@/features/recipes/api/recipes.queries"
-import { useTagsQuery } from "@/features/tags/api/tags.queries"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { EmptyState, PageHeader } from "@/shared/ui/page"
+import { EmptyState } from "@/shared/ui/page"
 
 export default function RecipesPage() {
   const [search, setSearch] = useState("")
-  const [tag, setTag] = useState("")
+  const [scope, setScope] = useState<"library" | "catalog">("library")
+  const [category, setCategory] = useState("")
   const [favoritesOnly, setFavoritesOnly] = useState(false)
-  const recipesQuery = useRecipesQuery({ search, tag, favoritesOnly })
-  const tagsQuery = useTagsQuery({ search: "", includeHidden: false })
-  const deleteRecipeMutation = useDeleteRecipeMutation()
+  const recipesQuery = useRecipesQuery({ scope, search, favoritesOnly })
   const favoriteMutation = useSetRecipeFavoriteMutation()
-  const tagOptions = useMemo(() => getTagOptions(tagsQuery.data ?? [], tag), [tag, tagsQuery.data])
+  const recipes = useMemo(
+    () =>
+      category
+        ? (recipesQuery.data ?? []).filter((recipe) => recipe.category === category)
+        : (recipesQuery.data ?? []),
+    [category, recipesQuery.data],
+  )
 
   function resetFilters() {
     setSearch("")
-    setTag("")
+    setCategory("")
     setFavoritesOnly(false)
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Рецепты"
-        description="Рабочий список рецептов с быстрым поиском, избранным и переходом к редактированию."
-        action={
-          <Button asChild>
-            <Link to="/recipes/new">
-              <Plus />
-              Добавить
-            </Link>
-          </Button>
-        }
-      />
+    <div className="space-y-5">
+      <div className="hidden justify-end sm:flex">
+        <Button asChild>
+          <Link to="/recipes/new">
+            <Plus />
+            Добавить
+          </Link>
+        </Button>
+      </div>
 
       <RecipeFiltersSection
+        scope={scope}
         search={search}
-        tag={tag}
-        tagOptions={tagOptions}
+        category={category}
         favoritesOnly={favoritesOnly}
-        recipesCount={recipesQuery.data?.length}
+        recipesCount={recipesQuery.data ? recipes.length : undefined}
+        onScopeChange={setScope}
         onSearchChange={setSearch}
-        onTagChange={setTag}
+        onCategoryChange={setCategory}
         onFavoritesOnlyChange={setFavoritesOnly}
         onReset={resetFilters}
       />
 
       {recipesQuery.error ? <ErrorAlert error={recipesQuery.error} /> : null}
-      {tagsQuery.error ? <ErrorAlert error={tagsQuery.error} /> : null}
-      {deleteRecipeMutation.error ? <ErrorAlert error={deleteRecipeMutation.error} /> : null}
       {favoriteMutation.error ? <ErrorAlert error={favoriteMutation.error} /> : null}
 
       {recipesQuery.isPending ? (
         <PageSkeleton />
-      ) : recipesQuery.data && recipesQuery.data.length > 0 ? (
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {recipesQuery.data.map((recipe) => (
+      ) : recipes.length > 0 ? (
+        <section className="grid gap-3 lg:grid-cols-2">
+          {recipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
-              isMutationPending={deleteRecipeMutation.isPending || favoriteMutation.isPending}
-              activeTag={tag}
-              onDelete={() => {
-                if (window.confirm(`Удалить рецепт «${recipe.title}»?`)) {
-                  deleteRecipeMutation.mutate(recipe.id)
-                }
-              }}
+              isFavoritePending={favoriteMutation.isPending}
               onToggleFavorite={() => {
                 favoriteMutation.mutate({
                   recipeId: recipe.id,
                   isFavorite: !recipe.isFavorite,
                 })
               }}
-              onSelectTag={setTag}
             />
           ))}
         </section>
@@ -103,6 +90,16 @@ export default function RecipesPage() {
           }
         />
       )}
+
+      <Button
+        asChild
+        size="icon-lg"
+        className="fixed right-4 bottom-20 z-30 rounded-full shadow-lg sm:hidden"
+      >
+        <Link to="/recipes/new" aria-label="Добавить рецепт">
+          <Plus />
+        </Link>
+      </Button>
     </div>
   )
 }

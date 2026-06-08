@@ -9,7 +9,8 @@ internal sealed class UpdateRecipeCommandHandler(
     IRecipesRepository repository,
     IRecipesUnitOfWork unitOfWork,
     IUserContext userContext,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    RecipeProductResolver productResolver)
     : ICommandHandler<UpdateRecipeCommand>
 {
     public async Task<Result> Handle(UpdateRecipeCommand command, CancellationToken cancellationToken)
@@ -32,10 +33,28 @@ internal sealed class UpdateRecipeCommandHandler(
         }
 
         DateTimeOffset now = timeProvider.GetUtcNow();
-        recipe.UpdateDetails(draft.Value.Title, draft.Value.Servings, draft.Value.Description, draft.Value.SourceUrl, now);
-        recipe.ReplaceIngredients(draft.Value.Ingredients, now);
+        Result<IReadOnlyCollection<RecipeIngredient>> ingredients = await productResolver.ResolveAsync(
+            draft.Value.Ingredients,
+            cancellationToken);
+        if (ingredients.IsFailure)
+        {
+            return Result.Failure(ingredients.Error);
+        }
+
+        recipe.UpdateDetails(
+            draft.Value.Title,
+            draft.Value.Servings,
+            draft.Value.Category,
+            draft.Value.Visibility,
+            draft.Value.TotalTimeMinutes,
+            draft.Value.ActiveTimeMinutes,
+            draft.Value.Description,
+            draft.Value.SourceUrl,
+            now);
+        recipe.ReplaceIngredients(ingredients.Value, now);
         recipe.ReplaceSteps(draft.Value.Steps, now);
         recipe.ReplaceTags(draft.Value.Tags, now);
+        recipe.PublishRevision(now);
 
         await repository.UpdateAsync(recipe, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

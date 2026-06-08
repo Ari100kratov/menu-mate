@@ -26,7 +26,8 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
 
         RecipeResponse recipe = await CreateRecipeAsync(httpClient);
         MenuPlanResponse menuPlan = await CreateMenuPlanAsync(httpClient);
-        await AddRecipeToMenuPlanAsync(httpClient, menuPlan.Id, recipe.Id);
+        await AddRecipeToMenuPlanAsync(httpClient, menuPlan.Id, recipe.Id, recipe.CurrentRevisionId);
+        await UpdateRecipeAfterPlanningAsync(httpClient, recipe.Id);
 
         ShoppingListResponse shoppingList = await GenerateShoppingListAsync(httpClient, menuPlan.Id);
 
@@ -80,9 +81,14 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
                 "Rice bowl",
                 null,
                 2,
+                "MainCourse",
+                "Private",
+                30,
+                10,
                 null,
                 [
                     new RecipeIngredientRequest(
+                        null,
                         "Rice",
                         0.5m,
                         "Kilogram",
@@ -117,7 +123,41 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         return menuPlan;
     }
 
-    private static async Task AddRecipeToMenuPlanAsync(HttpClient client, Guid menuPlanId, Guid recipeId)
+    private static async Task UpdateRecipeAfterPlanningAsync(HttpClient client, Guid recipeId)
+    {
+        HttpResponseMessage response = await client.PutAsJsonAsync(
+            $"/api/recipes/{recipeId}",
+            new UpdateRecipeRequest(
+                "Rice bowl updated",
+                null,
+                2,
+                "MainCourse",
+                "Private",
+                30,
+                10,
+                null,
+                [
+                    new RecipeIngredientRequest(
+                        null,
+                        "Beans",
+                        1m,
+                        "Kilogram",
+                        "Exact",
+                        "Grocery",
+                        null,
+                        false)
+                ],
+                [new PreparationStepRequest("Cook beans")],
+                []));
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private static async Task AddRecipeToMenuPlanAsync(
+        HttpClient client,
+        Guid menuPlanId,
+        Guid recipeId,
+        Guid recipeRevisionId)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync(
             $"/api/menu-plans/{menuPlanId}/items",
@@ -125,6 +165,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
                 new DateOnly(2026, 6, 1),
                 "Dinner",
                 recipeId,
+                recipeRevisionId,
                 "Rice bowl",
                 null,
                 4,
@@ -151,6 +192,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         HttpResponseMessage response = await client.PostAsJsonAsync(
             $"/api/shopping-lists/{shoppingListId}/items",
             new ShoppingListItemRequest(
+                null,
                 "Milk",
                 1m,
                 "Liter",
@@ -176,6 +218,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         HttpResponseMessage response = await client.PutAsJsonAsync(
             $"/api/shopping-lists/{shoppingListId}/items/{itemId}",
             new ShoppingListItemRequest(
+                null,
                 "Oat milk",
                 2m,
                 "Liter",

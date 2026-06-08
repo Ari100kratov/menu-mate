@@ -4,6 +4,7 @@ import { z } from "zod"
 
 export interface AddRecipeToMenuRecipe {
   id: string
+  currentRevisionId: string
   title: string
   servings: number | string
 }
@@ -52,6 +53,7 @@ export function toAddRecipeMenuItemRequest(
     date: values.date,
     mealType: values.mealType,
     recipeId: recipe.id,
+    recipeRevisionId: recipe.currentRevisionId,
     recipeTitle: recipe.title,
     text: null,
     servings: Number(values.servings),

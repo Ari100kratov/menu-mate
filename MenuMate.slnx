@@ -62,6 +62,10 @@
     <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Infrastructure/MenuMate.Modules.MenuPlanning.Infrastructure.csproj" />
     <Project Path="src/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Presentation/MenuMate.Modules.MenuPlanning.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Products/">
+    <Project Path="src/Modules/Products/MenuMate.Modules.Products.Infrastructure/MenuMate.Modules.Products.Infrastructure.csproj" />
+    <Project Path="src/Modules/Products/MenuMate.Modules.Products.Presentation/MenuMate.Modules.Products.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Recipes/">
     <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Application/MenuMate.Modules.Recipes.Application.csproj" />
     <Project Path="src/Modules/Recipes/MenuMate.Modules.Recipes.Domain/MenuMate.Modules.Recipes.Domain.csproj" />

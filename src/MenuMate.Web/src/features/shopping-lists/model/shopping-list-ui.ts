@@ -8,6 +8,7 @@ import { z } from "zod"
 const positiveDecimalPattern = /^(?:\d+(?:[,.]\d+)?|[,.]\d+)$/
 
 export interface ShoppingItemFormValues {
+  productId: string
   name: string
   amount: string
   unit: string
@@ -23,6 +24,7 @@ export interface ShoppingItemDefaults {
 
 export const shoppingItemFormSchema = z
   .object({
+    productId: z.string().trim(),
     name: z
       .string()
       .trim()
@@ -53,6 +55,7 @@ export function getDefaultShoppingItemFormValues(
   defaults: ShoppingItemDefaults = {},
 ): ShoppingItemFormValues {
   return {
+    productId: "",
     name: "",
     amount: "",
     unit: defaults.unit ?? defaultShoppingUnit,
@@ -64,6 +67,7 @@ export function getDefaultShoppingItemFormValues(
 
 export function toShoppingListItemFormValues(item: ShoppingListItem): ShoppingItemFormValues {
   return {
+    productId: item.productId,
     name: item.name,
     amount: item.amount === null ? "" : String(item.amount),
     unit: item.unit,
@@ -77,6 +81,7 @@ export function toShoppingListItemRequest(values: ShoppingItemFormValues): Shopp
   const amountText = values.amount.trim()
 
   return {
+    productId: normalizeOptionalText(values.productId),
     name: values.name.trim(),
     amount: amountText.length > 0 ? parseDecimalInput(amountText) : null,
     unit: values.unit,

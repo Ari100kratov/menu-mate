@@ -1,17 +1,25 @@
+import { Save } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
+
 import type { RecipeFormValues } from "@/features/recipes/model/recipe-form"
+import { RecipeAdditionalFields } from "@/features/recipes/ui/RecipeAdditionalFields"
+import { RecipeCoverPicker } from "@/features/recipes/ui/RecipeCoverPicker"
 import { RecipeIngredientsFields } from "@/features/recipes/ui/RecipeIngredientsFields"
 import { RecipeMainFields } from "@/features/recipes/ui/RecipeMainFields"
 import { RecipeStepsFields } from "@/features/recipes/ui/RecipeStepsFields"
 import { useRecipeForm } from "@/features/recipes/ui/useRecipeForm"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
+import { getApiErrorMessages } from "@/shared/api/errors"
 
 interface RecipeFormProps {
   initialValues: RecipeFormValues
   submitLabel: string
   isSubmitting: boolean
   error?: unknown
-  onSubmit: (values: RecipeFormValues) => void
+  coverImageUrl?: string
+  onSubmit: (values: RecipeFormValues, coverFile: File | null) => void
 }
 
 export function RecipeForm({
@@ -19,28 +27,83 @@ export function RecipeForm({
   submitLabel,
   isSubmitting,
   error,
+  coverImageUrl,
   onSubmit,
 }: RecipeFormProps) {
-  const form = useRecipeForm({ initialValues, onSubmit })
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const formElementRef = useRef<HTMLFormElement>(null)
+  const form = useRecipeForm({
+    initialValues,
+    onSubmit: (values) => {
+      onSubmit(values, coverFile)
+    },
+  })
+
+  useEffect(() => {
+    if (!error) {
+      return
+    }
+
+    toast.error(getApiErrorMessages(error)[0] ?? "Не удалось сохранить рецепт.")
+  }, [error])
+
+  async function handleSubmit() {
+    await form.handleSubmit()
+
+    if (form.state.isValid) {
+      setShowValidationErrors(false)
+      return
+    }
+
+    setShowValidationErrors(true)
+    toast.error("Проверьте заполнение формы", {
+      description: "Мы выделили поля, которые нужно заполнить.",
+    })
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const invalidElement = formElementRef.current?.querySelector<HTMLElement>(
+          '[aria-invalid="true"], [data-invalid="true"]',
+        )
+
+        invalidElement?.scrollIntoView({ behavior: "smooth", block: "center" })
+        const focusTarget = invalidElement?.matches("input, textarea, button, [tabindex]")
+          ? invalidElement
+          : invalidElement?.querySelector<HTMLElement>("input, textarea, button, [tabindex]")
+        focusTarget?.focus({ preventScroll: true })
+      })
+    })
+  }
 
   return (
     <form
-      className="space-y-8"
+      ref={formElementRef}
+      className="mx-auto -mb-4 max-w-3xl md:mb-0"
       noValidate
       onSubmit={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        void form.handleSubmit()
+        void handleSubmit()
       }}
     >
-      {error ? <ErrorAlert error={error} /> : null}
+      {error ? <div className="mb-4"><ErrorAlert error={error} /></div> : null}
 
-      <RecipeMainFields form={form} />
-      <RecipeIngredientsFields form={form} />
-      <RecipeStepsFields form={form} />
+      <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
+        <RecipeCoverPicker
+          existingImageUrl={coverImageUrl}
+          file={coverFile}
+          onFileChange={setCoverFile}
+        />
+        <RecipeMainFields form={form} />
+        <RecipeIngredientsFields form={form} showValidationErrors={showValidationErrors} />
+        <RecipeStepsFields form={form} />
+        <RecipeAdditionalFields form={form} />
+      </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-        <Button type="submit" disabled={isSubmitting}>
+      <div className="bg-background/95 sticky bottom-18 z-30 -mx-4 mt-3 border-y px-4 py-2.5 backdrop-blur md:bottom-0 md:mx-0 md:mt-4 md:flex md:justify-end md:rounded-xl md:border md:p-3">
+        <Button type="submit" className="h-11 w-full md:w-auto" disabled={isSubmitting}>
+          <Save />
           {isSubmitting ? "Сохраняем..." : submitLabel}
         </Button>
       </div>

@@ -1,5 +1,6 @@
 using MenuMate.Common.Application;
 using MenuMate.Modules.Recipes.Application.Abstractions;
+using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.Modules.Recipes.Domain.Models;
 using MenuMate.SharedKernel;
 
@@ -20,22 +21,19 @@ internal sealed class SetRecipeFavoriteCommandHandler(
             return Result.Failure(RecipeApplicationErrors.NotFound(command.RecipeId));
         }
 
-        if (recipe.OwnerUserId != userContext.UserId)
+        if (recipe.OwnerUserId != userContext.UserId &&
+            recipe.Visibility != RecipeVisibility.Public)
         {
             return Result.Failure(RecipeApplicationErrors.AccessDenied);
         }
 
         DateTimeOffset now = timeProvider.GetUtcNow();
-        if (command.IsFavorite)
-        {
-            recipe.MarkAsFavorite(now);
-        }
-        else
-        {
-            recipe.UnmarkAsFavorite(now);
-        }
-
-        await repository.UpdateAsync(recipe, cancellationToken);
+        await repository.SetFavoriteAsync(
+            recipe.Id,
+            userContext.UserId,
+            command.IsFavorite,
+            now,
+            cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

@@ -15,7 +15,8 @@ internal sealed class GenerateShoppingListCommandHandler(
     IShoppingListsReadDbContext readDbContext,
     IShoppingListsUnitOfWork unitOfWork,
     IUserContext userContext,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    ShoppingProductResolver productResolver)
     : ICommandHandler<GenerateShoppingListCommand, ShoppingListResponse>
 {
     public async Task<Result<ShoppingListResponse>> Handle(
@@ -34,7 +35,9 @@ internal sealed class GenerateShoppingListCommandHandler(
                 ShoppingListApplicationErrors.MenuPlanNotFound(command.Request.MenuPlanId));
         }
 
-        Result<IReadOnlyCollection<ManualShoppingListLine>> manualLines = MapManualLines(command.Request.ManualItems);
+        Result<IReadOnlyCollection<ManualShoppingListLine>> manualLines = await MapManualLinesAsync(
+            command.Request.ManualItems,
+            cancellationToken);
         if (manualLines.IsFailure)
         {
             return Result.Failure<ShoppingListResponse>(manualLines.Error);
@@ -67,20 +70,25 @@ internal sealed class GenerateShoppingListCommandHandler(
             : response;
     }
 
-    private static Result<IReadOnlyCollection<ManualShoppingListLine>> MapManualLines(
-        IReadOnlyCollection<ShoppingListItemRequest> requests)
+    private async Task<Result<IReadOnlyCollection<ManualShoppingListLine>>> MapManualLinesAsync(
+        IReadOnlyCollection<ShoppingListItemRequest> requests,
+        CancellationToken cancellationToken)
     {
         var result = new List<ManualShoppingListLine>(requests.Count);
 
         foreach (ShoppingListItemRequest request in requests)
         {
-            Result<SavedShoppingListItem> item = ShoppingListItemRequestMapper.Map(Guid.CreateVersion7(), request);
+            Result<SavedShoppingListItem> item = await productResolver.ResolveAsync(
+                Guid.CreateVersion7(),
+                request,
+                cancellationToken);
             if (item.IsFailure)
             {
                 return Result.Failure<IReadOnlyCollection<ManualShoppingListLine>>(item.Error);
             }
 
             result.Add(new ManualShoppingListLine(
+                item.Value.ProductId,
                 item.Value.Name,
                 item.Value.NormalizedName,
                 item.Value.Amount,

@@ -6,7 +6,7 @@ export interface NavigationItem {
   icon: LucideIcon
 }
 
-export const primaryNavigation: NavigationItem[] = [
+export const workspaceNavigation: NavigationItem[] = [
   {
     title: "Рецепты",
     path: "/recipes",
@@ -22,9 +22,10 @@ export const primaryNavigation: NavigationItem[] = [
     path: "/shopping",
     icon: ClipboardList,
   },
-  {
-    title: "Профиль",
-    path: "/profile",
-    icon: UserRound,
-  },
 ]
+
+export const accountNavigationItem: NavigationItem = {
+  title: "Профиль",
+  path: "/profile",
+  icon: UserRound,
+}

@@ -1,15 +1,14 @@
-import { ArrowLeft, Pencil } from "lucide-react"
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useNavigate, useParams } from "react-router-dom"
 
-import { RecipeDetailsContent } from "@/features/recipes/ui/RecipeDetailsContent"
 import {
+  useCopyRecipeMutation,
   useDeleteRecipeMutation,
   useRecipeQuery,
   useSetRecipeFavoriteMutation,
+  useSetRecipeSavedMutation,
 } from "@/features/recipes/api/recipes.queries"
-import { Button } from "@/shared/ui/button"
+import { RecipeDetailsContent } from "@/features/recipes/ui/RecipeDetailsContent"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { PageHeader } from "@/shared/ui/page"
 
 export default function RecipeDetailsPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
@@ -17,6 +16,8 @@ export default function RecipeDetailsPage() {
   const recipeQuery = useRecipeQuery(recipeId)
   const deleteRecipeMutation = useDeleteRecipeMutation()
   const favoriteMutation = useSetRecipeFavoriteMutation()
+  const savedMutation = useSetRecipeSavedMutation()
+  const copyMutation = useCopyRecipeMutation()
 
   if (!recipeId) {
     return <Navigate to="/recipes" replace />
@@ -25,7 +26,7 @@ export default function RecipeDetailsPage() {
   const recipe = recipeQuery.data
 
   function handleDelete() {
-    if (!recipe || !window.confirm(`Удалить рецепт «${recipe.title}»?`)) {
+    if (!recipe) {
       return
     }
 
@@ -47,41 +48,48 @@ export default function RecipeDetailsPage() {
     })
   }
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={recipe?.title ?? "Рецепт"}
-        description="Состав, шаги приготовления и быстрые действия."
-        action={
-          <>
-            <Button asChild variant="outline">
-              <Link to="/recipes">
-                <ArrowLeft />К списку
-              </Link>
-            </Button>
-            {recipe ? (
-              <Button asChild>
-                <Link to={`/recipes/${recipe.id}/edit`}>
-                  <Pencil />
-                  Изменить
-                </Link>
-              </Button>
-            ) : null}
-          </>
-        }
-      />
+  function toggleSaved() {
+    if (!recipe) {
+      return
+    }
 
+    savedMutation.mutate({
+      recipeId: recipe.id,
+      isSaved: !recipe.isSaved,
+    })
+  }
+
+  function copy() {
+    if (!recipe) {
+      return
+    }
+
+    copyMutation.mutate(recipe.id, {
+      onSuccess: (createdRecipe) => {
+        void navigate(`/recipes/${createdRecipe.id}/edit`)
+      },
+    })
+  }
+
+  return (
+    <div className="space-y-5">
       {recipeQuery.isPending ? <PageSkeleton /> : null}
       {recipeQuery.error ? <ErrorAlert error={recipeQuery.error} /> : null}
       {deleteRecipeMutation.error ? <ErrorAlert error={deleteRecipeMutation.error} /> : null}
       {favoriteMutation.error ? <ErrorAlert error={favoriteMutation.error} /> : null}
+      {savedMutation.error ? <ErrorAlert error={savedMutation.error} /> : null}
+      {copyMutation.error ? <ErrorAlert error={copyMutation.error} /> : null}
 
       {recipe ? (
         <RecipeDetailsContent
           recipe={recipe}
           isFavoritePending={favoriteMutation.isPending}
+          isSavedPending={savedMutation.isPending}
+          isCopyPending={copyMutation.isPending}
           isDeletePending={deleteRecipeMutation.isPending}
           onToggleFavorite={toggleFavorite}
+          onToggleSaved={toggleSaved}
+          onCopy={copy}
           onDelete={handleDelete}
         />
       ) : null}

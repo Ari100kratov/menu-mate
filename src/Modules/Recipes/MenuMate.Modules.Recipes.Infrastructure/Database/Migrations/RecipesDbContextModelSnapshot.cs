@@ -160,6 +160,10 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("comment");
 
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ingredient_id");
+
                     b.Property<bool>("IsOptional")
                         .HasColumnType("boolean")
                         .HasColumnName("is_optional");
@@ -199,6 +203,9 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_recipe_ingredients");
 
+                    b.HasIndex("IngredientId")
+                        .HasDatabaseName("ix_recipe_ingredients_ingredient_id");
+
                     b.HasIndex("NormalizedProductName")
                         .HasDatabaseName("ix_recipe_ingredients_normalized_product_name");
 
@@ -208,15 +215,59 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                     b.ToTable("recipe_ingredients", "recipes");
                 });
 
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeLibraryEntryRecord", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("RecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_favorite");
+
+                    b.Property<DateTimeOffset>("SavedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("saved_at");
+
+                    b.HasKey("UserId", "RecipeId")
+                        .HasName("pk_recipe_library_entries");
+
+                    b.HasIndex("RecipeId")
+                        .HasDatabaseName("ix_recipe_library_entries_recipe_id");
+
+                    b.HasIndex("UserId", "IsFavorite")
+                        .HasDatabaseName("ix_recipe_library_entries_user_id_is_favorite");
+
+                    b.ToTable("recipe_library_entries", "recipes");
+                });
+
             modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<int?>("ActiveTimeMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("active_time_minutes");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<Guid>("CurrentRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_revision_id");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
@@ -227,13 +278,182 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
 
-                    b.Property<bool>("IsFavorite")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_favorite");
-
                     b.Property<Guid>("OwnerUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("owner_user_id");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision_number");
+
+                    b.Property<int>("Servings")
+                        .HasColumnType("integer")
+                        .HasColumnName("servings");
+
+                    b.Property<Guid?>("SourceRecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_recipe_id");
+
+                    b.Property<Guid?>("SourceRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_revision_id");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("source_url");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("title");
+
+                    b.Property<int?>("TotalTimeMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_time_minutes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipes");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("ix_recipes_category");
+
+                    b.HasIndex("CurrentRevisionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recipes_current_revision_id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("ix_recipes_is_deleted");
+
+                    b.HasIndex("OwnerUserId")
+                        .HasDatabaseName("ix_recipes_owner_user_id");
+
+                    b.HasIndex("SourceRecipeId")
+                        .HasDatabaseName("ix_recipes_source_recipe_id");
+
+                    b.HasIndex("Title")
+                        .HasDatabaseName("ix_recipes_title");
+
+                    b.HasIndex("Visibility")
+                        .HasDatabaseName("ix_recipes_visibility");
+
+                    b.ToTable("recipes", "recipes");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionIngredientRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("comment");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<bool>("IsOptional")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_optional");
+
+                    b.Property<string>("NormalizedProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("normalized_product_name");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("product_name");
+
+                    b.Property<string>("QuantityKind")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("quantity_kind");
+
+                    b.Property<Guid>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revision_ingredients");
+
+                    b.HasIndex("RecipeRevisionId", "Order")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recipe_revision_ingredients_recipe_revision_id_order");
+
+                    b.ToTable("recipe_revision_ingredients", "recipes");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("ActiveTimeMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("active_time_minutes");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("RecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision_number");
 
                     b.Property<int>("Servings")
                         .HasColumnType("integer")
@@ -250,26 +470,80 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(160)")
                         .HasColumnName("title");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                    b.Property<int?>("TotalTimeMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_time_minutes");
 
                     b.HasKey("Id")
-                        .HasName("pk_recipes");
+                        .HasName("pk_recipe_revisions");
 
-                    b.HasIndex("IsDeleted")
-                        .HasDatabaseName("ix_recipes_is_deleted");
+                    b.HasIndex("RecipeId", "RevisionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recipe_revisions_recipe_id_revision_number");
 
-                    b.HasIndex("IsFavorite")
-                        .HasDatabaseName("ix_recipes_is_favorite");
+                    b.ToTable("recipe_revisions", "recipes");
+                });
 
-                    b.HasIndex("OwnerUserId")
-                        .HasDatabaseName("ix_recipes_owner_user_id");
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionStepRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
-                    b.HasIndex("Title")
-                        .HasDatabaseName("ix_recipes_title");
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
 
-                    b.ToTable("recipes", "recipes");
+                    b.Property<Guid>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revision_steps");
+
+                    b.HasIndex("RecipeRevisionId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recipe_revision_steps_recipe_revision_id_number");
+
+                    b.ToTable("recipe_revision_steps", "recipes");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionTagRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("NormalizedValue")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("normalized_value");
+
+                    b.Property<Guid>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revision_tags");
+
+                    b.HasIndex("RecipeRevisionId", "NormalizedValue")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recipe_revision_tags_recipe_revision_id_normalized_value");
+
+                    b.ToTable("recipe_revision_tags", "recipes");
                 });
 
             modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeTagRecord", b =>
@@ -336,6 +610,56 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasConstraintName("fk_recipe_ingredients_recipes_recipe_id");
                 });
 
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeLibraryEntryRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRecord", null)
+                        .WithMany("LibraryEntries")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_library_entries_recipes_recipe_id");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionIngredientRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", null)
+                        .WithMany("Ingredients")
+                        .HasForeignKey("RecipeRevisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_revision_ingredients_recipe_revisions_recipe_revisio");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRecord", null)
+                        .WithMany("Revisions")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_revisions_recipes_recipe_id");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionStepRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", null)
+                        .WithMany("Steps")
+                        .HasForeignKey("RecipeRevisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_revision_steps_recipe_revisions_recipe_revision_id");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionTagRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("RecipeRevisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_revision_tags_recipe_revisions_recipe_revision_id");
+                });
+
             modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeTagRecord", b =>
                 {
                     b.HasOne("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRecord", null)
@@ -350,6 +674,19 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                 {
                     b.Navigation("Images");
 
+                    b.Navigation("Ingredients");
+
+                    b.Navigation("LibraryEntries");
+
+                    b.Navigation("Revisions");
+
+                    b.Navigation("Steps");
+
+                    b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Recipes.Infrastructure.Database.Entities.RecipeRevisionRecord", b =>
+                {
                     b.Navigation("Ingredients");
 
                     b.Navigation("Steps");

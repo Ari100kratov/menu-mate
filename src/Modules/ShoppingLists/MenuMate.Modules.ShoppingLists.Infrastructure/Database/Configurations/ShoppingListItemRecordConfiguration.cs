@@ -13,6 +13,7 @@ internal sealed class ShoppingListItemRecordConfiguration : IEntityTypeConfigura
         builder.ToTable("shopping_list_items");
         builder.HasKey(item => item.Id);
         builder.Property(item => item.Id).ValueGeneratedNever();
+        builder.Property(item => item.ProductId).IsRequired();
         builder.Property(item => item.Name).HasMaxLength(200).IsRequired();
         builder.Property(item => item.NormalizedName).HasMaxLength(200).IsRequired();
         builder.Property(item => item.Unit).HasConversion<string>().HasMaxLength(64).IsRequired();
@@ -20,6 +21,7 @@ internal sealed class ShoppingListItemRecordConfiguration : IEntityTypeConfigura
         builder.Property(item => item.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(item => item.Comment).HasMaxLength(500);
         builder.HasIndex(item => new { item.ShoppingListId, item.NormalizedName });
+        builder.HasIndex(item => item.ProductId);
         builder.HasIndex(item => item.IsPurchased);
         builder.HasIndex(item => item.IsInStock);
     }

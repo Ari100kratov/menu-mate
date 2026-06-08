@@ -5,6 +5,7 @@ namespace MenuMate.Modules.ShoppingLists.Domain.ValueObjects;
 /// <summary>
 /// Ручная позиция списка покупок.
 /// </summary>
+/// <param name="ProductId">Идентификатор продукта общего каталога.</param>
 /// <param name="Name">Название продукта.</param>
 /// <param name="NormalizedName">Нормализованное название.</param>
 /// <param name="Amount">Количество.</param>
@@ -13,6 +14,7 @@ namespace MenuMate.Modules.ShoppingLists.Domain.ValueObjects;
 /// <param name="Category">Категория.</param>
 /// <param name="Comment">Комментарий.</param>
 public sealed record ManualShoppingListLine(
+    Guid ProductId,
     string Name,
     string NormalizedName,
     decimal? Amount,

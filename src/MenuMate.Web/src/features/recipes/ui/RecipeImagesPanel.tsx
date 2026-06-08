@@ -5,13 +5,12 @@ import {
   useDeleteRecipeImageMutation,
   useUploadRecipeImageMutation,
 } from "@/features/recipes/api/recipes.queries"
-import { findCoverImage, findStepImage } from "@/features/recipes/model/recipe-images"
+import { findCoverImage } from "@/features/recipes/model/recipe-images"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { PageSection } from "@/shared/ui/page"
 import { RecipeImagePreview } from "./RecipeImagePreview"
 import { RecipeImageUploadForm } from "./RecipeImageUploadForm"
-import { StepImageEditor } from "./StepImageEditor"
 
 interface RecipeImagesPanelProps {
   recipe: Recipe
@@ -24,8 +23,8 @@ export function RecipeImagesPanel({ recipe }: RecipeImagesPanelProps) {
 
   return (
     <PageSection
-      title="Изображения"
-      description="Обложка и изображения шагов хранятся в MinIO, загрузка всегда идет через backend."
+      title="Обложка"
+      description="Изображение используется в списке и карточке рецепта. Управление изображениями шагов временно скрыто."
     >
       {uploadImageMutation.error ? <ErrorAlert error={uploadImageMutation.error} /> : null}
       {deleteImageMutation.error ? <ErrorAlert error={deleteImageMutation.error} /> : null}
@@ -51,8 +50,8 @@ export function RecipeImagesPanel({ recipe }: RecipeImagesPanelProps) {
 
         <RecipeImageUploadForm
           formId="cover-image"
-          title="Обложка"
-          fileLabel="Файл обложки"
+          title="Файл обложки"
+          fileLabel="Файл"
           initialAltText={coverImage?.altText ?? ""}
           submitLabel={coverImage ? "Заменить обложку" : "Загрузить обложку"}
           isSubmitting={uploadImageMutation.isPending}
@@ -63,39 +62,6 @@ export function RecipeImagesPanel({ recipe }: RecipeImagesPanelProps) {
             })
           }}
         />
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-semibold tracking-normal">Изображения шагов</h3>
-        {recipe.steps.length > 0 ? (
-          <div className="space-y-3">
-            {recipe.steps.map((step) => {
-              const stepNumber = Number(step.number)
-              const image = findStepImage(recipe.images, stepNumber)
-
-              return (
-                <StepImageEditor
-                  key={step.number}
-                  recipeTitle={recipe.title}
-                  step={step}
-                  image={image}
-                  isDeleting={deleteImageMutation.isPending}
-                  isUploading={uploadImageMutation.isPending}
-                  onDelete={(imageId) => {
-                    deleteImageMutation.mutate(imageId)
-                  }}
-                  onUpload={(values) => {
-                    uploadImageMutation.mutate(values)
-                  }}
-                />
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-muted-foreground rounded-md border p-3 text-sm">
-            Добавьте шаги приготовления, чтобы прикреплять к ним изображения.
-          </p>
-        )}
       </div>
     </PageSection>
   )

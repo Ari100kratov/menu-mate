@@ -18,9 +18,12 @@ public sealed class RecipeTests
             OwnerUserId,
             RecipeTitle.Create("Oatmeal").Value,
             Servings.Create(2).Value,
+            RecipeCategory.Breakfast,
+            RecipeVisibility.Private,
             FixedNow);
 
         var ingredient = new RecipeIngredient(
+            Guid.CreateVersion7(),
             IngredientName.Create("Milk").Value,
             IngredientQuantity.Exact(250m, MeasurementUnit.Milliliter).Value,
             ProductCategory.Dairy,
@@ -43,6 +46,8 @@ public sealed class RecipeTests
             OwnerUserId,
             RecipeTitle.Create("Pasta").Value,
             Servings.Create(2).Value,
+            RecipeCategory.MainCourse,
+            RecipeVisibility.Private,
             FixedNow);
 
         recipe.AddTag(RecipeTag.Create(" Fast ").Value, FixedNow);
@@ -60,9 +65,12 @@ public sealed class RecipeTests
             OwnerUserId,
             RecipeTitle.Create("Salad").Value,
             Servings.Create(2).Value,
+            RecipeCategory.Salad,
+            RecipeVisibility.Private,
             FixedNow);
 
         var ingredient = new RecipeIngredient(
+            Guid.CreateVersion7(),
             IngredientName.Create("Salt").Value,
             IngredientQuantity.ToTaste(),
             ProductCategory.Spices,

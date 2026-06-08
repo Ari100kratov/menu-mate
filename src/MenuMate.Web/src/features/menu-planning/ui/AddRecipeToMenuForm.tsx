@@ -15,7 +15,7 @@ import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field"
 import { Input } from "@/shared/ui/input"
-import { Select } from "@/shared/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { AddRecipeToMenuPlanField } from "./AddRecipeToMenuPlanField"
 
 interface AddRecipeToMenuFormProps {
@@ -111,20 +111,25 @@ export function AddRecipeToMenuForm({
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Прием пищи</FieldLabel>
                   <Select
-                    id={field.name}
                     name={field.name}
                     value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value)
-                    }}
-                    aria-invalid={isInvalid}
+                    onValueChange={field.handleChange}
                   >
-                    {mealTypeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
+                    <SelectTrigger
+                      id={field.name}
+                      className="w-full"
+                      onBlur={field.handleBlur}
+                      aria-invalid={isInvalid}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mealTypeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   {isInvalid ? <FieldError errors={field.state.meta.errors} /> : null}
                 </Field>

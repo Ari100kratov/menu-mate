@@ -51,6 +51,7 @@ public sealed class MenuPlanningDbContext(DbContextOptions<MenuPlanningDbContext
                     item.Date,
                     item.MealType.ToString(),
                     item.RecipeId.HasValue ? item.RecipeId.Value.Value : null,
+                    item.RecipeRevisionId.HasValue ? item.RecipeRevisionId.Value.Value : null,
                     item.RecipeTitle,
                     item.Text,
                     item.Servings,

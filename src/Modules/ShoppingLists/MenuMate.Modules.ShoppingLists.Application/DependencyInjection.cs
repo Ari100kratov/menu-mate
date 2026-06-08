@@ -22,6 +22,7 @@ public static class ShoppingListsApplicationDependencyInjection
     /// </summary>
     public static IServiceCollection AddShoppingListsApplication(this IServiceCollection services)
     {
+        services.AddScoped<ShoppingProductResolver>();
         services.AddScoped<ICommandHandler<GenerateShoppingListCommand, ShoppingListResponse>, GenerateShoppingListCommandHandler>();
         services.AddScoped<ICommandHandler<AddShoppingListItemCommand, ShoppingListResponse>, AddShoppingListItemCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateShoppingListItemCommand, ShoppingListResponse>, UpdateShoppingListItemCommandHandler>();

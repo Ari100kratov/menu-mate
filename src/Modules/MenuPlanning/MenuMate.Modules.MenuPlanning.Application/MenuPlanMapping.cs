@@ -23,6 +23,7 @@ internal static class MenuPlanMapping
             item.Date,
             item.MealType.ToString(),
             item.RecipeId?.Value,
+            item.RecipeRevisionId?.Value,
             item.RecipeTitle,
             item.Text,
             item.Servings.Value,

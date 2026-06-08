@@ -35,7 +35,7 @@ public static class ShoppingListGenerator
         [
             .. items
                 .Where(item => item.CanMerge)
-                .GroupBy(item => new MergeKey(item.NormalizedName, item.Unit, item.QuantityKind, item.Category))
+                .GroupBy(item => new MergeKey(item.ProductId, item.Unit, item.QuantityKind))
                 .Select(Merge)
                 .Concat(items.Where(item => !item.CanMerge))
         ];
@@ -56,6 +56,7 @@ public static class ShoppingListGenerator
             : ingredient.Comment;
 
         return new ShoppingListItem(
+            ingredient.ProductId,
             ingredient.Name,
             ingredient.NormalizedName,
             amount,
@@ -70,6 +71,7 @@ public static class ShoppingListGenerator
         (decimal? amount, ShoppingUnit unit) = ShoppingUnitNormalizer.Normalize(line.Amount, line.Unit);
 
         return new ShoppingListItem(
+            line.ProductId,
             line.Name,
             line.NormalizedName,
             amount,
@@ -86,6 +88,7 @@ public static class ShoppingListGenerator
         string? comment = JoinComments(group.Select(item => item.Comment).Where(comment => !string.IsNullOrWhiteSpace(comment)));
 
         return new ShoppingListItem(
+            first.ProductId,
             first.Name,
             first.NormalizedName,
             amount,
@@ -111,8 +114,7 @@ public static class ShoppingListGenerator
     }
 
     private readonly record struct MergeKey(
-        string NormalizedName,
+        Guid ProductId,
         ShoppingUnit Unit,
-        ShoppingQuantityKind QuantityKind,
-        ShoppingProductCategory Category);
+        ShoppingQuantityKind QuantityKind);
 }

@@ -16,6 +16,10 @@ internal static class RecipeRequestMapper
             request.Title,
             request.Description,
             request.Servings,
+            request.Category,
+            request.Visibility,
+            request.TotalTimeMinutes,
+            request.ActiveTimeMinutes,
             request.SourceUrl,
             request.Ingredients,
             request.Steps,
@@ -30,6 +34,10 @@ internal static class RecipeRequestMapper
             request.Title,
             request.Description,
             request.Servings,
+            request.Category,
+            request.Visibility,
+            request.TotalTimeMinutes,
+            request.ActiveTimeMinutes,
             request.SourceUrl,
             request.Ingredients,
             request.Steps,
@@ -40,6 +48,10 @@ internal static class RecipeRequestMapper
         string titleValue,
         string? description,
         int servingsValue,
+        string categoryValue,
+        string visibilityValue,
+        int? totalTimeMinutes,
+        int? activeTimeMinutes,
         Uri? sourceUrl,
         IReadOnlyCollection<RecipeIngredientRequest> ingredients,
         IReadOnlyCollection<PreparationStepRequest> steps,
@@ -55,6 +67,24 @@ internal static class RecipeRequestMapper
         if (servings.IsFailure)
         {
             return Result.Failure<RecipeDraft>(servings.Error);
+        }
+
+        Result<RecipeCategory> category = ParseRecipeCategory(categoryValue);
+        if (category.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(category.Error);
+        }
+
+        Result<RecipeVisibility> visibility = ParseRecipeVisibility(visibilityValue);
+        if (visibility.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(visibility.Error);
+        }
+
+        Result timing = ValidateTiming(totalTimeMinutes, activeTimeMinutes);
+        if (timing.IsFailure)
+        {
+            return Result.Failure<RecipeDraft>(timing.Error);
         }
 
         Result<Uri?> parsedSourceUrl = ValidateSourceUrl(sourceUrl);
@@ -85,6 +115,10 @@ internal static class RecipeRequestMapper
             title.Value,
             description,
             servings.Value,
+            category.Value,
+            visibility.Value,
+            totalTimeMinutes,
+            activeTimeMinutes,
             parsedSourceUrl.Value,
             mappedIngredients.Value,
             mappedSteps.Value,
@@ -129,6 +163,7 @@ internal static class RecipeRequestMapper
             }
 
             result.Add(new RecipeIngredient(
+                ingredient.IngredientId,
                 name.Value,
                 quantity.Value,
                 category.Value,
@@ -224,6 +259,41 @@ internal static class RecipeRequestMapper
                 "Recipes.InvalidProductCategory",
                 "Категория продукта указана в неизвестном формате."));
 
+    private static Result<RecipeCategory> ParseRecipeCategory(string value) =>
+        Enum.TryParse(value, ignoreCase: true, out RecipeCategory category)
+            ? category
+            : Result.Failure<RecipeCategory>(AppError.Validation(
+                "Recipes.InvalidRecipeCategory",
+                "Категория рецепта указана в неизвестном формате."));
+
+    private static Result<RecipeVisibility> ParseRecipeVisibility(string value) =>
+        Enum.TryParse(value, ignoreCase: true, out RecipeVisibility visibility)
+            ? visibility
+            : Result.Failure<RecipeVisibility>(AppError.Validation(
+                "Recipes.InvalidVisibility",
+                "Recipe visibility must be Private or Public."));
+
+    private static Result ValidateTiming(int? totalTimeMinutes, int? activeTimeMinutes)
+    {
+        if (totalTimeMinutes is <= 0 or > 10080 || activeTimeMinutes is <= 0 or > 10080)
+        {
+            return Result.Failure(AppError.Validation(
+                "Recipes.InvalidCookingTime",
+                "Время приготовления должно быть от 1 минуты до 7 дней."));
+        }
+
+        if (totalTimeMinutes is not null &&
+            activeTimeMinutes is not null &&
+            activeTimeMinutes > totalTimeMinutes)
+        {
+            return Result.Failure(AppError.Validation(
+                "Recipes.ActiveTimeExceedsTotalTime",
+                "Активное время не может быть больше общего времени приготовления."));
+        }
+
+        return Result.Success();
+    }
+
     private static Result<MeasurementUnit> ParseMeasurementUnit(string value) =>
         NormalizeUnit(value) is { } normalizedUnit
             ? normalizedUnit
@@ -257,6 +327,10 @@ internal sealed record RecipeDraft(
     RecipeTitle Title,
     string? Description,
     Servings Servings,
+    RecipeCategory Category,
+    RecipeVisibility Visibility,
+    int? TotalTimeMinutes,
+    int? ActiveTimeMinutes,
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredient> Ingredients,
     IReadOnlyCollection<PreparationStep> Steps,

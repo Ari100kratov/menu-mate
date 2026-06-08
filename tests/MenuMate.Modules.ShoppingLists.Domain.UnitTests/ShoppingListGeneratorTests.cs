@@ -11,6 +11,7 @@ public sealed class ShoppingListGeneratorTests
     [Fact]
     public void GenerateShouldScaleNormalizeAndMergeCompatibleItems()
     {
+        var flourProductId = Guid.CreateVersion7();
         ShoppingRecipe firstRecipe = new(
             RecipeId.Create(),
             BaseServings: 2,
@@ -18,6 +19,7 @@ public sealed class ShoppingListGeneratorTests
             Ingredients:
             [
                 new ShoppingIngredientLine(
+                    flourProductId,
                     "Мука",
                     "мука",
                     0.2m,
@@ -34,6 +36,7 @@ public sealed class ShoppingListGeneratorTests
             Ingredients:
             [
                 new ShoppingIngredientLine(
+                    flourProductId,
                     "мука",
                     "мука",
                     100m,
@@ -62,6 +65,7 @@ public sealed class ShoppingListGeneratorTests
             Ingredients:
             [
                 new ShoppingIngredientLine(
+                    Guid.CreateVersion7(),
                     "Соль",
                     "соль",
                     null,
@@ -71,6 +75,7 @@ public sealed class ShoppingListGeneratorTests
                     "по вкусу",
                     false),
                 new ShoppingIngredientLine(
+                    Guid.CreateVersion7(),
                     "соль",
                     "соль",
                     null,
@@ -94,6 +99,7 @@ public sealed class ShoppingListGeneratorTests
         var list = ShoppingList.FromItems(
         [
             new ShoppingListItem(
+                Guid.CreateVersion7(),
                 "Молоко",
                 "молоко",
                 750m,

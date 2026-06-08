@@ -6,6 +6,7 @@ import type { RecipeFormApi } from "@/features/recipes/ui/useRecipeForm"
 import { Button } from "@/shared/ui/button"
 import { Field, FieldError, FieldLabel } from "@/shared/ui/field"
 import { Textarea } from "@/shared/ui/textarea"
+import { PageSection } from "@/shared/ui/page"
 
 interface RecipeStepsFieldsProps {
   form: RecipeFormApi
@@ -14,40 +15,44 @@ interface RecipeStepsFieldsProps {
 export function RecipeStepsFields({ form }: RecipeStepsFieldsProps) {
   return (
     <form.Field name="steps" mode="array">
-      {(field) => (
-        <section className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-normal">Шаги</h2>
-              <FieldError errors={field.state.meta.errors} />
+      {(field) => {
+        function addStep() {
+          field.pushValue(createEmptyStepFormValues())
+        }
+
+        return (
+          <PageSection
+            title="Шаги приготовления"
+            className="rounded-none border-0 border-b p-4 md:p-6"
+          >
+            <FieldError errors={field.state.meta.errors} />
+
+            <div className="divide-y">
+              {field.state.value.map((_step, index) => (
+                <RecipeStepCard
+                  key={index}
+                  form={form}
+                  index={index}
+                  canRemove={field.state.value.length > 1}
+                  onRemove={() => {
+                    field.removeValue(index)
+                  }}
+                />
+              ))}
             </div>
+
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                field.pushValue(createEmptyStepFormValues())
-              }}
+              className="w-full border-dashed"
+              onClick={addStep}
             >
-              <Plus />
-              Добавить
+              <Plus className="size-4" />
+              Добавить шаг
             </Button>
-          </div>
-
-          <div className="space-y-3">
-            {field.state.value.map((_step, index) => (
-              <RecipeStepCard
-                key={index}
-                form={form}
-                index={index}
-                canRemove={field.state.value.length > 1}
-                onRemove={() => {
-                  field.removeValue(index)
-                }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+          </PageSection>
+        )
+      }}
     </form.Field>
   )
 }
@@ -64,19 +69,9 @@ function RecipeStepCard({
   onRemove: () => void
 }) {
   return (
-    <div className="rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="font-medium tracking-normal">Шаг {index + 1}</h3>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Удалить шаг"
-          disabled={!canRemove}
-          onClick={onRemove}
-        >
-          <Trash2 />
-        </Button>
+    <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem] gap-3 py-3">
+      <div className="bg-secondary text-secondary-foreground flex size-8 items-center justify-center rounded-full text-sm font-semibold">
+        {index + 1}
       </div>
 
       <form.Field name={stepFieldName(index, "text")}>
@@ -85,11 +80,15 @@ function RecipeStepCard({
 
           return (
             <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor={stepField.name}>Описание шага</FieldLabel>
+              <FieldLabel className="sr-only" htmlFor={stepField.name}>
+                Описание шага {index + 1}
+              </FieldLabel>
               <Textarea
                 id={stepField.name}
                 name={stepField.name}
+                className="min-h-20 resize-y"
                 value={stepField.state.value}
+                placeholder="Что нужно сделать?"
                 onBlur={stepField.handleBlur}
                 onChange={(event) => {
                   stepField.handleChange(event.target.value)
@@ -101,6 +100,19 @@ function RecipeStepCard({
           )
         }}
       </form.Field>
+
+      <div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Удалить шаг"
+          disabled={!canRemove}
+          onClick={onRemove}
+        >
+          <Trash2 />
+        </Button>
+      </div>
     </div>
   )
 }

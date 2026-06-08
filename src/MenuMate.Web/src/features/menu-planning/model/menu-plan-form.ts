@@ -26,6 +26,7 @@ export interface MenuPlanItemFormValues {
   date: string
   mealType: string
   recipeId: string
+  recipeRevisionId: string
   text: string
   servings: string
   comment: string
@@ -33,6 +34,7 @@ export interface MenuPlanItemFormValues {
 
 export interface RecipeOption {
   id: string
+  currentRevisionId: string
   title: string
 }
 
@@ -62,6 +64,7 @@ export function createMenuPlanItemFormSchema(menuPlan: MenuPlan) {
       date: z.string().trim().min(1, "Укажите дату."),
       mealType: z.string().trim().min(1, "Выберите прием пищи."),
       recipeId: z.string().trim(),
+      recipeRevisionId: z.string().trim(),
       text: z.string().trim(),
       servings: servingsSchema,
       comment: z.string().trim(),
@@ -90,6 +93,7 @@ export function toMenuPlanItemFormValues(item: MenuPlanItem): MenuPlanItemFormVa
     date: item.date,
     mealType: item.mealType,
     recipeId: item.recipeId ?? "",
+    recipeRevisionId: item.recipeRevisionId ?? "",
     text: item.text ?? "",
     servings: String(item.servings),
     comment: item.comment ?? "",
@@ -105,6 +109,7 @@ export function getMenuPlanItemPreset(date: string, mealType: string): MenuPlanI
     date,
     mealType,
     recipeId: "",
+    recipeRevisionId: "",
     text: "",
     servings: "2",
     comment: "",
@@ -123,6 +128,7 @@ export function toMenuPlanItemRequest(
     date: values.date,
     mealType: values.mealType,
     recipeId: recipe?.id ?? null,
+    recipeRevisionId: recipe ? values.recipeRevisionId || recipe.currentRevisionId : null,
     recipeTitle: recipe?.title ?? null,
     text: recipe ? null : text.length > 0 ? text : null,
     servings: Number(values.servings),
@@ -153,14 +159,23 @@ export function getRecipeOptions(
   values: MenuPlanItemFormValues,
 ): RecipeOption[] {
   if (!values.recipeId || recipes.some((recipe) => recipe.id === values.recipeId)) {
-    return [...recipes]
+    return recipes.map(toRecipeOption)
   }
 
   return [
     {
       id: values.recipeId,
+      currentRevisionId: values.recipeRevisionId,
       title: "Сохраненный рецепт",
     },
-    ...recipes,
+    ...recipes.map(toRecipeOption),
   ]
+}
+
+function toRecipeOption(recipe: RecipeListItem): RecipeOption {
+  return {
+    id: recipe.id,
+    currentRevisionId: recipe.currentRevisionId,
+    title: recipe.title,
+  }
 }

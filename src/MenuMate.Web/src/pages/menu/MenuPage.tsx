@@ -14,7 +14,7 @@ import { useRecipesQuery } from "@/features/recipes/api/recipes.queries"
 import { useGenerateShoppingListMutation } from "@/features/shopping-lists/api/shopping-lists.queries"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { EmptyState, PageHeader } from "@/shared/ui/page"
+import { EmptyState } from "@/shared/ui/page"
 
 export default function MenuPage() {
   const navigate = useNavigate()
@@ -47,25 +47,22 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="План меню"
-        description="Недельная сетка приемов пищи и переход к списку покупок."
-        action={
-          activeMenuPlan ? (
-            <Button
-              type="button"
-              disabled={generateShoppingListMutation.isPending}
-              onClick={() => {
-                handleGenerateShoppingList(activeMenuPlan.id)
-              }}
-            >
-              <ShoppingCart />
-              {generateShoppingListMutation.isPending ? "Собираем..." : "Список покупок"}
-            </Button>
-          ) : null
-        }
-      />
+    <div className="space-y-5">
+      {activeMenuPlan ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            className="w-full sm:w-auto"
+            disabled={generateShoppingListMutation.isPending}
+            onClick={() => {
+              handleGenerateShoppingList(activeMenuPlan.id)
+            }}
+          >
+            <ShoppingCart />
+            {generateShoppingListMutation.isPending ? "Собираем..." : "Список покупок"}
+          </Button>
+        </div>
+      ) : null}
 
       {menuPlansQuery.error ? <ErrorAlert error={menuPlansQuery.error} /> : null}
       {recipesQuery.error ? <ErrorAlert error={recipesQuery.error} /> : null}

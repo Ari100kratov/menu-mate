@@ -7,6 +7,8 @@ using MenuMate.Modules.Auth.Presentation;
 using MenuMate.Modules.MenuPlanning.Application;
 using MenuMate.Modules.MenuPlanning.Infrastructure;
 using MenuMate.Modules.MenuPlanning.Presentation;
+using MenuMate.Modules.Products.Infrastructure;
+using MenuMate.Modules.Products.Presentation;
 using MenuMate.Modules.Recipes.Application;
 using MenuMate.Modules.Recipes.Infrastructure;
 using MenuMate.Modules.Recipes.Presentation;
@@ -77,6 +79,7 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 });
+builder.Services.AddProblemDetailsResponses();
 builder.Services.AddProblemDetailsAuthorization();
 builder.Services
     .AddCommonInfrastructure(builder.Configuration)
@@ -84,6 +87,7 @@ builder.Services
     .AddAuthInfrastructure(builder.Configuration)
     .AddRecipesApplication()
     .AddRecipesInfrastructure(builder.Configuration)
+    .AddProductsInfrastructure(builder.Configuration)
     .AddTagsApplication()
     .AddTagsInfrastructure(builder.Configuration)
     .AddMenuPlanningApplication()
@@ -92,6 +96,8 @@ builder.Services
     .AddShoppingListsInfrastructure(builder.Configuration);
 
 WebApplication app = builder.Build();
+
+app.UseExceptionHandler();
 
 app.MapDefaultEndpoints();
 
@@ -128,6 +134,7 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapRecipesEndpoints();
+app.MapProductsEndpoints();
 app.MapTagsEndpoints();
 app.MapMenuPlanningEndpoints();
 app.MapShoppingListsEndpoints();

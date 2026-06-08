@@ -11,6 +11,8 @@ internal sealed class RecipeIngredientSourceRecord
 
     public int Order { get; set; }
 
+    public Guid IngredientId { get; set; }
+
     public string ProductName { get; set; } = string.Empty;
 
     public string NormalizedProductName { get; set; } = string.Empty;

@@ -26,7 +26,6 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanItemRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -53,6 +52,10 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_id");
 
+                    b.Property<Guid?>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
+
                     b.Property<string>("RecipeTitle")
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)")
@@ -73,6 +76,9 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                     b.HasIndex("RecipeId")
                         .HasDatabaseName("ix_menu_plan_items_recipe_id");
 
+                    b.HasIndex("RecipeRevisionId")
+                        .HasDatabaseName("ix_menu_plan_items_recipe_revision_id");
+
                     b.HasIndex("MenuPlanId", "Date", "MealType")
                         .HasDatabaseName("ix_menu_plan_items_menu_plan_id_date_meal_type");
 
@@ -82,7 +88,6 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -125,6 +130,53 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_menu_plans_start_date");
 
                     b.ToTable("menu_plans", "menu_planning");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Source.RecipeAccessSourceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipes");
+
+                    b.ToTable("recipes", "recipes", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Source.RecipeRevisionAccessSourceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("RecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revisions");
+
+                    b.ToTable("recipe_revisions", "recipes", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 
             modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanItemRecord", b =>

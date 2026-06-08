@@ -1,4 +1,5 @@
 using MenuMate.Modules.Recipes.Domain.Models;
+using MenuMate.SharedKernel.Identifiers;
 
 namespace MenuMate.Modules.Recipes.Application.Abstractions;
 
@@ -21,4 +22,22 @@ public interface IRecipesRepository
     /// Сохраняет новый снимок рецепта как измененный.
     /// </summary>
     Task UpdateAsync(Recipe recipe, CancellationToken cancellationToken);
+
+    /// <summary>Saves a recipe to a user's library and sets its favorite state.</summary>
+    Task SaveToLibraryAsync(
+        Guid recipeId,
+        UserId userId,
+        DateTimeOffset savedAt,
+        CancellationToken cancellationToken);
+
+    /// <summary>Removes a recipe from a user's library.</summary>
+    Task RemoveFromLibraryAsync(Guid recipeId, UserId userId, CancellationToken cancellationToken);
+
+    /// <summary>Sets per-user favorite state, saving the recipe when needed.</summary>
+    Task SetFavoriteAsync(
+        Guid recipeId,
+        UserId userId,
+        bool isFavorite,
+        DateTimeOffset savedAt,
+        CancellationToken cancellationToken);
 }

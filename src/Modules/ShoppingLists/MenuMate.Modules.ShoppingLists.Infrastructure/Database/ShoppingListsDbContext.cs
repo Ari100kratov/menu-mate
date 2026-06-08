@@ -20,7 +20,7 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
 
     private DbSet<MenuPlanSourceRecord> MenuPlans => Set<MenuPlanSourceRecord>();
 
-    private DbSet<RecipeSourceRecord> Recipes => Set<RecipeSourceRecord>();
+    private DbSet<RecipeRevisionSourceRecord> RecipeRevisions => Set<RecipeRevisionSourceRecord>();
 
     /// <inheritdoc />
     public async Task<IReadOnlyCollection<ShoppingListSummaryResponse>> GetShoppingListsAsync(
@@ -75,25 +75,25 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
             return null;
         }
 
-        RecipeId[] recipeIds =
+        RecipeRevisionId[] revisionIds =
         [
             .. menuPlan.Items
-                .Where(item => item.RecipeId.HasValue)
-                .Select(item => item.RecipeId!.Value)
+                .Where(item => item.RecipeRevisionId.HasValue)
+                .Select(item => item.RecipeRevisionId!.Value)
                 .Distinct()
         ];
 
-        Dictionary<RecipeId, RecipeSourceRecord> recipes = await Recipes
+        Dictionary<RecipeRevisionId, RecipeRevisionSourceRecord> revisions = await RecipeRevisions
             .AsNoTracking()
-            .Include(recipe => recipe.Ingredients)
-            .Where(recipe => recipe.OwnerUserId == ownerUserId && !recipe.IsDeleted && recipeIds.Contains(recipe.Id))
-            .ToDictionaryAsync(recipe => recipe.Id, cancellationToken);
+            .Include(revision => revision.Ingredients)
+            .Where(revision => revisionIds.Contains(revision.Id))
+            .ToDictionaryAsync(revision => revision.Id, cancellationToken);
 
         return
         [
             .. menuPlan.Items
-                .Where(item => item.RecipeId.HasValue && recipes.ContainsKey(item.RecipeId.Value))
-                .Select(item => CreateShoppingRecipe(recipes[item.RecipeId!.Value], item.Servings))
+                .Where(item => item.RecipeRevisionId.HasValue && revisions.ContainsKey(item.RecipeRevisionId.Value))
+                .Select(item => CreateShoppingRecipe(revisions[item.RecipeRevisionId!.Value], item.Servings))
         ];
     }
 
@@ -106,15 +106,16 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ShoppingListsDbContext).Assembly);
     }
 
-    private static ShoppingRecipe CreateShoppingRecipe(RecipeSourceRecord recipe, int targetServings) =>
+    private static ShoppingRecipe CreateShoppingRecipe(RecipeRevisionSourceRecord revision, int targetServings) =>
         new(
-            recipe.Id,
-            recipe.Servings,
+            revision.RecipeId,
+            revision.Servings,
             targetServings,
             [
-                .. recipe.Ingredients
+                .. revision.Ingredients
                     .OrderBy(ingredient => ingredient.Order)
                     .Select(ingredient => new ShoppingIngredientLine(
+                        ingredient.IngredientId,
                         ingredient.ProductName,
                         ingredient.NormalizedProductName,
                         ingredient.Amount,
@@ -149,6 +150,7 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
     private static ShoppingListItemResponse ToResponse(SavedShoppingListItem item) =>
         new(
             item.Id,
+            item.ProductId,
             item.Name,
             item.Amount,
             item.Unit.ToString(),

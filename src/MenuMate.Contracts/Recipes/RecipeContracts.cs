@@ -1,3 +1,5 @@
+#pragma warning disable CS1573
+
 namespace MenuMate.Contracts.Recipes;
 
 /// <summary>
@@ -6,6 +8,9 @@ namespace MenuMate.Contracts.Recipes;
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
+/// <param name="Category">Основная категория блюда.</param>
+/// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
+/// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="SourceUrl">URL источника рецепта.</param>
 /// <param name="Ingredients">Ингредиенты рецепта.</param>
 /// <param name="Steps">Шаги приготовления.</param>
@@ -14,6 +19,10 @@ public sealed record CreateRecipeRequest(
     string Title,
     string? Description,
     int Servings,
+    string Category,
+    string Visibility,
+    int? TotalTimeMinutes,
+    int? ActiveTimeMinutes,
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredientRequest> Ingredients,
     IReadOnlyCollection<PreparationStepRequest> Steps,
@@ -25,6 +34,9 @@ public sealed record CreateRecipeRequest(
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
+/// <param name="Category">Основная категория блюда.</param>
+/// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
+/// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="SourceUrl">URL источника рецепта.</param>
 /// <param name="Ingredients">Ингредиенты рецепта.</param>
 /// <param name="Steps">Шаги приготовления.</param>
@@ -33,6 +45,10 @@ public sealed record UpdateRecipeRequest(
     string Title,
     string? Description,
     int Servings,
+    string Category,
+    string Visibility,
+    int? TotalTimeMinutes,
+    int? ActiveTimeMinutes,
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredientRequest> Ingredients,
     IReadOnlyCollection<PreparationStepRequest> Steps,
@@ -41,6 +57,7 @@ public sealed record UpdateRecipeRequest(
 /// <summary>
 /// Ингредиент рецепта во входящем API-запросе.
 /// </summary>
+/// <param name="IngredientId">Идентификатор продукта общего каталога.</param>
 /// <param name="ProductName">Название продукта.</param>
 /// <param name="Amount">Количество, если оно числовое.</param>
 /// <param name="Unit">Единица измерения.</param>
@@ -49,6 +66,7 @@ public sealed record UpdateRecipeRequest(
 /// <param name="Comment">Комментарий.</param>
 /// <param name="IsOptional">Признак необязательного ингредиента.</param>
 public sealed record RecipeIngredientRequest(
+    Guid? IngredientId,
     string ProductName,
     decimal? Amount,
     string Unit,
@@ -70,14 +88,25 @@ public sealed record PreparationStepRequest(string Text);
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
+/// <param name="Category">Основная категория блюда.</param>
+/// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
+/// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="IsFavorite">Признак избранного рецепта.</param>
 /// <param name="Tags">Теги рецепта.</param>
 /// <param name="CoverImage">Активная обложка рецепта.</param>
 public sealed record RecipeListItemResponse(
     Guid Id,
+    Guid CurrentRevisionId,
+    int RevisionNumber,
+    bool IsOwnedByCurrentUser,
+    bool IsSaved,
     string Title,
     string? Description,
     int Servings,
+    string Category,
+    string Visibility,
+    int? TotalTimeMinutes,
+    int? ActiveTimeMinutes,
     bool IsFavorite,
     IReadOnlyCollection<string> Tags,
     RecipeImageResponse? CoverImage);
@@ -89,6 +118,9 @@ public sealed record RecipeListItemResponse(
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
+/// <param name="Category">Основная категория блюда.</param>
+/// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
+/// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="IsFavorite">Признак избранного рецепта.</param>
 /// <param name="SourceUrl">URL источника рецепта.</param>
 /// <param name="Tags">Теги рецепта.</param>
@@ -97,9 +129,19 @@ public sealed record RecipeListItemResponse(
 /// <param name="Steps">Шаги приготовления.</param>
 public sealed record RecipeResponse(
     Guid Id,
+    Guid CurrentRevisionId,
+    int RevisionNumber,
+    bool IsOwnedByCurrentUser,
+    bool IsSaved,
+    Guid? SourceRecipeId,
+    Guid? SourceRevisionId,
     string Title,
     string? Description,
     int Servings,
+    string Category,
+    string Visibility,
+    int? TotalTimeMinutes,
+    int? ActiveTimeMinutes,
     bool IsFavorite,
     Uri? SourceUrl,
     IReadOnlyCollection<string> Tags,
@@ -133,6 +175,7 @@ public sealed record RecipeImageResponse(
 /// <summary>
 /// Ингредиент рецепта во внешнем контракте.
 /// </summary>
+/// <param name="IngredientId">Идентификатор продукта общего каталога.</param>
 /// <param name="ProductName">Название продукта.</param>
 /// <param name="Amount">Количество, если оно числовое.</param>
 /// <param name="Unit">Единица измерения.</param>
@@ -141,12 +184,21 @@ public sealed record RecipeImageResponse(
 /// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта для списка покупок.</param>
 public sealed record IngredientResponse(
+    Guid? IngredientId,
     string ProductName,
     decimal? Amount,
     string Unit,
     string? Comment,
     bool IsOptional,
     string QuantityKind,
+    string Category);
+
+/// <summary>
+/// Canonical ingredient available for recipe ingredient autocomplete.
+/// </summary>
+public sealed record CatalogIngredientResponse(
+    Guid Id,
+    string Name,
     string Category);
 
 /// <summary>

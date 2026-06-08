@@ -96,10 +96,40 @@
   }
 
   body {
-    @apply bg-background text-foreground h-full antialiased;
+    @apply bg-background text-foreground h-full text-base leading-normal antialiased;
   }
 
   #root {
     @apply min-h-full;
+  }
+}
+
+@layer components {
+  .type-page-title {
+    @apply text-lg leading-6 font-semibold tracking-tight md:text-xl md:leading-7;
+  }
+
+  .type-recipe-title {
+    @apply text-2xl leading-8 font-semibold tracking-tight;
+  }
+
+  .type-section-title {
+    @apply text-lg leading-6 font-semibold tracking-tight;
+  }
+
+  .type-subsection-title {
+    @apply text-base leading-6 font-semibold;
+  }
+
+  .type-body {
+    @apply text-base leading-6 font-normal;
+  }
+
+  .type-label {
+    @apply text-sm leading-5 font-medium;
+  }
+
+  .type-supporting {
+    @apply text-sm leading-5 font-normal;
   }
 }

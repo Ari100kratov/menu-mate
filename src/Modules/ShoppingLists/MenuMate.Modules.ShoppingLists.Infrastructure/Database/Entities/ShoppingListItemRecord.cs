@@ -10,6 +10,8 @@ internal sealed class ShoppingListItemRecord
 
     public Guid ShoppingListId { get; set; }
 
+    public Guid ProductId { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
     public string NormalizedName { get; set; } = string.Empty;
@@ -32,6 +34,7 @@ internal sealed class ShoppingListItemRecord
         new()
         {
             Id = item.Id,
+            ProductId = item.ProductId,
             Name = item.Name,
             NormalizedName = item.NormalizedName,
             Amount = item.Amount,
@@ -47,6 +50,7 @@ internal sealed class ShoppingListItemRecord
     {
         Result<SavedShoppingListItem> item = SavedShoppingListItem.Create(
             Id,
+            ProductId,
             Name,
             NormalizedName,
             Amount,

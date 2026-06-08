@@ -28,6 +28,7 @@ internal static class MenuPlanItemRequestMapper
             request.Date,
             mealType.Value,
             request.RecipeId,
+            request.RecipeRevisionId,
             request.RecipeTitle,
             request.Text,
             servings.Value,
@@ -53,6 +54,7 @@ internal static class MenuPlanItemRequestMapper
             request.Date,
             mealType.Value,
             request.RecipeId,
+            request.RecipeRevisionId,
             request.RecipeTitle,
             request.Text,
             servings.Value,
@@ -69,6 +71,7 @@ internal static class MenuPlanItemRequestMapper
         DateOnly date,
         MealType mealType,
         Guid? recipeId,
+        Guid? recipeRevisionId,
         string? recipeTitle,
         string? text,
         MenuServings servings,
@@ -76,11 +79,17 @@ internal static class MenuPlanItemRequestMapper
     {
         if (recipeId.HasValue)
         {
+            if (!recipeRevisionId.HasValue)
+            {
+                return Result.Failure<MenuPlanItem>(MenuPlanningApplicationErrors.InvalidItemPayload);
+            }
+
             return MenuPlanItem.ForRecipe(
                 itemId,
                 date,
                 mealType,
                 RecipeId.From(recipeId.Value),
+                RecipeRevisionId.From(recipeRevisionId.Value),
                 servings,
                 comment,
                 recipeTitle);

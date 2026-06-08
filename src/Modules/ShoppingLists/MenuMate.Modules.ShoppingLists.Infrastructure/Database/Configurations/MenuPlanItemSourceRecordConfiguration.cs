@@ -15,6 +15,9 @@ internal sealed class MenuPlanItemSourceRecordConfiguration : IEntityTypeConfigu
         var recipeIdConverter = new ValueConverter<RecipeId?, Guid?>(
             recipeId => recipeId.HasValue ? recipeId.Value.Value : null,
             value => value.HasValue ? RecipeId.From(value.Value) : null);
+        var recipeRevisionIdConverter = new ValueConverter<RecipeRevisionId?, Guid?>(
+            revisionId => revisionId.HasValue ? revisionId.Value.Value : null,
+            value => value.HasValue ? RecipeRevisionId.From(value.Value) : null);
 
         builder.ToTable("menu_plan_items", "menu_planning", table => table.ExcludeFromMigrations());
         builder.HasKey(item => item.Id);
@@ -22,5 +25,6 @@ internal sealed class MenuPlanItemSourceRecordConfiguration : IEntityTypeConfigu
         builder.Property(item => item.MenuPlanId)
             .HasConversion(menuPlanId => menuPlanId.Value, value => MenuPlanId.From(value));
         builder.Property(item => item.RecipeId).HasConversion(recipeIdConverter);
+        builder.Property(item => item.RecipeRevisionId).HasConversion(recipeRevisionIdConverter);
     }
 }

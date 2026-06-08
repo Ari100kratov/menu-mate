@@ -1,119 +1,93 @@
-import { BookOpen, ImageIcon, Pencil, Star, Trash2 } from "lucide-react"
+import { Bookmark, Clock3, Heart, ImageIcon, Timer, Users } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
-import { normalizeTagValue } from "@/features/tags/model/tag-values"
+import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { Button } from "@/shared/ui/button"
 
 interface RecipeCardProps {
   recipe: RecipeListItem
-  isMutationPending: boolean
-  activeTag: string
-  onDelete: () => void
+  isFavoritePending: boolean
   onToggleFavorite: () => void
-  onSelectTag: (tag: string) => void
 }
 
-export function RecipeCard({
-  recipe,
-  isMutationPending,
-  activeTag,
-  onDelete,
-  onToggleFavorite,
-  onSelectTag,
-}: RecipeCardProps) {
+export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
   return (
-    <article className="bg-card text-card-foreground flex min-h-full flex-col rounded-md border">
-      <Link
-        to={`/recipes/${recipe.id}`}
-        className="focus-visible:ring-ring block overflow-hidden rounded-t-md outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-      >
+    <article className="bg-card group relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:border-primary/30 hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
+      <Link to={`/recipes/${recipe.id}`} className="bg-muted block min-h-full outline-none">
         {recipe.coverImage?.readUrl ? (
           <img
-            className="bg-muted aspect-[4/3] w-full object-cover"
+            className="size-full min-h-28 object-cover transition duration-300 group-hover:scale-[1.03]"
             src={recipe.coverImage.readUrl}
             alt={recipe.coverImage.altText ?? recipe.title}
           />
         ) : (
-          <div className="bg-muted text-muted-foreground flex aspect-[4/3] w-full flex-col items-center justify-center gap-2">
-            <ImageIcon className="size-8" />
-            <span className="text-sm">Нет обложки</span>
-          </div>
+          <span className="text-muted-foreground flex size-full min-h-28 items-center justify-center">
+            <ImageIcon className="size-6" />
+          </span>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col justify-between p-4">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="line-clamp-2 text-lg font-semibold tracking-normal">
-                <Link to={`/recipes/${recipe.id}`} className="hover:text-primary hover:underline">
-                  {recipe.title}
-                </Link>
-              </h2>
-              <p className="text-muted-foreground text-sm">{recipe.servings} порц.</p>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={recipe.isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
-              disabled={isMutationPending}
-              onClick={onToggleFavorite}
-            >
-              <Star className={recipe.isFavorite ? "fill-primary text-primary" : undefined} />
-            </Button>
+      <Link
+        to={`/recipes/${recipe.id}`}
+        className="flex min-w-0 flex-col justify-center gap-2 p-3 pr-11 outline-none sm:p-4 sm:pr-12"
+      >
+        <div className="space-y-0.5">
+          <h2 className="type-subsection-title line-clamp-2">{recipe.title}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="type-label text-primary">
+              {getRecipeCategoryLabel(recipe.category)}
+            </span>
+            {!recipe.isOwnedByCurrentUser && recipe.isSaved ? (
+              <span className="type-label text-muted-foreground flex items-center gap-1">
+                <Bookmark className="size-4 fill-current" />
+                Сохранён
+              </span>
+            ) : null}
           </div>
-
-          {recipe.description ? (
-            <p className="text-muted-foreground line-clamp-3 text-sm">{recipe.description}</p>
-          ) : null}
-
-          {recipe.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {recipe.tags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className="bg-secondary text-secondary-foreground hover:bg-primary/10 hover:text-primary focus-visible:ring-ring rounded-md px-2 py-1 text-xs outline-none focus-visible:ring-2"
-                  aria-pressed={normalizeTagValue(tag) === normalizeTagValue(activeTag)}
-                  onClick={() => {
-                    onSelectTag(tag)
-                  }}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/recipes/${recipe.id}`}>
-              <BookOpen />
-              Открыть
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/recipes/${recipe.id}/edit`}>
-              <Pencil />
-              Изменить
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="col-span-2"
-            disabled={isMutationPending}
-            onClick={onDelete}
-          >
-            <Trash2 />
-            Удалить
-          </Button>
+        <div className="type-supporting text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
+          {recipe.totalTimeMinutes == null ? null : (
+            <span className="flex items-center gap-1">
+              <Clock3 className="size-4" />
+              {formatMinutes(Number(recipe.totalTimeMinutes))}
+            </span>
+          )}
+          {recipe.activeTimeMinutes == null ? null : (
+            <span
+              className="text-primary flex items-center gap-1"
+              aria-label={`Активное время: ${formatMinutes(Number(recipe.activeTimeMinutes))}`}
+              title="Активное время"
+            >
+              <Timer className="size-4" />
+              {formatMinutes(Number(recipe.activeTimeMinutes))}
+            </span>
+          )}
+          <span className="flex items-center gap-1">
+            <Users className="size-4" />
+            {String(recipe.servings)}
+          </span>
         </div>
-      </div>
+      </Link>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className="absolute top-2 right-2 rounded-full"
+        aria-label={recipe.isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
+        disabled={isFavoritePending}
+        onClick={onToggleFavorite}
+      >
+        <Heart className={recipe.isFavorite ? "size-4 fill-primary text-primary" : "size-4"} />
+      </Button>
     </article>
   )
+}
+
+function formatMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  if (hours === 0) return `${String(rest)} мин`
+  return rest === 0 ? `${String(hours)} ч` : `${String(hours)} ч ${String(rest)} мин`
 }

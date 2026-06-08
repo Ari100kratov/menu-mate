@@ -10,7 +10,7 @@ import {
 import { useUserPreferencesStore } from "@/shared/config/user-preferences.store"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field"
 import { PageSection } from "@/shared/ui/page"
-import { Select } from "@/shared/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { SettingsRow } from "./SettingsRow"
 
 export function ProfileShoppingPreferences() {
@@ -37,17 +37,21 @@ export function ProfileShoppingPreferences() {
         <Field>
           <FieldLabel htmlFor="default-shopping-unit">Единица</FieldLabel>
           <Select
-            id="default-shopping-unit"
             value={defaultShoppingUnit}
-            onChange={(event) => {
-              setDefaultShoppingUnit(event.target.value as ShoppingUnitValue)
+            onValueChange={(value) => {
+              setDefaultShoppingUnit(value as ShoppingUnitValue)
             }}
           >
-            {shoppingUnitOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            <SelectTrigger id="default-shopping-unit" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {shoppingUnitOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           <FieldDescription>Используется при добавлении продукта вручную.</FieldDescription>
         </Field>
@@ -55,17 +59,21 @@ export function ProfileShoppingPreferences() {
         <Field>
           <FieldLabel htmlFor="default-shopping-category">Категория</FieldLabel>
           <Select
-            id="default-shopping-category"
             value={defaultShoppingCategory}
-            onChange={(event) => {
-              setDefaultShoppingCategory(event.target.value as ShoppingCategoryValue)
+            onValueChange={(value) => {
+              setDefaultShoppingCategory(value as ShoppingCategoryValue)
             }}
           >
-            {shoppingCategoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            <SelectTrigger id="default-shopping-category" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {shoppingCategoryOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           <FieldDescription>Помогает быстрее группировать ручные покупки.</FieldDescription>
         </Field>

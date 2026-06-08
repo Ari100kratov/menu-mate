@@ -21,7 +21,7 @@ export function RecipeImagePreview({ image, fallbackTitle }: RecipeImagePreviewP
   return (
     <div className="bg-muted text-muted-foreground flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-md border">
       <ImageIcon className="size-8" />
-      <span className="text-sm">Изображение не добавлено</span>
+      <span className="type-supporting">Изображение не добавлено</span>
     </div>
   )
 }

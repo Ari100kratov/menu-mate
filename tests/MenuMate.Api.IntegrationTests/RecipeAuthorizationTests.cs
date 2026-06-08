@@ -90,9 +90,14 @@ public sealed class RecipeAuthorizationTests : IAsyncLifetime, IDisposable
             title,
             "Simple dinner",
             2,
+            "MainCourse",
+            "Private",
+            30,
+            15,
             null,
             [
                 new RecipeIngredientRequest(
+                    null,
                     "Pasta",
                     200m,
                     "Gram",

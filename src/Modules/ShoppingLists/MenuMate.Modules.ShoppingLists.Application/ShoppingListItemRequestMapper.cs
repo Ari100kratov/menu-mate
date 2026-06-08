@@ -1,4 +1,5 @@
 using MenuMate.Contracts.ShoppingLists;
+using MenuMate.Common.Application.Products;
 using MenuMate.Modules.ShoppingLists.Domain.Enums;
 using MenuMate.Modules.ShoppingLists.Domain.Models;
 using MenuMate.SharedKernel;
@@ -7,7 +8,10 @@ namespace MenuMate.Modules.ShoppingLists.Application;
 
 internal static class ShoppingListItemRequestMapper
 {
-    public static Result<SavedShoppingListItem> Map(Guid itemId, ShoppingListItemRequest request)
+    public static Result<SavedShoppingListItem> Map(
+        Guid itemId,
+        ShoppingListItemRequest request,
+        ProductCatalogItem product)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -21,15 +25,16 @@ internal static class ShoppingListItemRequestMapper
             return Result.Failure<SavedShoppingListItem>(ShoppingListApplicationErrors.InvalidQuantityKind);
         }
 
-        if (!Enum.TryParse(request.Category, ignoreCase: true, out ShoppingProductCategory category))
+        if (!Enum.TryParse(product.Category, ignoreCase: true, out ShoppingProductCategory category))
         {
             return Result.Failure<SavedShoppingListItem>(ShoppingListApplicationErrors.InvalidProductCategory);
         }
 
         return SavedShoppingListItem.Create(
             itemId,
-            request.Name,
-            TextNormalizer.NormalizeSearchText(request.Name),
+            product.Id,
+            product.Name,
+            TextNormalizer.NormalizeSearchText(product.Name),
             request.Amount,
             unit,
             quantityKind,

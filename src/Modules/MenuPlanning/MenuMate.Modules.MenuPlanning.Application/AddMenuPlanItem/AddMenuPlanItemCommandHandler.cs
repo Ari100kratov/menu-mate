@@ -8,6 +8,7 @@ namespace MenuMate.Modules.MenuPlanning.Application.AddMenuPlanItem;
 
 internal sealed class AddMenuPlanItemCommandHandler(
     IMenuPlansRepository repository,
+    IRecipeRevisionAccessReader recipeRevisionAccessReader,
     IMenuPlansUnitOfWork unitOfWork,
     IUserContext userContext,
     TimeProvider timeProvider)
@@ -32,6 +33,16 @@ internal sealed class AddMenuPlanItemCommandHandler(
         if (item.IsFailure)
         {
             return Result.Failure<MenuPlanResponse>(item.Error);
+        }
+
+        if (item.Value.IsRecipeItem &&
+            !await recipeRevisionAccessReader.CanUseAsync(
+                userContext.UserId,
+                item.Value.RecipeId!.Value,
+                item.Value.RecipeRevisionId!.Value,
+                cancellationToken))
+        {
+            return Result.Failure<MenuPlanResponse>(MenuPlanningApplicationErrors.AccessDenied);
         }
 
         Result addResult = menuPlan.AddItem(item.Value, timeProvider.GetUtcNow());

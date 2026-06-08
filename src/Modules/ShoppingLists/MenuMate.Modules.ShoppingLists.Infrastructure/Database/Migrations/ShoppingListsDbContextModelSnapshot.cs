@@ -26,7 +26,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Entities.ShoppingListItemRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -65,6 +64,10 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("normalized_name");
 
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
                     b.Property<string>("QuantityKind")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -90,6 +93,9 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                     b.HasIndex("IsPurchased")
                         .HasDatabaseName("ix_shopping_list_items_is_purchased");
 
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_shopping_list_items_product_id");
+
                     b.HasIndex("ShoppingListId", "NormalizedName")
                         .HasDatabaseName("ix_shopping_list_items_shopping_list_id_normalized_name");
 
@@ -99,7 +105,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Entities.ShoppingListRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -137,7 +142,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanItemSourceRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -148,6 +152,10 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                     b.Property<Guid?>("RecipeId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_id");
+
+                    b.Property<Guid?>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
 
                     b.Property<int>("Servings")
                         .HasColumnType("integer")
@@ -187,7 +195,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeIngredientSourceRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -205,6 +212,10 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("comment");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ingredient_id");
 
                     b.Property<bool>("IsOptional")
                         .HasColumnType("boolean")
@@ -249,6 +260,102 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_recipe_ingredients_recipe_id");
 
                     b.ToTable("recipe_ingredients", "recipes", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeRevisionIngredientSourceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("comment");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<bool>("IsOptional")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_optional");
+
+                    b.Property<string>("NormalizedProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("normalized_product_name");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("product_name");
+
+                    b.Property<string>("QuantityKind")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("quantity_kind");
+
+                    b.Property<Guid>("RecipeRevisionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_revision_id");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revision_ingredients");
+
+                    b.HasIndex("RecipeRevisionId")
+                        .HasDatabaseName("ix_recipe_revision_ingredients_recipe_revision_id");
+
+                    b.ToTable("recipe_revision_ingredients", "recipes", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeRevisionSourceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("RecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<int>("Servings")
+                        .HasColumnType("integer")
+                        .HasColumnName("servings");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recipe_revisions");
+
+                    b.ToTable("recipe_revisions", "recipes", t =>
                         {
                             t.ExcludeFromMigrations();
                         });
@@ -311,6 +418,16 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasConstraintName("fk_recipe_ingredients_recipes_recipe_id");
                 });
 
+            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeRevisionIngredientSourceRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeRevisionSourceRecord", null)
+                        .WithMany("Ingredients")
+                        .HasForeignKey("RecipeRevisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_recipe_revision_ingredients_recipe_revisions_recipe_revisio");
+                });
+
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Entities.ShoppingListRecord", b =>
                 {
                     b.Navigation("Items");
@@ -319,6 +436,11 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanSourceRecord", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeRevisionSourceRecord", b =>
+                {
+                    b.Navigation("Ingredients");
                 });
 
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeSourceRecord", b =>

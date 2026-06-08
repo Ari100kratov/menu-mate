@@ -23,6 +23,8 @@
     <ProjectReference Include="..\Modules\MenuPlanning\MenuMate.Modules.MenuPlanning.Application\MenuMate.Modules.MenuPlanning.Application.csproj" />
     <ProjectReference Include="..\Modules\MenuPlanning\MenuMate.Modules.MenuPlanning.Infrastructure\MenuMate.Modules.MenuPlanning.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\MenuPlanning\MenuMate.Modules.MenuPlanning.Presentation\MenuMate.Modules.MenuPlanning.Presentation.csproj" />
+    <ProjectReference Include="..\Modules\Products\MenuMate.Modules.Products.Infrastructure\MenuMate.Modules.Products.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Products\MenuMate.Modules.Products.Presentation\MenuMate.Modules.Products.Presentation.csproj" />
     <ProjectReference Include="..\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Application\MenuMate.Modules.ShoppingLists.Application.csproj" />
     <ProjectReference Include="..\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Infrastructure\MenuMate.Modules.ShoppingLists.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Presentation\MenuMate.Modules.ShoppingLists.Presentation.csproj" />

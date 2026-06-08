@@ -11,6 +11,7 @@ public sealed record SavedShoppingListItem
 {
     private SavedShoppingListItem(
         Guid id,
+        Guid productId,
         string name,
         string normalizedName,
         decimal? amount,
@@ -22,6 +23,7 @@ public sealed record SavedShoppingListItem
         bool isInStock)
     {
         Id = id;
+        ProductId = productId;
         Name = name;
         NormalizedName = normalizedName;
         Amount = amount;
@@ -37,6 +39,11 @@ public sealed record SavedShoppingListItem
     /// Идентификатор позиции.
     /// </summary>
     public Guid Id { get; }
+
+    /// <summary>
+    /// Идентификатор продукта общего каталога.
+    /// </summary>
+    public Guid ProductId { get; }
 
     /// <summary>
     /// Отображаемое название продукта.
@@ -88,6 +95,7 @@ public sealed record SavedShoppingListItem
     /// </summary>
     public static Result<SavedShoppingListItem> Create(
         Guid id,
+        Guid productId,
         string name,
         string normalizedName,
         decimal? amount,
@@ -123,6 +131,7 @@ public sealed record SavedShoppingListItem
 
         return new SavedShoppingListItem(
             id,
+            productId,
             trimmedName,
             normalized,
             effectiveAmount,
@@ -143,6 +152,7 @@ public sealed record SavedShoppingListItem
 
         return Create(
             id,
+            item.ProductId,
             item.Name,
             item.NormalizedName,
             item.Amount,
@@ -159,6 +169,7 @@ public sealed record SavedShoppingListItem
     /// </summary>
     public ShoppingListItem ToShoppingListItem() =>
         new(
+            ProductId,
             Name,
             NormalizedName,
             Amount,

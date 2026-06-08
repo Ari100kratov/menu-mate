@@ -11,6 +11,7 @@ public sealed record ShoppingListItem
     /// Инициализирует новую позицию списка покупок.
     /// </summary>
     public ShoppingListItem(
+        Guid productId,
         string name,
         string normalizedName,
         decimal? amount,
@@ -21,6 +22,7 @@ public sealed record ShoppingListItem
         bool isPurchased = false,
         bool isInStock = false)
     {
+        ProductId = productId;
         Name = name;
         NormalizedName = normalizedName;
         Amount = amount;
@@ -31,6 +33,11 @@ public sealed record ShoppingListItem
         IsPurchased = isPurchased;
         IsInStock = isInStock;
     }
+
+    /// <summary>
+    /// Идентификатор продукта общего каталога.
+    /// </summary>
+    public Guid ProductId { get; }
 
     /// <summary>
     /// Отображаемое название продукта.

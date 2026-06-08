@@ -27,7 +27,7 @@ export function StepImageEditor({
   return (
     <section className="grid gap-3 rounded-md border p-3 md:grid-cols-[minmax(0,14rem)_1fr]">
       <div className="space-y-2">
-        <div className="text-sm font-medium">Шаг {step.number}</div>
+        <div className="type-label">Шаг {step.number}</div>
         <RecipeImagePreview
           image={image}
           fallbackTitle={`${recipeTitle}, шаг ${String(step.number)}`}
@@ -50,7 +50,7 @@ export function StepImageEditor({
       </div>
 
       <div className="space-y-3">
-        <p className="text-muted-foreground line-clamp-2 text-sm">{step.text}</p>
+        <p className="type-supporting text-muted-foreground line-clamp-2">{step.text}</p>
         <RecipeImageUploadForm
           formId={`step-${String(step.number)}-image`}
           title={image ? "Заменить изображение шага" : "Добавить изображение шага"}

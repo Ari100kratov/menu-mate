@@ -38,6 +38,7 @@ public sealed class MenuPlanTests
             new DateOnly(2026, 6, 8),
             MealType.Dinner,
             RecipeId.Create(),
+            RecipeRevisionId.Create(),
             MenuServings.Create(2).Value);
 
         Result result = plan.AddItem(item, FixedNow);

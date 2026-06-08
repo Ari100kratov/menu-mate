@@ -17,6 +17,7 @@ public sealed class MenuPlanItem : Entity<Guid>
         MealType mealType,
         MenuServings servings,
         RecipeId? recipeId,
+        RecipeRevisionId? recipeRevisionId,
         string? recipeTitle,
         string? text,
         string? comment)
@@ -26,6 +27,7 @@ public sealed class MenuPlanItem : Entity<Guid>
         MealType = mealType;
         Servings = servings;
         RecipeId = recipeId;
+        RecipeRevisionId = recipeRevisionId;
         RecipeTitle = string.IsNullOrWhiteSpace(recipeTitle) ? null : recipeTitle.Trim();
         Text = text;
         Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
@@ -50,6 +52,11 @@ public sealed class MenuPlanItem : Entity<Guid>
     /// Идентификатор рецепта, если позиция основана на рецепте.
     /// </summary>
     public RecipeId? RecipeId { get; }
+
+    /// <summary>
+    /// Immutable recipe content revision pinned by this menu item.
+    /// </summary>
+    public RecipeRevisionId? RecipeRevisionId { get; }
 
     /// <summary>
     /// Снимок названия рецепта для пунктов на основе рецепта.
@@ -79,10 +86,11 @@ public sealed class MenuPlanItem : Entity<Guid>
         DateOnly date,
         MealType mealType,
         RecipeId recipeId,
+        RecipeRevisionId recipeRevisionId,
         MenuServings servings,
         string? comment = null,
         string? recipeTitle = null) =>
-        new(id, date, mealType, servings, recipeId, recipeTitle, null, comment);
+        new(id, date, mealType, servings, recipeId, recipeRevisionId, recipeTitle, null, comment);
 
     /// <summary>
     /// Создает произвольную текстовую позицию меню.
@@ -100,7 +108,7 @@ public sealed class MenuPlanItem : Entity<Guid>
             return Result.Failure<MenuPlanItem>(MenuPlanErrors.EmptyTextItem);
         }
 
-        return new MenuPlanItem(id, date, mealType, servings, null, null, text.Trim(), comment);
+        return new MenuPlanItem(id, date, mealType, servings, null, null, null, text.Trim(), comment);
     }
 
     /// <summary>
@@ -112,8 +120,9 @@ public sealed class MenuPlanItem : Entity<Guid>
         MealType mealType,
         MenuServings servings,
         RecipeId? recipeId,
+        RecipeRevisionId? recipeRevisionId,
         string? recipeTitle,
         string? text,
         string? comment) =>
-        new(id, date, mealType, servings, recipeId, recipeTitle, text, comment);
+        new(id, date, mealType, servings, recipeId, recipeRevisionId, recipeTitle, text, comment);
 }

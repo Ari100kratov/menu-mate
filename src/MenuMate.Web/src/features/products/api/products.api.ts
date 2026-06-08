@@ -1,0 +1,17 @@
+import { apiClient } from "@/shared/api/client"
+import type { components } from "@/shared/api/generated/schema"
+import { unwrapApiResponse } from "@/shared/api/unwrap"
+
+export type Product = components["schemas"]["ProductResponse"]
+
+export async function getProducts(search: string) {
+  return unwrapApiResponse<Product[]>(
+    apiClient.GET("/api/products", {
+      params: {
+        query: {
+          search: search.trim() || undefined,
+        },
+      },
+    }),
+  )
+}

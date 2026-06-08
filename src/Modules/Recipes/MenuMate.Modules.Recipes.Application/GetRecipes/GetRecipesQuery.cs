@@ -1,3 +1,5 @@
+#pragma warning disable CS1573
+
 using MenuMate.Common.Application;
 using MenuMate.Contracts.Recipes;
 
@@ -10,7 +12,7 @@ namespace MenuMate.Modules.Recipes.Application.GetRecipes;
 /// <param name="Tag">Фильтр по тегу.</param>
 /// <param name="FavoritesOnly">Возвращать только избранные рецепты.</param>
 public sealed record GetRecipesQuery(
+    string Scope,
     string? Search,
     string? Tag,
     bool FavoritesOnly) : IQuery<IReadOnlyCollection<RecipeListItemResponse>>;
-

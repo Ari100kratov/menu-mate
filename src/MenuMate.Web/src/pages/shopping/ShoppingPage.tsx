@@ -11,7 +11,7 @@ import { ShoppingListSummaryButton } from "@/features/shopping-lists/ui/Shopping
 import { ShoppingListWorkspace } from "@/features/shopping-lists/ui/ShoppingListWorkspace"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { EmptyState, PageHeader } from "@/shared/ui/page"
+import { EmptyState } from "@/shared/ui/page"
 
 export default function ShoppingPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -33,19 +33,15 @@ export default function ShoppingPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Покупки"
-        description="Списки из планов меню, ручные позиции и режим похода в магазин."
-        action={
-          <Button asChild variant="secondary">
-            <Link to="/menu">
-              <ListPlus />
-              Создать из меню
-            </Link>
-          </Button>
-        }
-      />
+    <div className="space-y-5">
+      <div className="flex justify-end">
+        <Button asChild variant="secondary" className="w-full sm:w-auto">
+          <Link to="/menu">
+            <ListPlus />
+            Создать из меню
+          </Link>
+        </Button>
+      </div>
 
       {shoppingListsQuery.error ? <ErrorAlert error={shoppingListsQuery.error} /> : null}
       {shoppingListQuery.error ? <ErrorAlert error={shoppingListQuery.error} /> : null}

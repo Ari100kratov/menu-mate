@@ -1,60 +1,73 @@
-import { ArrowLeft } from "lucide-react"
-import { Link, Navigate, useParams } from "react-router-dom"
+import { Navigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 
-import { useRecipeQuery, useUpdateRecipeMutation } from "@/features/recipes/api/recipes.queries"
+import {
+  useRecipeQuery,
+  useUpdateRecipeMutation,
+  useUploadRecipeImageMutation,
+} from "@/features/recipes/api/recipes.queries"
 import {
   recipeToFormValues,
   toRecipeRequest,
   type RecipeFormValues,
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
-import { RecipeImagesPanel } from "@/features/recipes/ui/RecipeImagesPanel"
-import { Button } from "@/shared/ui/button"
+import { findCoverImage } from "@/features/recipes/model/recipe-images"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { PageHeader } from "@/shared/ui/page"
 
 export default function RecipeEditPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
   const normalizedRecipeId = recipeId ?? ""
   const recipeQuery = useRecipeQuery(recipeId)
   const updateRecipeMutation = useUpdateRecipeMutation(normalizedRecipeId)
+  const uploadImageMutation = useUploadRecipeImageMutation(normalizedRecipeId)
 
   if (!recipeId) {
     return <Navigate to="/recipes" replace />
   }
 
-  function handleSubmit(values: RecipeFormValues) {
-    updateRecipeMutation.mutate(toRecipeRequest(values))
+  if (recipeQuery.data && !recipeQuery.data.isOwnedByCurrentUser) {
+    return <Navigate to={`/recipes/${recipeQuery.data.id}`} replace />
+  }
+
+  function handleSubmit(values: RecipeFormValues, coverFile: File | null) {
+    updateRecipeMutation.mutate(toRecipeRequest(values), {
+      onSuccess: () => {
+        if (coverFile) {
+          uploadImageMutation.mutate(
+            {
+              file: coverFile,
+              scope: "Cover",
+              altText: values.title,
+            },
+            {
+              onSuccess: () => {
+                toast.success("Рецепт сохранён")
+              },
+            },
+          )
+          return
+        }
+
+        toast.success("Рецепт сохранён")
+      },
+    })
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={recipeQuery.data?.title ?? "Редактирование рецепта"}
-        description="Обновите состав, шаги и теги рецепта."
-        action={
-          <Button asChild variant="outline">
-            <Link to="/recipes">
-              <ArrowLeft />К списку
-            </Link>
-          </Button>
-        }
-      />
-
+    <div className="space-y-5">
       {recipeQuery.isPending ? <PageSkeleton /> : null}
       {recipeQuery.error ? <ErrorAlert error={recipeQuery.error} /> : null}
       {recipeQuery.data ? (
-        <>
-          <RecipeImagesPanel recipe={recipeQuery.data} />
-          <RecipeForm
-            key={recipeQuery.data.id}
-            initialValues={recipeToFormValues(recipeQuery.data)}
-            submitLabel="Сохранить"
-            isSubmitting={updateRecipeMutation.isPending}
-            error={updateRecipeMutation.error}
-            onSubmit={handleSubmit}
-          />
-        </>
+        <RecipeForm
+          key={recipeQuery.data.id}
+          initialValues={recipeToFormValues(recipeQuery.data)}
+          coverImageUrl={findCoverImage(recipeQuery.data.images)?.readUrl ?? undefined}
+          submitLabel="Сохранить"
+          isSubmitting={updateRecipeMutation.isPending || uploadImageMutation.isPending}
+          error={updateRecipeMutation.error ?? uploadImageMutation.error}
+          onSubmit={handleSubmit}
+        />
       ) : null}
     </div>
   )

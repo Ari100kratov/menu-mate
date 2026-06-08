@@ -151,6 +151,7 @@ public sealed class MenuPlanningWorkflowTests : IAsyncLifetime, IDisposable
                 "Breakfast",
                 null,
                 null,
+                null,
                 "Oatmeal",
                 1,
                 null));

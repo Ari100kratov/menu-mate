@@ -6,7 +6,6 @@ import { ProfileSettings } from "@/features/profile/ui/ProfileSettings"
 import { useSessionStore } from "@/shared/auth/session.store"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { MobileStickyActions, PageHeader } from "@/shared/ui/page"
 
 export default function ProfilePage() {
   const currentUserQuery = useCurrentUserQuery()
@@ -26,16 +25,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Профиль"
-        description="Аккаунт, текущая сессия, роли и настройки интерфейса."
-        action={<LogoutButton isPending={logoutMutation.isPending} onClick={logout} />}
-      />
-
-      <MobileStickyActions>
+    <div className="space-y-5">
+      <div className="flex justify-end">
         <LogoutButton isPending={logoutMutation.isPending} onClick={logout} />
-      </MobileStickyActions>
+      </div>
 
       {logoutMutation.error ? <ErrorAlert error={logoutMutation.error} /> : null}
 
@@ -47,7 +40,13 @@ export default function ProfilePage() {
 
 function LogoutButton({ isPending, onClick }: { isPending: boolean; onClick: () => void }) {
   return (
-    <Button type="button" variant="outline" disabled={isPending} onClick={onClick}>
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full sm:w-auto"
+      disabled={isPending}
+      onClick={onClick}
+    >
       <LogOut />
       {isPending ? "Выходим..." : "Выйти"}
     </Button>

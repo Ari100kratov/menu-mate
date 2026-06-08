@@ -13,7 +13,7 @@ import {
 } from "@/features/menu-planning/model/menu-plan-form"
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { Button } from "@/shared/ui/button"
-import { Select } from "@/shared/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { MenuPlanItemForm } from "./MenuPlanItemForm"
 
 interface MenuPlanItemCardProps {
@@ -120,17 +120,22 @@ export function MenuPlanItemCard({
           <Select
             value={item.date}
             disabled={isPending}
-            onChange={(event) => {
-              if (event.target.value !== item.date) {
-                onMove(event.target.value)
+            onValueChange={(value) => {
+              if (value !== item.date) {
+                onMove(value)
               }
             }}
           >
-            {availableDates.map((date) => (
-              <option key={date} value={date}>
-                {formatWeekday(date)}, {formatDate(date)}
-              </option>
-            ))}
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableDates.map((date) => (
+                <SelectItem key={date} value={date}>
+                  {formatWeekday(date)}, {formatDate(date)}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </label>
       </div>

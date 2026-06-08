@@ -2,7 +2,9 @@ import { apiClient } from "@/shared/api/client"
 import { unwrapApiResponse, unwrapEmptyApiResponse } from "@/shared/api/unwrap"
 import type { components, paths } from "@/shared/api/generated/schema"
 
-export type RecipeListItem = components["schemas"]["RecipeListItemResponse"]
+export type RecipeListItem = components["schemas"]["RecipeListItemResponse"] & {
+  activeTimeMinutes?: null | number | string
+}
 export type Recipe = components["schemas"]["RecipeResponse"]
 export type RecipeImage = components["schemas"]["RecipeImageResponse"]
 export type CreateRecipeRequest = components["schemas"]["CreateRecipeRequest"]
@@ -19,6 +21,7 @@ export interface UploadRecipeImageRequest {
 }
 
 export interface RecipeListFilters {
+  scope?: "library" | "catalog"
   search?: string
   tag?: string
   favoritesOnly?: boolean
@@ -29,6 +32,7 @@ export async function getRecipes(filters: RecipeListFilters) {
     apiClient.GET("/api/recipes", {
       params: {
         query: {
+          scope: filters.scope ?? "library",
           search: normalizeQueryValue(filters.search),
           tag: normalizeQueryValue(filters.tag),
           favoritesOnly: filters.favoritesOnly ?? false,
@@ -109,6 +113,34 @@ export async function setRecipeFavorite(recipeId: string, isFavorite: boolean) {
     isFavorite
       ? apiClient.POST("/api/recipes/{recipeId}/favorite", requestOptions)
       : apiClient.DELETE("/api/recipes/{recipeId}/favorite", requestOptions),
+  )
+}
+
+export async function setRecipeSaved(recipeId: string, isSaved: boolean) {
+  const requestOptions = {
+    params: {
+      path: {
+        recipeId,
+      },
+    },
+  }
+
+  await unwrapEmptyApiResponse(
+    isSaved
+      ? apiClient.POST("/api/recipes/{recipeId}/library", requestOptions)
+      : apiClient.DELETE("/api/recipes/{recipeId}/library", requestOptions),
+  )
+}
+
+export async function copyRecipe(recipeId: string) {
+  return unwrapApiResponse<Recipe>(
+    apiClient.POST("/api/recipes/{recipeId}/copy", {
+      params: {
+        path: {
+          recipeId,
+        },
+      },
+    }),
   )
 }
 

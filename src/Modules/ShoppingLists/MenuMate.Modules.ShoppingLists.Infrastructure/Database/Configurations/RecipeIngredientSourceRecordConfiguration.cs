@@ -14,6 +14,7 @@ internal sealed class RecipeIngredientSourceRecordConfiguration : IEntityTypeCon
         builder.ToTable("recipe_ingredients", "recipes", table => table.ExcludeFromMigrations());
         builder.HasKey(ingredient => ingredient.Id);
         builder.Property(ingredient => ingredient.Id).ValueGeneratedNever();
+        builder.Property(ingredient => ingredient.IngredientId).IsRequired();
         builder.Property(ingredient => ingredient.RecipeId)
             .HasConversion(recipeId => recipeId.Value, value => RecipeId.From(value));
         builder.Property(ingredient => ingredient.Unit).HasConversion<string>().HasMaxLength(64).IsRequired();

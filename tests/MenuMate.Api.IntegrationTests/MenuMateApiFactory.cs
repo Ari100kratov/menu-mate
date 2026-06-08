@@ -1,5 +1,6 @@
 using MenuMate.Modules.Auth.Infrastructure.Database;
 using MenuMate.Modules.MenuPlanning.Infrastructure.Database;
+using MenuMate.Modules.Products.Infrastructure.Database;
 using MenuMate.Modules.Recipes.Infrastructure.Database;
 using MenuMate.Modules.ShoppingLists.Infrastructure.Database;
 using MenuMate.Modules.Tags.Infrastructure.Database;
@@ -34,6 +35,7 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
         IServiceProvider services = scope.ServiceProvider;
 
         await MigrateAsync<AuthDbContext>(services);
+        await MigrateAsync<ProductsDbContext>(services);
         await MigrateAsync<RecipesDbContext>(services);
         await MigrateAsync<TagsDbContext>(services);
         await MigrateAsync<MenuPlanningDbContext>(services);

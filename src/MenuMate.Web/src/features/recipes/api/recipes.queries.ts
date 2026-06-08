@@ -1,12 +1,14 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import {
+  copyRecipe,
   createRecipe,
   deleteRecipeImage,
   deleteRecipe,
   getRecipe,
   getRecipes,
   setRecipeFavorite,
+  setRecipeSaved,
   updateRecipe,
   uploadRecipeImage,
   type CreateRecipeRequest,
@@ -16,6 +18,7 @@ import {
 } from "@/features/recipes/api/recipes.api"
 
 const normalizedEmptyFilters = {
+  scope: "library",
   search: "",
   tag: "",
   favoritesOnly: false,
@@ -28,6 +31,7 @@ export const recipeQueryKeys = {
     [
       ...recipeQueryKeys.lists(),
       {
+        scope: filters.scope ?? normalizedEmptyFilters.scope,
         search: filters.search?.trim() ?? normalizedEmptyFilters.search,
         tag: filters.tag?.trim() ?? normalizedEmptyFilters.tag,
         favoritesOnly: filters.favoritesOnly ?? normalizedEmptyFilters.favoritesOnly,
@@ -111,6 +115,31 @@ export function useSetRecipeFavoriteMutation() {
       setRecipeFavorite(recipeId, isFavorite),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.detail(variables.recipeId) })
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+    },
+  })
+}
+
+export function useSetRecipeSavedMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ recipeId, isSaved }: { recipeId: string; isSaved: boolean }) =>
+      setRecipeSaved(recipeId, isSaved),
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.detail(variables.recipeId) })
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+    },
+  })
+}
+
+export function useCopyRecipeMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: copyRecipe,
+    onSuccess: (recipe) => {
+      queryClient.setQueryData(recipeQueryKeys.detail(recipe.id), recipe)
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
     },
   })

@@ -10,7 +10,9 @@ import type { MenuPlanItemFormApi } from "@/features/menu-planning/ui/useMenuPla
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { Field, FieldLabel } from "@/shared/ui/field"
 import { Input } from "@/shared/ui/input"
-import { Select } from "@/shared/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+
+const NO_RECIPE_SELECT_VALUE = "__no_recipe__"
 
 interface MenuPlanRecipeFieldProps {
   form: MenuPlanItemFormApi
@@ -46,20 +48,26 @@ export function MenuPlanRecipeField({ form, recipes, initialValues }: MenuPlanRe
             />
           </div>
           <Select
-            id={field.name}
             name={field.name}
-            value={field.state.value}
-            onBlur={field.handleBlur}
-            onChange={(event) => {
-              field.handleChange(event.target.value)
+            value={field.state.value || NO_RECIPE_SELECT_VALUE}
+            onValueChange={(value) => {
+              const recipeId = value === NO_RECIPE_SELECT_VALUE ? "" : value
+              const recipe = recipeOptions.find((option) => option.id === recipeId)
+              field.handleChange(recipeId)
+              form.setFieldValue("recipeRevisionId", recipe?.currentRevisionId ?? "")
             }}
           >
-            <option value="">Без рецепта</option>
-            {filteredRecipeOptions.map((recipe) => (
-              <option key={recipe.id} value={recipe.id}>
-                {recipe.title}
-              </option>
-            ))}
+            <SelectTrigger id={field.name} className="w-full" onBlur={field.handleBlur}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_RECIPE_SELECT_VALUE}>Без рецепта</SelectItem>
+              {filteredRecipeOptions.map((recipe) => (
+                <SelectItem key={recipe.id} value={recipe.id}>
+                  {recipe.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </Field>
       )}

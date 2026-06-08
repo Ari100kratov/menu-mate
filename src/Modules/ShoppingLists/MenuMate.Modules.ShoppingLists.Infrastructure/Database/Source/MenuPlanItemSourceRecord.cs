@@ -11,4 +11,6 @@ internal sealed class MenuPlanItemSourceRecord
     public int Servings { get; set; }
 
     public RecipeId? RecipeId { get; set; }
+
+    public RecipeRevisionId? RecipeRevisionId { get; set; }
 }

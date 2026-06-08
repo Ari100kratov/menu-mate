@@ -1,3 +1,4 @@
+using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.Modules.Recipes.Domain.Models;
 using MenuMate.Modules.Recipes.Domain.ValueObjects;
 using MenuMate.SharedKernel;
@@ -8,32 +9,28 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Entities;
 internal sealed class RecipeRecord
 {
     public Guid Id { get; set; }
-
     public UserId OwnerUserId { get; set; }
-
     public string Title { get; set; } = string.Empty;
-
     public string? Description { get; set; }
-
     public int Servings { get; set; }
-
-    public bool IsFavorite { get; set; }
-
+    public RecipeCategory Category { get; set; }
+    public RecipeVisibility Visibility { get; set; }
+    public RecipeRevisionId CurrentRevisionId { get; set; }
+    public int RevisionNumber { get; set; }
+    public Guid? SourceRecipeId { get; set; }
+    public RecipeRevisionId? SourceRevisionId { get; set; }
+    public int? TotalTimeMinutes { get; set; }
+    public int? ActiveTimeMinutes { get; set; }
     public string? SourceUrl { get; set; }
-
     public DateTimeOffset CreatedAt { get; set; }
-
     public DateTimeOffset UpdatedAt { get; set; }
-
     public bool IsDeleted { get; set; }
-
     public List<RecipeIngredientRecord> Ingredients { get; set; } = [];
-
     public List<PreparationStepRecord> Steps { get; set; } = [];
-
     public List<RecipeTagRecord> Tags { get; set; } = [];
-
     public List<RecipeImageRecord> Images { get; set; } = [];
+    public List<RecipeRevisionRecord> Revisions { get; set; } = [];
+    public List<RecipeLibraryEntryRecord> LibraryEntries { get; set; } = [];
 
     public static RecipeRecord FromDomain(Recipe recipe)
     {
@@ -49,17 +46,23 @@ internal sealed class RecipeRecord
         Title = recipe.Title.Value;
         Description = recipe.Description;
         Servings = recipe.Servings.Value;
-        IsFavorite = recipe.IsFavorite;
+        Category = recipe.Category;
+        Visibility = recipe.Visibility;
+        CurrentRevisionId = recipe.CurrentRevisionId;
+        RevisionNumber = recipe.RevisionNumber;
+        SourceRecipeId = recipe.SourceRecipeId;
+        SourceRevisionId = recipe.SourceRevisionId;
+        TotalTimeMinutes = recipe.TotalTimeMinutes;
+        ActiveTimeMinutes = recipe.ActiveTimeMinutes;
         SourceUrl = recipe.SourceUrl?.ToString();
         CreatedAt = recipe.CreatedAt;
         UpdatedAt = recipe.UpdatedAt;
         IsDeleted = recipe.IsDeleted;
+
         Ingredients.Clear();
         Ingredients.AddRange(recipe.Ingredients.Select(RecipeIngredientRecord.FromDomain));
-
         Steps.Clear();
         Steps.AddRange(recipe.Steps.Select(PreparationStepRecord.FromDomain));
-
         Tags.Clear();
         Tags.AddRange(recipe.Tags.Select(RecipeTagRecord.FromDomain));
 
@@ -77,13 +80,17 @@ internal sealed class RecipeRecord
         {
             tag.RecipeId = Id;
         }
+
+        if (Revisions.All(revision => revision.Id != recipe.CurrentRevisionId.Value))
+        {
+            Revisions.Add(RecipeRevisionRecord.FromDomain(recipe));
+        }
     }
 
     public Recipe ToDomain()
     {
         Result<RecipeTitle> title = RecipeTitle.Create(Title);
         Result<Servings> servings = Domain.ValueObjects.Servings.Create(Servings);
-
         if (title.IsFailure)
         {
             throw new DomainException(title.Error);
@@ -95,14 +102,20 @@ internal sealed class RecipeRecord
         }
 
         Uri? sourceUrl = SourceUrl is null ? null : new Uri(SourceUrl, UriKind.Absolute);
-
         return Recipe.Rehydrate(
             Id,
             OwnerUserId,
             title.Value,
             servings.Value,
+            Category,
+            Visibility,
+            CurrentRevisionId,
+            RevisionNumber,
+            SourceRecipeId,
+            SourceRevisionId,
+            TotalTimeMinutes,
+            ActiveTimeMinutes,
             Description,
-            IsFavorite,
             sourceUrl,
             CreatedAt,
             UpdatedAt,
