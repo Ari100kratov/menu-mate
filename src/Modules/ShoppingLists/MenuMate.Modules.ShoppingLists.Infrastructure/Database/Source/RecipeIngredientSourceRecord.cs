@@ -21,8 +21,6 @@ internal sealed class RecipeIngredientSourceRecord
 
     public ShoppingUnit Unit { get; set; }
 
-    public ShoppingQuantityKind QuantityKind { get; set; }
-
     public ShoppingProductCategory Category { get; set; }
 
     public string? Comment { get; set; }

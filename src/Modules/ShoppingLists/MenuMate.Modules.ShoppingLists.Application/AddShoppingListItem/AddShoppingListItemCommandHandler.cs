@@ -19,15 +19,25 @@ internal sealed class AddShoppingListItemCommandHandler(
         AddShoppingListItemCommand command,
         CancellationToken cancellationToken)
     {
-        SavedShoppingList? shoppingList = await repository.GetByIdAsync(command.ShoppingListId, cancellationToken);
+        SavedShoppingList? shoppingList = await repository.GetByOwnerAsync(userContext.UserId, cancellationToken);
+        bool isNew = shoppingList is null;
         if (shoppingList is null)
         {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.NotFound(command.ShoppingListId));
-        }
+            DateTimeOffset now = timeProvider.GetUtcNow();
+            var today = DateOnly.FromDateTime(now.UtcDateTime);
+            Result<SavedShoppingList> created = SavedShoppingList.Create(
+                Guid.CreateVersion7(),
+                userContext.UserId,
+                today,
+                today,
+                [],
+                now);
+            if (created.IsFailure)
+            {
+                return Result.Failure<ShoppingListResponse>(created.Error);
+            }
 
-        if (shoppingList.OwnerUserId != userContext.UserId)
-        {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.AccessDenied);
+            shoppingList = created.Value;
         }
 
         Result<SavedShoppingListItem> item = await productResolver.ResolveAsync(
@@ -41,7 +51,14 @@ internal sealed class AddShoppingListItemCommandHandler(
         }
 
         shoppingList.AddItem(item.Value, timeProvider.GetUtcNow());
-        await repository.UpdateAsync(shoppingList, cancellationToken);
+        if (isNew)
+        {
+            await repository.AddAsync(shoppingList, cancellationToken);
+        }
+        else
+        {
+            await repository.UpdateAsync(shoppingList, cancellationToken);
+        }
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await ReloadAsync(shoppingList.Id, cancellationToken);

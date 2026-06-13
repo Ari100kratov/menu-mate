@@ -17,12 +17,10 @@ internal sealed class ShoppingListItemRecordConfiguration : IEntityTypeConfigura
         builder.Property(item => item.Name).HasMaxLength(200).IsRequired();
         builder.Property(item => item.NormalizedName).HasMaxLength(200).IsRequired();
         builder.Property(item => item.Unit).HasConversion<string>().HasMaxLength(64).IsRequired();
-        builder.Property(item => item.QuantityKind).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(item => item.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(item => item.Comment).HasMaxLength(500);
         builder.HasIndex(item => new { item.ShoppingListId, item.NormalizedName });
         builder.HasIndex(item => item.ProductId);
         builder.HasIndex(item => item.IsPurchased);
-        builder.HasIndex(item => item.IsInStock);
     }
 }

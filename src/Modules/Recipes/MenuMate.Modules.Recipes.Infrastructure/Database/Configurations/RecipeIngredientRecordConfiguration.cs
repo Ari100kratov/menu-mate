@@ -17,7 +17,6 @@ internal sealed class RecipeIngredientRecordConfiguration : IEntityTypeConfigura
         builder.Property(ingredient => ingredient.ProductName).HasMaxLength(200).IsRequired();
         builder.Property(ingredient => ingredient.NormalizedProductName).HasMaxLength(200).IsRequired();
         builder.Property(ingredient => ingredient.Unit).HasConversion<string>().HasMaxLength(64).IsRequired();
-        builder.Property(ingredient => ingredient.QuantityKind).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(ingredient => ingredient.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(ingredient => ingredient.Comment).HasMaxLength(500);
         builder.HasIndex(ingredient => ingredient.NormalizedProductName);

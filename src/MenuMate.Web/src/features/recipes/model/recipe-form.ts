@@ -16,13 +16,13 @@ const recipeIngredientSchema = z
     productName: z.string().trim().min(1, "Укажите продукт."),
     amount: z.string().trim(),
     unit: z.string().trim().min(1, "Выберите единицу."),
-    quantityKind: z.string().trim().min(1, "Выберите тип количества."),
+    isToTaste: z.boolean(),
     category: z.string().trim().min(1, "Выберите категорию."),
     comment: z.string().trim(),
     isOptional: z.boolean(),
   })
   .superRefine((ingredient, context) => {
-    if (ingredient.quantityKind === "ToTaste") {
+    if (ingredient.isToTaste) {
       return
     }
 
@@ -144,7 +144,7 @@ export function createEmptyIngredientFormValues(): RecipeIngredientFormValues {
     productName: "",
     amount: "",
     unit: "Gram",
-    quantityKind: "Exact",
+    isToTaste: false,
     category: "Other",
     comment: "",
     isOptional: false,
@@ -172,7 +172,7 @@ export function recipeToFormValues(recipe: Recipe): RecipeFormValues {
       productName: ingredient.productName,
       amount: ingredient.amount === null ? "" : String(ingredient.amount),
       unit: ingredient.unit,
-      quantityKind: ingredient.quantityKind,
+      isToTaste: ingredient.unit === "ToTaste",
       category: ingredient.category,
       comment: ingredient.comment ?? "",
       isOptional: ingredient.isOptional,
@@ -200,9 +200,8 @@ export function toRecipeRequest(
       ingredientId: normalizeOptionalString(ingredient.ingredientId),
       productName: ingredient.productName.trim(),
       amount:
-        ingredient.quantityKind === "ToTaste" ? null : parseDecimalInput(ingredient.amount.trim()),
-      unit: ingredient.quantityKind === "ToTaste" ? "ToTaste" : ingredient.unit,
-      quantityKind: ingredient.quantityKind,
+        ingredient.isToTaste ? null : parseDecimalInput(ingredient.amount.trim()),
+      unit: ingredient.isToTaste ? "ToTaste" : ingredient.unit,
       category: ingredient.category,
       comment: normalizeOptionalString(ingredient.comment),
       isOptional: ingredient.isOptional,

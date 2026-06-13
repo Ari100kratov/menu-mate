@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Modules\Tags\MenuMate.Modules.Tags.Domain\MenuMate.Modules.Tags.Domain.csproj" />
+  </ItemGroup>
+</Project>

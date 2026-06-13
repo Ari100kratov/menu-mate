@@ -6,7 +6,7 @@ namespace MenuMate.Common.Application.Products;
 public interface IProductCatalog
 {
     /// <summary>
-    /// Возвращает существующий продукт или создаёт новый по нормализованному названию.
+    /// Возвращает существующий продукт или создаёт новый по нормализованному названию и категории.
     /// </summary>
     Task<ProductCatalogItem> ResolveAsync(
         Guid? productId,

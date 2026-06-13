@@ -26,7 +26,6 @@ namespace MenuMate.Modules.Tags.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.Tags.Infrastructure.Database.Entities.TagRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 

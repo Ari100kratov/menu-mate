@@ -1,4 +1,4 @@
-import { Bookmark, Copy, Heart, Pencil, Trash2 } from "lucide-react"
+import { Bookmark, CalendarPlus, Copy, Heart, Pencil, Trash2 } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 
@@ -42,6 +42,14 @@ export function RecipeDetailsActions({
 }: RecipeDetailsActionsProps) {
   return (
     <div className="flex shrink-0 flex-wrap justify-end gap-1">
+      <ActionTooltip label="Добавить в меню">
+        <Button asChild variant="ghost" size="icon">
+          <Link to={getMenuPlacementUrl(recipe)} aria-label="Добавить в меню">
+            <CalendarPlus className="size-4" />
+          </Link>
+        </Button>
+      </ActionTooltip>
+
       {recipe.isOwnedByCurrentUser ? (
         <ActionTooltip label="Изменить рецепт">
           <Button asChild variant="ghost" size="icon">
@@ -128,6 +136,16 @@ export function RecipeDetailsActions({
       ) : null}
     </div>
   )
+}
+
+function getMenuPlacementUrl(recipe: Recipe) {
+  const params = new URLSearchParams({
+    recipeId: recipe.id,
+    revisionId: recipe.currentRevisionId,
+    title: recipe.title,
+    servings: String(recipe.servings),
+  })
+  return `/menu?${params.toString()}`
 }
 
 function ActionTooltip({ label, children }: { label: string; children: ReactNode }) {

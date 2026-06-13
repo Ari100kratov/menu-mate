@@ -20,11 +20,6 @@ internal static class ShoppingListItemRequestMapper
             return Result.Failure<SavedShoppingListItem>(ShoppingListApplicationErrors.InvalidUnit);
         }
 
-        if (!Enum.TryParse(request.QuantityKind, ignoreCase: true, out ShoppingQuantityKind quantityKind))
-        {
-            return Result.Failure<SavedShoppingListItem>(ShoppingListApplicationErrors.InvalidQuantityKind);
-        }
-
         if (!Enum.TryParse(product.Category, ignoreCase: true, out ShoppingProductCategory category))
         {
             return Result.Failure<SavedShoppingListItem>(ShoppingListApplicationErrors.InvalidProductCategory);
@@ -37,7 +32,6 @@ internal static class ShoppingListItemRequestMapper
             TextNormalizer.NormalizeSearchText(product.Name),
             request.Amount,
             unit,
-            quantityKind,
             category,
             request.Comment);
     }

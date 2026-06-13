@@ -23,8 +23,6 @@ internal sealed class RecipeIngredientRecord
 
     public MeasurementUnit Unit { get; set; }
 
-    public IngredientQuantityKind QuantityKind { get; set; }
-
     public ProductCategory Category { get; set; }
 
     public string? Comment { get; set; }
@@ -41,7 +39,6 @@ internal sealed class RecipeIngredientRecord
             NormalizedProductName = ingredient.Name.NormalizedValue,
             Amount = ingredient.Quantity.Amount,
             Unit = ingredient.Quantity.Unit,
-            QuantityKind = ingredient.Quantity.Kind,
             Category = ingredient.Category,
             Comment = ingredient.Comment,
             IsOptional = ingredient.IsOptional
@@ -55,12 +52,9 @@ internal sealed class RecipeIngredientRecord
             throw new DomainException(name.Error);
         }
 
-        Result<IngredientQuantity> quantity = QuantityKind switch
-        {
-            IngredientQuantityKind.ToTaste => IngredientQuantity.ToTaste(),
-            IngredientQuantityKind.Approximate => IngredientQuantity.Approximate(Amount.GetValueOrDefault(), Unit),
-            _ => IngredientQuantity.Exact(Amount.GetValueOrDefault(), Unit)
-        };
+        Result<IngredientQuantity> quantity = Unit == MeasurementUnit.ToTaste
+            ? IngredientQuantity.ToTaste()
+            : IngredientQuantity.Measured(Amount.GetValueOrDefault(), Unit);
 
         if (quantity.IsFailure)
         {

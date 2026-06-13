@@ -18,21 +18,15 @@ internal sealed class SetShoppingListItemStateCommandHandler(
         SetShoppingListItemStateCommand command,
         CancellationToken cancellationToken)
     {
-        SavedShoppingList? shoppingList = await repository.GetByIdAsync(command.ShoppingListId, cancellationToken);
+        SavedShoppingList? shoppingList = await repository.GetByOwnerAsync(userContext.UserId, cancellationToken);
         if (shoppingList is null)
         {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.NotFound(command.ShoppingListId));
-        }
-
-        if (shoppingList.OwnerUserId != userContext.UserId)
-        {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.AccessDenied);
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.EmptyList);
         }
 
         if (!shoppingList.SetItemState(
                 command.ItemId,
                 command.Request.IsPurchased,
-                command.Request.IsInStock,
                 timeProvider.GetUtcNow()))
         {
             return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.ItemNotFound(command.ItemId));

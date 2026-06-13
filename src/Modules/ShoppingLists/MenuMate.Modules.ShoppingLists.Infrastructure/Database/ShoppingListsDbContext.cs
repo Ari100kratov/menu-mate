@@ -18,28 +18,9 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
 {
     internal DbSet<ShoppingListRecord> ShoppingLists => Set<ShoppingListRecord>();
 
-    private DbSet<MenuPlanSourceRecord> MenuPlans => Set<MenuPlanSourceRecord>();
+    private DbSet<MenuCalendarItemSourceRecord> MenuCalendarItems => Set<MenuCalendarItemSourceRecord>();
 
     private DbSet<RecipeRevisionSourceRecord> RecipeRevisions => Set<RecipeRevisionSourceRecord>();
-
-    /// <inheritdoc />
-    public async Task<IReadOnlyCollection<ShoppingListSummaryResponse>> GetShoppingListsAsync(
-        UserId ownerUserId,
-        CancellationToken cancellationToken)
-    {
-        return await ShoppingLists
-            .AsNoTracking()
-            .Where(shoppingList => shoppingList.OwnerUserId == ownerUserId)
-            .OrderByDescending(shoppingList => shoppingList.CreatedAt)
-            .Select(shoppingList => new ShoppingListSummaryResponse(
-                shoppingList.Id,
-                shoppingList.SourceMenuPlanId.Value,
-                shoppingList.CreatedAt,
-                shoppingList.UpdatedAt,
-                shoppingList.Items.Count,
-                shoppingList.Items.Count(item => item.IsPurchased)))
-            .ToArrayAsync(cancellationToken);
-    }
 
     /// <inheritdoc />
     public async Task<ShoppingListResponse?> GetShoppingListAsync(
@@ -58,26 +39,36 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyCollection<ShoppingRecipe>?> GetMenuPlanRecipesAsync(
-        MenuPlanId menuPlanId,
+    public async Task<ShoppingListResponse?> GetCurrentShoppingListAsync(
         UserId ownerUserId,
         CancellationToken cancellationToken)
     {
-        MenuPlanSourceRecord? menuPlan = await MenuPlans
+        ShoppingListRecord? record = await ShoppingLists
             .AsNoTracking()
-            .Include(menuPlanSource => menuPlanSource.Items)
-            .SingleOrDefaultAsync(
-                menuPlanSource => menuPlanSource.Id == menuPlanId && menuPlanSource.OwnerUserId == ownerUserId,
-                cancellationToken);
+            .Include(shoppingList => shoppingList.Items)
+            .SingleOrDefaultAsync(shoppingList => shoppingList.OwnerUserId == ownerUserId, cancellationToken);
 
-        if (menuPlan is null)
-        {
-            return null;
-        }
+        return record is null ? null : ToResponse(record.ToDomain());
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<ShoppingRecipe>> GetMenuCalendarRecipesAsync(
+        UserId ownerUserId,
+        DateOnly startDate,
+        DateOnly endDate,
+        CancellationToken cancellationToken)
+    {
+        MenuCalendarItemSourceRecord[] items = await MenuCalendarItems
+            .AsNoTracking()
+            .Where(item =>
+                item.OwnerUserId == ownerUserId &&
+                item.Date >= startDate &&
+                item.Date <= endDate)
+            .ToArrayAsync(cancellationToken);
 
         RecipeRevisionId[] revisionIds =
         [
-            .. menuPlan.Items
+            .. items
                 .Where(item => item.RecipeRevisionId.HasValue)
                 .Select(item => item.RecipeRevisionId!.Value)
                 .Distinct()
@@ -91,9 +82,13 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
 
         return
         [
-            .. menuPlan.Items
+            .. items
                 .Where(item => item.RecipeRevisionId.HasValue && revisions.ContainsKey(item.RecipeRevisionId.Value))
-                .Select(item => CreateShoppingRecipe(revisions[item.RecipeRevisionId!.Value], item.Servings))
+                .Select(item => CreateShoppingRecipe(
+                    item.Id,
+                    item.RecipeTitle ?? "Рецепт",
+                    revisions[item.RecipeRevisionId!.Value],
+                    item.Servings))
         ];
     }
 
@@ -106,7 +101,11 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ShoppingListsDbContext).Assembly);
     }
 
-    private static ShoppingRecipe CreateShoppingRecipe(RecipeRevisionSourceRecord revision, int targetServings) =>
+    private static ShoppingRecipe CreateShoppingRecipe(
+        Guid menuItemId,
+        string title,
+        RecipeRevisionSourceRecord revision,
+        int targetServings) =>
         new(
             revision.RecipeId,
             revision.Servings,
@@ -120,18 +119,21 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
                         ingredient.NormalizedProductName,
                         ingredient.Amount,
                         ingredient.Unit,
-                        ingredient.QuantityKind,
                         ingredient.Category,
                         ingredient.Comment,
-                        ingredient.IsOptional))
-            ]);
+                        ingredient.IsOptional,
+                        ingredient.Id))
+            ],
+            menuItemId,
+            title);
 
     private static ShoppingListResponse ToResponse(SavedShoppingList shoppingList)
     {
         ShoppingList grouped = shoppingList.ToGroupedShoppingList();
         return new ShoppingListResponse(
             shoppingList.Id,
-            shoppingList.SourceMenuPlanId.Value,
+            shoppingList.SourceStartDate,
+            shoppingList.SourceEndDate,
             shoppingList.CreatedAt,
             shoppingList.UpdatedAt,
             [
@@ -154,10 +156,8 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
             item.Name,
             item.Amount,
             item.Unit.ToString(),
-            item.QuantityKind.ToString(),
             item.Category.ToString(),
             ShoppingListTextFormatter.FormatAmount(item.ToShoppingListItem()),
             item.Comment,
-            item.IsPurchased,
-            item.IsInStock);
+            item.IsPurchased);
 }

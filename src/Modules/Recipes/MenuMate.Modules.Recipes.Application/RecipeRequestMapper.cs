@@ -176,19 +176,13 @@ internal static class RecipeRequestMapper
 
     private static Result<IngredientQuantity> MapQuantity(RecipeIngredientRequest ingredient)
     {
-        Result<IngredientQuantityKind> kind = ParseQuantityKind(ingredient.QuantityKind);
-        if (kind.IsFailure)
-        {
-            return Result.Failure<IngredientQuantity>(kind.Error);
-        }
-
         Result<MeasurementUnit> unit = ParseMeasurementUnit(ingredient.Unit);
         if (unit.IsFailure)
         {
             return Result.Failure<IngredientQuantity>(unit.Error);
         }
 
-        if (kind.Value == IngredientQuantityKind.ToTaste)
+        if (unit.Value == MeasurementUnit.ToTaste)
         {
             return IngredientQuantity.ToTaste();
         }
@@ -197,12 +191,10 @@ internal static class RecipeRequestMapper
         {
             return Result.Failure<IngredientQuantity>(AppError.Validation(
                 "Recipes.AmountRequired",
-                "Для точного или примерного количества нужно указать числовое значение."));
+                "Укажите количество ингредиента или выберите «по вкусу»."));
         }
 
-        return kind.Value == IngredientQuantityKind.Exact
-            ? IngredientQuantity.Exact(ingredient.Amount.Value, unit.Value)
-            : IngredientQuantity.Approximate(ingredient.Amount.Value, unit.Value);
+        return IngredientQuantity.Measured(ingredient.Amount.Value, unit.Value);
     }
 
     private static Result<IReadOnlyCollection<PreparationStep>> MapSteps(
@@ -244,13 +236,6 @@ internal static class RecipeRequestMapper
 
         return result;
     }
-
-    private static Result<IngredientQuantityKind> ParseQuantityKind(string value) =>
-        Enum.TryParse(value, ignoreCase: true, out IngredientQuantityKind kind)
-            ? kind
-            : Result.Failure<IngredientQuantityKind>(AppError.Validation(
-                "Recipes.InvalidQuantityKind",
-                "Тип количества должен быть Exact, Approximate или ToTaste."));
 
     private static Result<ProductCategory> ParseProductCategory(string value) =>
         Enum.TryParse(value, ignoreCase: true, out ProductCategory category)

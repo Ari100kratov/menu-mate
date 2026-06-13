@@ -1,34 +1,19 @@
 namespace MenuMate.Contracts.ShoppingLists;
 
 /// <summary>
-/// Краткая карточка сохраненного списка покупок.
-/// </summary>
-/// <param name="Id">Идентификатор списка покупок.</param>
-/// <param name="SourceMenuPlanId">Идентификатор плана меню, по которому создан список.</param>
-/// <param name="CreatedAt">Момент создания списка.</param>
-/// <param name="UpdatedAt">Момент последнего изменения списка.</param>
-/// <param name="ItemsCount">Количество позиций.</param>
-/// <param name="PurchasedItemsCount">Количество купленных позиций.</param>
-public sealed record ShoppingListSummaryResponse(
-    Guid Id,
-    Guid SourceMenuPlanId,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt,
-    int ItemsCount,
-    int PurchasedItemsCount);
-
-/// <summary>
 /// Список покупок во внешнем контракте.
 /// </summary>
 /// <param name="Id">Идентификатор списка покупок.</param>
-/// <param name="SourceMenuPlanId">Идентификатор плана меню, по которому создан список.</param>
+/// <param name="SourceStartDate">Дата начала диапазона меню, по которому создан список.</param>
+/// <param name="SourceEndDate">Дата окончания диапазона меню, по которому создан список.</param>
 /// <param name="CreatedAt">Момент создания списка.</param>
 /// <param name="UpdatedAt">Момент последнего изменения списка.</param>
 /// <param name="Categories">Категории списка покупок.</param>
 /// <param name="Text">Текстовая версия для копирования.</param>
 public sealed record ShoppingListResponse(
     Guid Id,
-    Guid SourceMenuPlanId,
+    DateOnly SourceStartDate,
+    DateOnly SourceEndDate,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyCollection<ShoppingListCategoryResponse> Categories,
@@ -49,33 +34,71 @@ public sealed record ShoppingListCategoryResponse(string Name, IReadOnlyCollecti
 /// <param name="Name">Название продукта.</param>
 /// <param name="Amount">Числовое количество.</param>
 /// <param name="Unit">Единица измерения.</param>
-/// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта.</param>
 /// <param name="AmountText">Количество в человекочитаемом виде.</param>
 /// <param name="Comment">Комментарий.</param>
 /// <param name="IsPurchased">Признак купленного продукта.</param>
-/// <param name="IsInStock">Признак продукта, который уже есть дома.</param>
 public sealed record ShoppingListItemResponse(
     Guid Id,
     Guid ProductId,
     string Name,
     decimal? Amount,
     string Unit,
-    string QuantityKind,
     string Category,
     string AmountText,
     string? Comment,
-    bool IsPurchased,
-    bool IsInStock);
+    bool IsPurchased);
 
 /// <summary>
-/// Запрос на генерацию списка покупок из плана меню.
+/// Запрос на генерацию списка покупок из диапазона меню.
 /// </summary>
-/// <param name="MenuPlanId">Идентификатор плана меню.</param>
-/// <param name="ManualItems">Дополнительные ручные позиции.</param>
+/// <param name="StartDate">Дата начала диапазона меню.</param>
+/// <param name="EndDate">Дата окончания диапазона меню.</param>
+/// <param name="Recipes">Выбранные блюда и ингредиенты из меню.</param>
 public sealed record GenerateShoppingListRequest(
-    Guid MenuPlanId,
-    IReadOnlyCollection<ShoppingListItemRequest> ManualItems);
+    DateOnly StartDate,
+    DateOnly EndDate,
+    IReadOnlyCollection<MenuShoppingSelectionRequest> Recipes);
+
+/// <summary>
+/// Выбор ингредиентов одного блюда меню для нового списка покупок.
+/// </summary>
+public sealed record MenuShoppingSelectionRequest(
+    Guid MenuItemId,
+    int Servings,
+    IReadOnlyCollection<Guid> IngredientIds);
+
+/// <summary>
+/// Предпросмотр списка покупок по выбранному диапазону меню.
+/// </summary>
+public sealed record MenuShoppingPreviewResponse(
+    DateOnly StartDate,
+    DateOnly EndDate,
+    IReadOnlyCollection<MenuShoppingPreviewRecipeResponse> Recipes);
+
+/// <summary>
+/// Блюдо меню в предпросмотре списка покупок.
+/// </summary>
+public sealed record MenuShoppingPreviewRecipeResponse(
+    Guid MenuItemId,
+    string Title,
+    int BaseServings,
+    int Servings,
+    IReadOnlyCollection<MenuShoppingPreviewIngredientResponse> Ingredients);
+
+/// <summary>
+/// Ингредиент блюда в предпросмотре списка покупок.
+/// </summary>
+public sealed record MenuShoppingPreviewIngredientResponse(
+    Guid IngredientId,
+    Guid ProductId,
+    string Name,
+    decimal? Amount,
+    string Unit,
+    string Category,
+    string AmountText,
+    string? Comment,
+    bool IsOptional);
 
 /// <summary>
 /// Запрос на создание или обновление позиции списка покупок.
@@ -84,7 +107,6 @@ public sealed record GenerateShoppingListRequest(
 /// <param name="Name">Название продукта.</param>
 /// <param name="Amount">Числовое количество.</param>
 /// <param name="Unit">Единица измерения.</param>
-/// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта.</param>
 /// <param name="Comment">Комментарий.</param>
 public sealed record ShoppingListItemRequest(
@@ -92,7 +114,6 @@ public sealed record ShoppingListItemRequest(
     string Name,
     decimal? Amount,
     string Unit,
-    string QuantityKind,
     string Category,
     string? Comment);
 
@@ -100,5 +121,4 @@ public sealed record ShoppingListItemRequest(
 /// Запрос на обновление чекбоксов позиции.
 /// </summary>
 /// <param name="IsPurchased">Признак купленного продукта.</param>
-/// <param name="IsInStock">Признак продукта, который уже есть дома.</param>
-public sealed record ShoppingListItemStateRequest(bool IsPurchased, bool IsInStock);
+public sealed record ShoppingListItemStateRequest(bool IsPurchased);

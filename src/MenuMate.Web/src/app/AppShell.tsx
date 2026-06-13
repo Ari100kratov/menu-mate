@@ -66,15 +66,16 @@ function getPageChrome(pathname: string): PageChrome {
 
   if (matchPath({ path: "/menu", end: false }, pathname)) {
     return {
-      title: "План меню",
-      description: "Неделя, приемы пищи и список покупок",
+      title: "Меню",
+      description: "Календарь питания и приемы пищи",
     }
   }
 
   if (matchPath({ path: "/shopping", end: false }, pathname)) {
     return {
       title: "Покупки",
-      description: "Списки, категории и поход в магазин",
+      description: "Единый список для похода в магазин",
+      backTo: pathname.startsWith("/shopping/preview") ? "/menu" : undefined,
     }
   }
 

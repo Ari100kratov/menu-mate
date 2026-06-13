@@ -61,7 +61,7 @@ public static class ShoppingListTextFormatter
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        if (item.QuantityKind == ShoppingQuantityKind.ToTaste)
+        if (item.Unit == ShoppingUnit.ToTaste)
         {
             return ShoppingUnitNames.GetDisplayName(ShoppingUnit.ToTaste);
         }

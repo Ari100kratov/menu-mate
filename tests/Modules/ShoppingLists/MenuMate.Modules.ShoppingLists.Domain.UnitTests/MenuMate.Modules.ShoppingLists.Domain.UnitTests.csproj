@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Domain\MenuMate.Modules.ShoppingLists.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

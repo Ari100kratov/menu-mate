@@ -57,9 +57,9 @@ namespace MenuMate.Modules.Products.Infrastructure.Migrations
                     b.HasIndex("Category")
                         .HasDatabaseName("ix_products_category");
 
-                    b.HasIndex("NormalizedName")
+                    b.HasIndex("NormalizedName", "Category")
                         .IsUnique()
-                        .HasDatabaseName("ix_products_normalized_name");
+                        .HasDatabaseName("ix_products_normalized_name_category");
 
                     b.ToTable("products", "products");
                 });

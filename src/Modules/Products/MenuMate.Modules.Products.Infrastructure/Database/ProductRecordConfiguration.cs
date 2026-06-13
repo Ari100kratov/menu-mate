@@ -15,7 +15,7 @@ internal sealed class ProductRecordConfiguration : IEntityTypeConfiguration<Prod
         builder.Property(product => product.Name).HasMaxLength(200).IsRequired();
         builder.Property(product => product.NormalizedName).HasMaxLength(200).IsRequired();
         builder.Property(product => product.Category).HasMaxLength(64).IsRequired();
-        builder.HasIndex(product => product.NormalizedName).IsUnique();
+        builder.HasIndex(product => new { product.NormalizedName, product.Category }).IsUnique();
         builder.HasIndex(product => product.Category);
     }
 }

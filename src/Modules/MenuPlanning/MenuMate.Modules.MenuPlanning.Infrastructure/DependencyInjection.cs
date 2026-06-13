@@ -32,10 +32,11 @@ public static class MenuPlanningInfrastructureDependencyInjection
                 .UseSnakeCaseNamingConvention();
         });
 
-        services.AddScoped<IMenuPlansRepository, EfMenuPlansRepository>();
-        services.AddScoped<IMenuPlansUnitOfWork>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
-        services.AddScoped<IMenuPlansReadDbContext>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
+        services.AddScoped<IMenuCalendarRepository, EfMenuCalendarRepository>();
+        services.AddScoped<IMenuCalendarUnitOfWork>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
+        services.AddScoped<IMenuCalendarReadDbContext>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
         services.AddScoped<IRecipeRevisionAccessReader, RecipeRevisionAccessReader>();
+        services.AddScoped<IRecipeCoverImageReader, RecipeCoverImageReader>();
 
         return services;
     }

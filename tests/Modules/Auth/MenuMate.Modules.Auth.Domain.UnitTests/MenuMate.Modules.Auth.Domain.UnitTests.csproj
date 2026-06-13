@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Modules\Auth\MenuMate.Modules.Auth.Domain\MenuMate.Modules.Auth.Domain.csproj" />
+  </ItemGroup>
+</Project>

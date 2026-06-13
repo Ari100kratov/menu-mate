@@ -21,8 +21,6 @@ internal sealed class RecipeRevisionIngredientRecord
 
     public MeasurementUnit Unit { get; set; }
 
-    public IngredientQuantityKind QuantityKind { get; set; }
-
     public ProductCategory Category { get; set; }
 
     public string? Comment { get; set; }
@@ -39,7 +37,6 @@ internal sealed class RecipeRevisionIngredientRecord
             NormalizedProductName = ingredient.Name.NormalizedValue,
             Amount = ingredient.Quantity.Amount,
             Unit = ingredient.Quantity.Unit,
-            QuantityKind = ingredient.Quantity.Kind,
             Category = ingredient.Category,
             Comment = ingredient.Comment,
             IsOptional = ingredient.IsOptional

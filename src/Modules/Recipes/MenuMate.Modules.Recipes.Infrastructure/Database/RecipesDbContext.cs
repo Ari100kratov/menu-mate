@@ -73,7 +73,6 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                         ingredient.Unit.ToString(),
                         ingredient.Comment,
                         ingredient.IsOptional,
-                        ingredient.QuantityKind.ToString(),
                         ingredient.Category.ToString()))
                     .ToArray(),
                 item.Steps

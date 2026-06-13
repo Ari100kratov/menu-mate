@@ -12,6 +12,7 @@ import RecipeDetailsPage from "@/pages/recipes/RecipeDetailsPage"
 import RecipeEditPage from "@/pages/recipes/RecipeEditPage"
 import RecipesPage from "@/pages/recipes/RecipesPage"
 import ShoppingPage from "@/pages/shopping/ShoppingPage"
+import ShoppingPreviewPage from "@/pages/shopping/ShoppingPreviewPage"
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
           {
             path: "shopping",
             element: <ShoppingPage />,
+          },
+          {
+            path: "shopping/preview",
+            element: <ShoppingPreviewPage />,
           },
           {
             path: "profile",

@@ -10,17 +10,17 @@ namespace MenuMate.Modules.ShoppingLists.Domain.ValueObjects;
 /// <param name="NormalizedName">Нормализованное название продукта.</param>
 /// <param name="Amount">Количество, если оно числовое.</param>
 /// <param name="Unit">Единица измерения.</param>
-/// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта.</param>
 /// <param name="Comment">Комментарий.</param>
 /// <param name="IsOptional">Признак необязательного ингредиента.</param>
+/// <param name="LineId">Идентификатор строки ингредиента в ревизии рецепта.</param>
 public sealed record ShoppingIngredientLine(
     Guid ProductId,
     string Name,
     string NormalizedName,
     decimal? Amount,
     ShoppingUnit Unit,
-    ShoppingQuantityKind QuantityKind,
     ShoppingProductCategory Category,
     string? Comment,
-    bool IsOptional);
+    bool IsOptional,
+    Guid LineId = default);

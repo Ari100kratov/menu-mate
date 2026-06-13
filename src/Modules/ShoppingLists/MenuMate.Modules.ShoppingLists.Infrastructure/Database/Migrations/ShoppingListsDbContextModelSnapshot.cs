@@ -44,10 +44,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("comment");
 
-                    b.Property<bool>("IsInStock")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_in_stock");
-
                     b.Property<bool>("IsPurchased")
                         .HasColumnType("boolean")
                         .HasColumnName("is_purchased");
@@ -68,12 +64,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
-                    b.Property<string>("QuantityKind")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("quantity_kind");
-
                     b.Property<Guid>("ShoppingListId")
                         .HasColumnType("uuid")
                         .HasColumnName("shopping_list_id");
@@ -86,9 +76,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_shopping_list_items");
-
-                    b.HasIndex("IsInStock")
-                        .HasDatabaseName("ix_shopping_list_items_is_in_stock");
 
                     b.HasIndex("IsPurchased")
                         .HasDatabaseName("ix_shopping_list_items_is_purchased");
@@ -116,9 +103,13 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("owner_user_id");
 
-                    b.Property<Guid>("SourceMenuPlanId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("source_menu_plan_id");
+                    b.Property<DateOnly>("SourceEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("source_end_date");
+
+                    b.Property<DateOnly>("SourceStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("source_start_date");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -131,23 +122,28 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_shopping_lists_created_at");
 
                     b.HasIndex("OwnerUserId")
+                        .IsUnique()
                         .HasDatabaseName("ix_shopping_lists_owner_user_id");
 
-                    b.HasIndex("SourceMenuPlanId")
-                        .HasDatabaseName("ix_shopping_lists_source_menu_plan_id");
+                    b.HasIndex("OwnerUserId", "SourceStartDate", "SourceEndDate")
+                        .HasDatabaseName("ix_shopping_lists_owner_user_id_source_start_date_source_end_d");
 
                     b.ToTable("shopping_lists", "shopping_lists");
                 });
 
-            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanItemSourceRecord", b =>
+            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuCalendarItemSourceRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("MenuPlanId")
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<Guid>("OwnerUserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("menu_plan_id");
+                        .HasColumnName("owner_user_id");
 
                     b.Property<Guid?>("RecipeId")
                         .HasColumnType("uuid")
@@ -157,36 +153,19 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_revision_id");
 
+                    b.Property<string>("RecipeTitle")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("recipe_title");
+
                     b.Property<int>("Servings")
                         .HasColumnType("integer")
                         .HasColumnName("servings");
 
                     b.HasKey("Id")
-                        .HasName("pk_menu_plan_items");
+                        .HasName("pk_menu_calendar_items");
 
-                    b.HasIndex("MenuPlanId")
-                        .HasDatabaseName("ix_menu_plan_items_menu_plan_id");
-
-                    b.ToTable("menu_plan_items", "menu_planning", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
-                });
-
-            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanSourceRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("OwnerUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_menu_plans");
-
-                    b.ToTable("menu_plans", "menu_planning", t =>
+                    b.ToTable("menu_calendar_items", "menu_planning", t =>
                         {
                             t.ExcludeFromMigrations();
                         });
@@ -236,12 +215,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("product_name");
-
-                    b.Property<string>("QuantityKind")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("quantity_kind");
 
                     b.Property<Guid>("RecipeId")
                         .HasColumnType("uuid")
@@ -309,12 +282,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("product_name");
-
-                    b.Property<string>("QuantityKind")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("quantity_kind");
 
                     b.Property<Guid>("RecipeRevisionId")
                         .HasColumnType("uuid")
@@ -398,16 +365,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                         .HasConstraintName("fk_shopping_list_items_shopping_lists_shopping_list_id");
                 });
 
-            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanItemSourceRecord", b =>
-                {
-                    b.HasOne("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanSourceRecord", null)
-                        .WithMany("Items")
-                        .HasForeignKey("MenuPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_menu_plan_items_menu_plans_menu_plan_id");
-                });
-
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeIngredientSourceRecord", b =>
                 {
                     b.HasOne("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.RecipeSourceRecord", null)
@@ -429,11 +386,6 @@ namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
                 });
 
             modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Entities.ShoppingListRecord", b =>
-                {
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("MenuMate.Modules.ShoppingLists.Infrastructure.Database.Source.MenuPlanSourceRecord", b =>
                 {
                     b.Navigation("Items");
                 });

@@ -23,7 +23,47 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanItemRecord", b =>
+            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MealSlotRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_meal_slots");
+
+                    b.HasIndex("OwnerUserId")
+                        .HasDatabaseName("ix_meal_slots_owner_user_id");
+
+                    b.HasIndex("OwnerUserId", "SortOrder")
+                        .HasDatabaseName("ix_meal_slots_owner_user_id_sort_order");
+
+                    b.ToTable("meal_slots", "menu_planning");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuCalendarItemRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -34,19 +74,25 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("comment");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
 
-                    b.Property<string>("MealType")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("meal_type");
-
-                    b.Property<Guid>("MenuPlanId")
+                    b.Property<Guid>("MealSlotId")
                         .HasColumnType("uuid")
-                        .HasColumnName("menu_plan_id");
+                        .HasColumnName("meal_slot_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
 
                     b.Property<Guid?>("RecipeId")
                         .HasColumnType("uuid")
@@ -70,66 +116,26 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("text");
 
-                    b.HasKey("Id")
-                        .HasName("pk_menu_plan_items");
-
-                    b.HasIndex("RecipeId")
-                        .HasDatabaseName("ix_menu_plan_items_recipe_id");
-
-                    b.HasIndex("RecipeRevisionId")
-                        .HasDatabaseName("ix_menu_plan_items_recipe_revision_id");
-
-                    b.HasIndex("MenuPlanId", "Date", "MealType")
-                        .HasDatabaseName("ix_menu_plan_items_menu_plan_id_date_meal_type");
-
-                    b.ToTable("menu_plan_items", "menu_planning");
-                });
-
-            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("end_date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("name");
-
-                    b.Property<Guid>("OwnerUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_user_id");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("start_date");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id")
-                        .HasName("pk_menu_plans");
+                        .HasName("pk_menu_calendar_items");
 
-                    b.HasIndex("EndDate")
-                        .HasDatabaseName("ix_menu_plans_end_date");
+                    b.HasIndex("RecipeId")
+                        .HasDatabaseName("ix_menu_calendar_items_recipe_id");
 
-                    b.HasIndex("OwnerUserId")
-                        .HasDatabaseName("ix_menu_plans_owner_user_id");
+                    b.HasIndex("RecipeRevisionId")
+                        .HasDatabaseName("ix_menu_calendar_items_recipe_revision_id");
 
-                    b.HasIndex("StartDate")
-                        .HasDatabaseName("ix_menu_plans_start_date");
+                    b.HasIndex("OwnerUserId", "Date")
+                        .HasDatabaseName("ix_menu_calendar_items_owner_user_id_date");
 
-                    b.ToTable("menu_plans", "menu_planning");
+                    b.HasIndex("OwnerUserId", "Date", "MealSlotId", "Position")
+                        .HasDatabaseName("ix_menu_calendar_items_owner_user_id_date_meal_slot_id_position");
+
+                    b.ToTable("menu_calendar_items", "menu_planning");
                 });
 
             modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Source.RecipeAccessSourceRecord", b =>
@@ -177,21 +183,6 @@ namespace MenuMate.Modules.MenuPlanning.Infrastructure.Database.Migrations
                         {
                             t.ExcludeFromMigrations();
                         });
-                });
-
-            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanItemRecord", b =>
-                {
-                    b.HasOne("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanRecord", null)
-                        .WithMany("Items")
-                        .HasForeignKey("MenuPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_menu_plan_items_menu_plans_menu_plan_id");
-                });
-
-            modelBuilder.Entity("MenuMate.Modules.MenuPlanning.Infrastructure.Database.Entities.MenuPlanRecord", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

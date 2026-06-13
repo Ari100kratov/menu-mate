@@ -9,7 +9,9 @@ internal sealed class ShoppingListRecord
 
     public UserId OwnerUserId { get; set; }
 
-    public MenuPlanId SourceMenuPlanId { get; set; }
+    public DateOnly SourceStartDate { get; set; }
+
+    public DateOnly SourceEndDate { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
@@ -28,7 +30,8 @@ internal sealed class ShoppingListRecord
     {
         Id = shoppingList.Id;
         OwnerUserId = shoppingList.OwnerUserId;
-        SourceMenuPlanId = shoppingList.SourceMenuPlanId;
+        SourceStartDate = shoppingList.SourceStartDate;
+        SourceEndDate = shoppingList.SourceEndDate;
         CreatedAt = shoppingList.CreatedAt;
         UpdatedAt = shoppingList.UpdatedAt;
 
@@ -45,7 +48,8 @@ internal sealed class ShoppingListRecord
         SavedShoppingList.Rehydrate(
             Id,
             OwnerUserId,
-            SourceMenuPlanId,
+            SourceStartDate,
+            SourceEndDate,
             CreatedAt,
             UpdatedAt,
             Items.Select(item => item.ToDomain()));

@@ -19,7 +19,7 @@ copy .env.example .env
 docker compose up -d --build
 ```
 
-## Production направление
+## Направление для production
 
 - reverse proxy перед frontend/API;
 - PostgreSQL volume backups;

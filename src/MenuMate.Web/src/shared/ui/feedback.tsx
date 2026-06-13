@@ -12,14 +12,12 @@ export function ErrorAlert({ error }: ErrorAlertProps) {
   const messages = getApiErrorMessages(error)
 
   return (
-    <Alert variant="destructive" className="space-y-2">
-      <div className="flex items-start gap-2">
-        <AlertCircle className="mt-0.5 size-4 shrink-0" />
-        <div>
-          <AlertTitle>Не удалось выполнить действие</AlertTitle>
-          <AlertDescription>{messages[0] ?? "Неизвестная ошибка"}</AlertDescription>
-        </div>
-      </div>
+    <Alert variant="destructive">
+      <AlertCircle />
+      <AlertTitle className="line-clamp-none">Не удалось выполнить действие</AlertTitle>
+      <AlertDescription className="min-w-0">
+        {messages[0] ?? "Неизвестная ошибка"}
+      </AlertDescription>
     </Alert>
   )
 }

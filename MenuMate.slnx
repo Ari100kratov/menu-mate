@@ -13,6 +13,7 @@
   </Folder>
   <Folder Name="/docs/engineering/">
     <File Path="docs/engineering/backend-guardrails.md" />
+    <File Path="docs/engineering/testing.md" />
   </Folder>
   <Folder Name="/docs/architecture/">
     <File Path="docs/architecture/backend.md" />
@@ -86,9 +87,21 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MenuMate.Api.IntegrationTests/MenuMate.Api.IntegrationTests.csproj" />
-    <Project Path="tests/MenuMate.Modules.MenuPlanning.Domain.UnitTests/MenuMate.Modules.MenuPlanning.Domain.UnitTests.csproj" />
-    <Project Path="tests/MenuMate.Modules.Recipes.Domain.UnitTests/MenuMate.Modules.Recipes.Domain.UnitTests.csproj" />
-    <Project Path="tests/MenuMate.Modules.ShoppingLists.Domain.UnitTests/MenuMate.Modules.ShoppingLists.Domain.UnitTests.csproj" />
     <Project Path="tests/MenuMate.SharedKernel.UnitTests/MenuMate.SharedKernel.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Auth/">
+    <Project Path="tests/Modules/Auth/MenuMate.Modules.Auth.Domain.UnitTests/MenuMate.Modules.Auth.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/MenuPlanning/">
+    <Project Path="tests/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Domain.UnitTests/MenuMate.Modules.MenuPlanning.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Recipes/">
+    <Project Path="tests/Modules/Recipes/MenuMate.Modules.Recipes.Domain.UnitTests/MenuMate.Modules.Recipes.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/ShoppingLists/">
+    <Project Path="tests/Modules/ShoppingLists/MenuMate.Modules.ShoppingLists.Domain.UnitTests/MenuMate.Modules.ShoppingLists.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Tags/">
+    <Project Path="tests/Modules/Tags/MenuMate.Modules.Tags.Domain.UnitTests/MenuMate.Modules.Tags.Domain.UnitTests.csproj" />
   </Folder>
 </Solution>

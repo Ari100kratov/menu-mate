@@ -38,7 +38,7 @@ public sealed class ProductCatalog : IProductCatalog
 
         string normalizedName = TextNormalizer.NormalizeSearchText(name);
         product ??= await _dbContext.Products.FirstOrDefaultAsync(
-            item => item.NormalizedName == normalizedName,
+            item => item.NormalizedName == normalizedName && item.Category == category,
             cancellationToken);
 
         if (product is null)

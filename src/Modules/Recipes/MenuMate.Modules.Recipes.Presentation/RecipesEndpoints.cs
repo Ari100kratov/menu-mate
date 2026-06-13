@@ -115,13 +115,13 @@ public static class RecipesEndpoints
         string? scope,
         string? search,
         string? tag,
-        bool favoritesOnly,
+        bool? favoritesOnly,
         IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         Result<IReadOnlyCollection<RecipeListItemResponse>> result = await handler.Handle(
-            new GetRecipesQuery(scope ?? "library", search, tag, favoritesOnly),
+            new GetRecipesQuery(scope ?? "library", search, tag, favoritesOnly ?? false),
             cancellationToken);
 
         return result.ToHttpResult(httpContext);

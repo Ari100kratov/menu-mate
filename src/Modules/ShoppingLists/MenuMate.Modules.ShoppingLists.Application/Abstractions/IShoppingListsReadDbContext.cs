@@ -9,17 +9,14 @@ namespace MenuMate.Modules.ShoppingLists.Application.Abstractions;
 internal interface IShoppingListsReadDbContext
 {
     /// <summary>
-    /// Возвращает сохраненные списки покупок владельца.
-    /// </summary>
-    Task<IReadOnlyCollection<ShoppingListSummaryResponse>> GetShoppingListsAsync(
-        UserId ownerUserId,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Возвращает список покупок владельца.
     /// </summary>
     Task<ShoppingListResponse?> GetShoppingListAsync(
         Guid shoppingListId,
+        UserId ownerUserId,
+        CancellationToken cancellationToken);
+
+    Task<ShoppingListResponse?> GetCurrentShoppingListAsync(
         UserId ownerUserId,
         CancellationToken cancellationToken);
 }

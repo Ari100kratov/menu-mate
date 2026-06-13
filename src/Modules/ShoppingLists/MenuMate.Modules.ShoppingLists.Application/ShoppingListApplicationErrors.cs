@@ -12,10 +12,6 @@ internal static class ShoppingListApplicationErrors
         "ShoppingLists.InvalidUnit",
         "Единица измерения указана в неизвестном формате.");
 
-    public static readonly AppError InvalidQuantityKind = AppError.Validation(
-        "ShoppingLists.InvalidQuantityKind",
-        "Тип количества должен быть Exact, Approximate или ToTaste.");
-
     public static readonly AppError InvalidProductCategory = AppError.Validation(
         "ShoppingLists.InvalidProductCategory",
         "Категория продукта указана в неизвестном формате.");
@@ -24,9 +20,17 @@ internal static class ShoppingListApplicationErrors
         "ShoppingLists.NotFound",
         $"Список покупок с идентификатором '{shoppingListId}' не найден.");
 
-    public static AppError MenuPlanNotFound(Guid menuPlanId) => AppError.NotFound(
-        "ShoppingLists.MenuPlanNotFound",
-        $"План меню с идентификатором '{menuPlanId}' не найден.");
+    public static readonly AppError InvalidDateRange = AppError.Validation(
+        "ShoppingLists.InvalidDateRange",
+        "Дата окончания списка покупок не может быть раньше даты начала.");
+
+    public static readonly AppError InvalidServings = AppError.Validation(
+        "ShoppingLists.InvalidServings",
+        "Количество порций должно быть больше нуля.");
+
+    public static readonly AppError EmptyList = AppError.NotFound(
+        "ShoppingLists.Empty",
+        "Список покупок пока пуст.");
 
     public static AppError ItemNotFound(Guid itemId) => AppError.NotFound(
         "ShoppingLists.ItemNotFound",

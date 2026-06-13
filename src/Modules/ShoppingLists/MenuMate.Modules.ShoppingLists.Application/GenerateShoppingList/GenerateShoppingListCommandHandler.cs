@@ -3,7 +3,6 @@ using MenuMate.Contracts.ShoppingLists;
 using MenuMate.Modules.ShoppingLists.Application.Abstractions;
 using MenuMate.Modules.ShoppingLists.Domain.Models;
 using MenuMate.Modules.ShoppingLists.Domain.Services;
-using MenuMate.Modules.ShoppingLists.Domain.ValueObjects;
 using MenuMate.SharedKernel;
 using MenuMate.SharedKernel.Identifiers;
 
@@ -15,89 +14,94 @@ internal sealed class GenerateShoppingListCommandHandler(
     IShoppingListsReadDbContext readDbContext,
     IShoppingListsUnitOfWork unitOfWork,
     IUserContext userContext,
-    TimeProvider timeProvider,
-    ShoppingProductResolver productResolver)
+    TimeProvider timeProvider)
     : ICommandHandler<GenerateShoppingListCommand, ShoppingListResponse>
 {
     public async Task<Result<ShoppingListResponse>> Handle(
         GenerateShoppingListCommand command,
         CancellationToken cancellationToken)
     {
-        var menuPlanId = MenuPlanId.From(command.Request.MenuPlanId);
-        IReadOnlyCollection<ShoppingRecipe>? recipes = await sourceReader.GetMenuPlanRecipesAsync(
-            menuPlanId,
+        if (command.Request.EndDate < command.Request.StartDate)
+        {
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.InvalidDateRange);
+        }
+
+        if (command.Request.Recipes.Any(selection => selection.Servings <= 0))
+        {
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.InvalidServings);
+        }
+
+        IReadOnlyCollection<ShoppingRecipe> recipes = await sourceReader.GetMenuCalendarRecipesAsync(
             userContext.UserId,
+            command.Request.StartDate,
+            command.Request.EndDate,
             cancellationToken);
 
-        if (recipes is null)
-        {
-            return Result.Failure<ShoppingListResponse>(
-                ShoppingListApplicationErrors.MenuPlanNotFound(command.Request.MenuPlanId));
-        }
+        var selections = command.Request.Recipes
+            .ToDictionary(selection => selection.MenuItemId);
+        ShoppingRecipe[] selectedRecipes =
+        [
+            .. recipes
+                .Where(recipe => selections.ContainsKey(recipe.MenuItemId))
+                .Select(recipe =>
+                {
+                    MenuShoppingSelectionRequest selection = selections[recipe.MenuItemId];
+                    var ingredientIds = selection.IngredientIds.ToHashSet();
+                    return recipe with
+                    {
+                        TargetServings = selection.Servings,
+                        Ingredients =
+                        [
+                            .. recipe.Ingredients.Where(ingredient =>
+                                ingredientIds.Contains(
+                                    ingredient.LineId == Guid.Empty ? ingredient.ProductId : ingredient.LineId))
+                        ]
+                    };
+                })
+        ];
 
-        Result<IReadOnlyCollection<ManualShoppingListLine>> manualLines = await MapManualLinesAsync(
-            command.Request.ManualItems,
-            cancellationToken);
-        if (manualLines.IsFailure)
-        {
-            return Result.Failure<ShoppingListResponse>(manualLines.Error);
-        }
-
-        ShoppingList generatedList = ShoppingListGenerator.Generate(recipes, manualLines.Value);
+        ShoppingList generatedList = ShoppingListGenerator.Generate(selectedRecipes);
         DateTimeOffset now = timeProvider.GetUtcNow();
-        Result<SavedShoppingList> shoppingList = SavedShoppingList.Create(
-            Guid.CreateVersion7(),
-            userContext.UserId,
-            menuPlanId,
-            generatedList.Categories.SelectMany(category => category.Items),
-            now);
-
-        if (shoppingList.IsFailure)
+        SavedShoppingList? existing = await repository.GetByOwnerAsync(userContext.UserId, cancellationToken);
+        SavedShoppingList shoppingList;
+        if (existing is null)
         {
-            return Result.Failure<ShoppingListResponse>(shoppingList.Error);
-        }
-
-        await repository.AddAsync(shoppingList.Value, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        ShoppingListResponse? response = await readDbContext.GetShoppingListAsync(
-            shoppingList.Value.Id,
-            userContext.UserId,
-            cancellationToken);
-
-        return response is null
-            ? Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.NotFound(shoppingList.Value.Id))
-            : response;
-    }
-
-    private async Task<Result<IReadOnlyCollection<ManualShoppingListLine>>> MapManualLinesAsync(
-        IReadOnlyCollection<ShoppingListItemRequest> requests,
-        CancellationToken cancellationToken)
-    {
-        var result = new List<ManualShoppingListLine>(requests.Count);
-
-        foreach (ShoppingListItemRequest request in requests)
-        {
-            Result<SavedShoppingListItem> item = await productResolver.ResolveAsync(
+            Result<SavedShoppingList> created = SavedShoppingList.Create(
                 Guid.CreateVersion7(),
-                request,
-                cancellationToken);
-            if (item.IsFailure)
+                userContext.UserId,
+                command.Request.StartDate,
+                command.Request.EndDate,
+                generatedList.Categories.SelectMany(category => category.Items),
+                now);
+            if (created.IsFailure)
             {
-                return Result.Failure<IReadOnlyCollection<ManualShoppingListLine>>(item.Error);
+                return Result.Failure<ShoppingListResponse>(created.Error);
             }
 
-            result.Add(new ManualShoppingListLine(
-                item.Value.ProductId,
-                item.Value.Name,
-                item.Value.NormalizedName,
-                item.Value.Amount,
-                item.Value.Unit,
-                item.Value.QuantityKind,
-                item.Value.Category,
-                item.Value.Comment));
+            shoppingList = created.Value;
+            await repository.AddAsync(shoppingList, cancellationToken);
         }
+        else
+        {
+            shoppingList = existing;
+            Result replaced = shoppingList.Replace(
+                command.Request.StartDate,
+                command.Request.EndDate,
+                generatedList.Categories.SelectMany(category => category.Items),
+                now);
+            if (replaced.IsFailure)
+            {
+                return Result.Failure<ShoppingListResponse>(replaced.Error);
+            }
 
-        return result;
+            await repository.UpdateAsync(shoppingList, cancellationToken);
+        }
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        ShoppingListResponse? response = await readDbContext.GetCurrentShoppingListAsync(userContext.UserId, cancellationToken);
+
+        return response is null
+            ? Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.NotFound(shoppingList.Id))
+            : response;
     }
 }

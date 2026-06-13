@@ -16,22 +16,18 @@ public sealed record ShoppingListItem
         string normalizedName,
         decimal? amount,
         ShoppingUnit unit,
-        ShoppingQuantityKind quantityKind,
         ShoppingProductCategory category,
         string? comment,
-        bool isPurchased = false,
-        bool isInStock = false)
+        bool isPurchased = false)
     {
         ProductId = productId;
         Name = name;
         NormalizedName = normalizedName;
         Amount = amount;
         Unit = unit;
-        QuantityKind = quantityKind;
         Category = category;
         Comment = comment;
         IsPurchased = isPurchased;
-        IsInStock = isInStock;
     }
 
     /// <summary>
@@ -60,11 +56,6 @@ public sealed record ShoppingListItem
     public ShoppingUnit Unit { get; }
 
     /// <summary>
-    /// Тип количества.
-    /// </summary>
-    public ShoppingQuantityKind QuantityKind { get; }
-
-    /// <summary>
     /// Категория продукта.
     /// </summary>
     public ShoppingProductCategory Category { get; }
@@ -80,16 +71,10 @@ public sealed record ShoppingListItem
     public bool IsPurchased { get; init; }
 
     /// <summary>
-    /// Признак продукта, который уже есть дома.
-    /// </summary>
-    public bool IsInStock { get; init; }
-
-    /// <summary>
     /// Возвращает true, если позицию можно безопасно объединять с похожими позициями.
     /// </summary>
     public bool CanMerge =>
         Amount.HasValue &&
-        QuantityKind != ShoppingQuantityKind.ToTaste &&
         Unit is ShoppingUnit.Gram or ShoppingUnit.Milliliter or ShoppingUnit.Piece;
 
     /// <summary>
@@ -97,8 +82,4 @@ public sealed record ShoppingListItem
     /// </summary>
     public ShoppingListItem MarkPurchased() => this with { IsPurchased = true };
 
-    /// <summary>
-    /// Возвращает позицию, отмеченную как уже имеющаяся дома.
-    /// </summary>
-    public ShoppingListItem MarkInStock() => this with { IsInStock = true };
 }

@@ -122,7 +122,7 @@ app.MapGet("/api/modules", () => new[]
         new ModuleResponse("Auth", "JWT auth, refresh tokens, users and roles."),
         new ModuleResponse("Recipes", "Рецепты, ингредиенты, шаги, избранное и связь с тегами."),
         new ModuleResponse("Tags", "Гибкие системные, пользовательские и предложенные теги."),
-        new ModuleResponse("MenuPlanning", "Планы меню, позиции рецептов и произвольный текст."),
+        new ModuleResponse("MenuPlanning", "Календарь питания, приемы пищи и запланированные блюда."),
         new ModuleResponse("ShoppingLists", "Расчет, группировка, отметки и текстовый шаринг покупок."),
         new ModuleResponse("Imports", "Будущий контур черновиков импорта из URL и изображений."),
         new ModuleResponse("Files", "Будущий контур загрузки и проверки изображений.")

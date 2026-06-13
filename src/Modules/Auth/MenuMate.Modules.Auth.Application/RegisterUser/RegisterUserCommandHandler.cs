@@ -6,6 +6,7 @@ using MenuMate.Modules.Auth.Domain.Errors;
 using MenuMate.Modules.Auth.Domain.Models;
 using MenuMate.Modules.Auth.Domain.ValueObjects;
 using MenuMate.SharedKernel;
+using MenuMate.SharedKernel.Identifiers;
 
 namespace MenuMate.Modules.Auth.Application.RegisterUser;
 
@@ -15,6 +16,7 @@ internal sealed class RegisterUserCommandHandler(
     IPasswordHasher passwordHasher,
     ITokenProvider tokenProvider,
     IRefreshTokenService refreshTokenService,
+    IEnumerable<IUserRegistrationInitializer> userRegistrationInitializers,
     TimeProvider timeProvider)
     : ICommandHandler<RegisterUserCommand, RegisterUserSession>
 {
@@ -57,6 +59,12 @@ internal sealed class RegisterUserCommandHandler(
         RefreshToken refreshToken = refreshTokenService.Generate(user);
 
         await repository.AddRefreshTokenAsync(refreshToken, cancellationToken);
+
+        foreach (IUserRegistrationInitializer initializer in userRegistrationInitializers)
+        {
+            await initializer.InitializeAsync(UserId.From(user.Id), cancellationToken);
+        }
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RegisterUserSession(

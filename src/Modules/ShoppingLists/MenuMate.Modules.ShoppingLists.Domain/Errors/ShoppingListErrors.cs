@@ -19,7 +19,7 @@ public static class ShoppingListErrors
     /// </summary>
     public static readonly AppError AmountRequired = AppError.Validation(
         "ShoppingLists.AmountRequired",
-        "Для точного или примерного количества нужно указать числовое значение.");
+        "Укажите количество позиции или выберите «по вкусу».");
 
     /// <summary>
     /// Количество позиции должно быть положительным.

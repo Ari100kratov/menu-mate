@@ -20,15 +20,11 @@ internal sealed class ShoppingListItemRecord
 
     public ShoppingUnit Unit { get; set; }
 
-    public ShoppingQuantityKind QuantityKind { get; set; }
-
     public ShoppingProductCategory Category { get; set; }
 
     public string? Comment { get; set; }
 
     public bool IsPurchased { get; set; }
-
-    public bool IsInStock { get; set; }
 
     public static ShoppingListItemRecord FromDomain(SavedShoppingListItem item) =>
         new()
@@ -39,11 +35,9 @@ internal sealed class ShoppingListItemRecord
             NormalizedName = item.NormalizedName,
             Amount = item.Amount,
             Unit = item.Unit,
-            QuantityKind = item.QuantityKind,
             Category = item.Category,
             Comment = item.Comment,
-            IsPurchased = item.IsPurchased,
-            IsInStock = item.IsInStock
+            IsPurchased = item.IsPurchased
         };
 
     public SavedShoppingListItem ToDomain()
@@ -55,11 +49,9 @@ internal sealed class ShoppingListItemRecord
             NormalizedName,
             Amount,
             Unit,
-            QuantityKind,
             Category,
             Comment,
-            IsPurchased,
-            IsInStock);
+            IsPurchased);
 
         if (item.IsFailure)
         {

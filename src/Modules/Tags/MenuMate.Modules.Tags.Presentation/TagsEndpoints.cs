@@ -51,13 +51,13 @@ public static class TagsEndpoints
 
     private static async Task<IResult> GetTagsAsync(
         string? search,
-        bool includeHidden,
+        bool? includeHidden,
         IQueryHandler<GetTagsQuery, IReadOnlyCollection<TagResponse>> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         Result<IReadOnlyCollection<TagResponse>> result = await handler.Handle(
-            new GetTagsQuery(search, includeHidden),
+            new GetTagsQuery(search, includeHidden ?? false),
             cancellationToken);
 
         return result.ToHttpResult(httpContext);

@@ -1,4 +1,6 @@
+import { Plus, ShoppingBasket } from "lucide-react"
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import type {
   ShoppingList,
@@ -10,184 +12,173 @@ import {
   useSetShoppingListItemStateMutation,
   useUpdateShoppingListItemMutation,
 } from "@/features/shopping-lists/api/shopping-lists.queries"
-import { toShoppingListItemRequest } from "@/features/shopping-lists/model/shopping-list-ui"
 import {
-  calculateProgress,
-  filterShoppingListCategories,
-  getItemsForStateChange,
-  getShoppingFilterOptions,
-  getShoppingListItems,
-  type ShoppingItemFilter,
-  type ShoppingListCategory,
-  type ShoppingListItemState,
-} from "@/features/shopping-lists/model/shopping-list-state"
+  getDefaultShoppingItemFormValues,
+  toShoppingListItemFormValues,
+  toShoppingListItemRequest,
+  type ShoppingItemFormValues,
+} from "@/features/shopping-lists/model/shopping-list-ui"
+import { useUserPreferencesStore } from "@/shared/config/user-preferences.store"
+import { Button } from "@/shared/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog"
 import { ErrorAlert } from "@/shared/ui/feedback"
-import { ShoppingListAddItemPanel } from "./ShoppingListAddItemPanel"
-import { ShoppingListBulkActions } from "./ShoppingListBulkActions"
-import { ShoppingListCategoriesPanel } from "./ShoppingListCategoriesPanel"
-import { ShoppingListProgressPanel } from "./ShoppingListProgressPanel"
-import { ShoppingListToolbar } from "./ShoppingListToolbar"
+import { EmptyState } from "@/shared/ui/page"
+import { ShoppingListItemForm } from "./ShoppingListItemForm"
+import { ShoppingListItemRow } from "./ShoppingListItemRow"
 
 interface ShoppingListWorkspaceProps {
   shoppingList: ShoppingList
-  isDeletePending: boolean
-  onDelete: () => void
 }
 
-export function ShoppingListWorkspace({
-  shoppingList,
-  isDeletePending,
-  onDelete,
-}: ShoppingListWorkspaceProps) {
-  const addItemMutation = useAddShoppingListItemMutation(shoppingList.id)
-  const updateItemMutation = useUpdateShoppingListItemMutation(shoppingList.id)
-  const stateMutation = useSetShoppingListItemStateMutation(shoppingList.id)
-  const removeItemMutation = useRemoveShoppingListItemMutation(shoppingList.id)
-  const [itemFilter, setItemFilter] = useState<ShoppingItemFilter>("all")
-  const [isStoreMode, setIsStoreMode] = useState(false)
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
-  const [collapsedCategoryNames, setCollapsedCategoryNames] = useState<ReadonlySet<string>>(
-    () => new Set(),
+export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspaceProps) {
+  const addItemMutation = useAddShoppingListItemMutation()
+  const updateItemMutation = useUpdateShoppingListItemMutation()
+  const stateMutation = useSetShoppingListItemStateMutation()
+  const removeItemMutation = useRemoveShoppingListItemMutation()
+  const defaultUnit = useUserPreferencesStore((state) => state.defaultShoppingUnit)
+  const defaultCategory = useUserPreferencesStore((state) => state.defaultShoppingCategory)
+  const [dialogItem, setDialogItem] = useState<ShoppingListItem | "new" | null>(null)
+  const itemCount = useMemo(
+    () => shoppingList.categories.reduce((total, category) => total + category.items.length, 0),
+    [shoppingList.categories],
   )
-  const progress = useMemo(() => calculateProgress(shoppingList), [shoppingList])
-  const effectiveFilter: ShoppingItemFilter = isStoreMode ? "remaining" : itemFilter
-  const visibleCategories = useMemo(
-    () => filterShoppingListCategories(shoppingList, effectiveFilter),
-    [effectiveFilter, shoppingList],
+  const purchasedCount = useMemo(
+    () =>
+      shoppingList.categories.reduce(
+        (total, category) => total + category.items.filter((item) => item.isPurchased).length,
+        0,
+      ),
+    [shoppingList.categories],
   )
-  const visibleItems = useMemo(() => getShoppingListItems(visibleCategories), [visibleCategories])
-  const visibleDoneCount = useMemo(
-    () => visibleItems.filter((item) => item.isPurchased || item.isInStock).length,
-    [visibleItems],
-  )
-  const filterOptions = useMemo(() => getShoppingFilterOptions(progress), [progress])
-  const isItemMutationPending =
+  const isPending =
     addItemMutation.isPending ||
     updateItemMutation.isPending ||
     stateMutation.isPending ||
     removeItemMutation.isPending
 
-  async function copyText() {
-    await navigator.clipboard.writeText(shoppingList.text)
-  }
+  const initialValues =
+    dialogItem === "new"
+      ? getDefaultShoppingItemFormValues({ unit: defaultUnit, category: defaultCategory })
+      : dialogItem
+        ? toShoppingListItemFormValues(dialogItem)
+        : getDefaultShoppingItemFormValues()
 
-  function toggleCategory(categoryName: string) {
-    setCollapsedCategoryNames((current) => {
-      const next = new Set(current)
+  function submitItem(values: ShoppingItemFormValues) {
+    if (dialogItem !== "new" && dialogItem) {
+      updateItemMutation.mutate(
+        { itemId: dialogItem.id, request: toShoppingListItemRequest(values) },
+        {
+          onSuccess: () => {
+            setDialogItem(null)
+            toast.success("Покупка обновлена")
+          },
+        },
+      )
+      return
+    }
 
-      if (next.has(categoryName)) {
-        next.delete(categoryName)
-      } else {
-        next.add(categoryName)
-      }
-
-      return next
+    addItemMutation.mutate(toShoppingListItemRequest(values), {
+      onSuccess: () => {
+        setDialogItem(null)
+        toast.success("Покупка добавлена")
+      },
     })
-  }
-
-  function setItemsState(items: readonly ShoppingListItem[], nextState: ShoppingListItemState) {
-    getItemsForStateChange(items, nextState).forEach((item) => {
-      stateMutation.mutate({
-        itemId: item.id,
-        request: nextState,
-      })
-    })
-  }
-
-  function setCategoryState(category: ShoppingListCategory, nextState: ShoppingListItemState) {
-    setItemsState(category.items, nextState)
   }
 
   return (
     <div className="space-y-5">
+      <section className="bg-primary/5 border-primary/15 flex items-center justify-between gap-4 rounded-xl border p-4">
+        <div>
+          <p className="type-section-title">Список покупок</p>
+          <p className="type-supporting text-muted-foreground">
+            {itemCount === 0
+              ? "Добавьте продукты вручную или создайте список из меню."
+              : `${String(purchasedCount)} из ${String(itemCount)} отмечено`}
+          </p>
+        </div>
+        <Button type="button" variant="secondary" onClick={() => { setDialogItem("new") }}>
+          <Plus />
+          Добавить
+        </Button>
+      </section>
+
       {addItemMutation.error ? <ErrorAlert error={addItemMutation.error} /> : null}
       {updateItemMutation.error ? <ErrorAlert error={updateItemMutation.error} /> : null}
       {stateMutation.error ? <ErrorAlert error={stateMutation.error} /> : null}
       {removeItemMutation.error ? <ErrorAlert error={removeItemMutation.error} /> : null}
 
-      <ShoppingListToolbar
-        progress={progress}
-        isStoreMode={isStoreMode}
-        isDeletePending={isDeletePending}
-        isItemActionPending={isItemMutationPending}
-        onStoreModeChange={setIsStoreMode}
-        onMarkRemainingPurchased={() => {
-          setItemsState(visibleItems, { isPurchased: true, isInStock: false })
-        }}
-        onCopy={() => {
-          void copyText()
-        }}
-        onDelete={onDelete}
-      />
+      {itemCount === 0 ? (
+        <EmptyState
+          icon={ShoppingBasket}
+          title="Список пока пуст"
+          description="Добавьте первую покупку или сформируйте список из меню."
+          action={<Button onClick={() => { setDialogItem("new") }}><Plus />Добавить покупку</Button>}
+        />
+      ) : (
+        <div className="space-y-4">
+          {shoppingList.categories.map((category) => (
+            <section key={category.name} className="bg-card rounded-xl border p-2 shadow-xs">
+              <h2 className="type-label px-2 py-2">{category.name}</h2>
+              <div className="divide-y">
+                {category.items.map((item) => (
+                  <ShoppingListItemRow
+                    key={item.id}
+                    item={item}
+                    isPending={isPending}
+                    onCheckedChange={(isPurchased) => {
+                      stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
+                    }}
+                    onEdit={() => { setDialogItem(item) }}
+                    onRemove={() => {
+                      removeItemMutation.mutate(item.id, {
+                        onSuccess: () => { toast.success("Покупка удалена") },
+                      })
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
 
-      <ShoppingListProgressPanel
-        progress={progress}
-        filterOptions={filterOptions}
-        isStoreMode={isStoreMode}
-        itemFilter={itemFilter}
-        onFilterChange={setItemFilter}
-      />
+      <Button
+        type="button"
+        size="icon-lg"
+        className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
+        aria-label="Добавить покупку"
+        onClick={() => { setDialogItem("new") }}
+      >
+        <Plus className="size-5" />
+      </Button>
 
-      <ShoppingListBulkActions
-        itemCount={visibleItems.length}
-        doneCount={visibleDoneCount}
-        isPending={isItemMutationPending}
-        isStoreMode={isStoreMode}
-        onMarkPurchased={() => {
-          setItemsState(visibleItems, { isPurchased: true, isInStock: false })
-        }}
-        onMarkInStock={() => {
-          setItemsState(visibleItems, { isPurchased: false, isInStock: true })
-        }}
-        onReset={() => {
-          setItemsState(visibleItems, { isPurchased: false, isInStock: false })
-        }}
-      />
-
-      <ShoppingListAddItemPanel
-        isHidden={isStoreMode}
-        isSubmitting={addItemMutation.isPending}
-        onSubmit={(values) => {
-          addItemMutation.mutate(toShoppingListItemRequest(values))
-        }}
-      />
-
-      <ShoppingListCategoriesPanel
-        shoppingList={shoppingList}
-        visibleCategories={visibleCategories}
-        collapsedCategoryNames={collapsedCategoryNames}
-        isPending={isItemMutationPending}
-        isStoreMode={isStoreMode}
-        editingItemId={editingItemId}
-        onToggleCategory={toggleCategory}
-        onCategoryStateChange={setCategoryState}
-        onEdit={setEditingItemId}
-        onCancelEdit={() => {
-          setEditingItemId(null)
-        }}
-        onUpdate={(itemId, values) => {
-          updateItemMutation.mutate(
-            {
-              itemId,
-              request: toShoppingListItemRequest(values),
-            },
-            {
-              onSuccess: () => {
-                setEditingItemId(null)
-              },
-            },
-          )
-        }}
-        onStateChange={(itemId, nextState) => {
-          stateMutation.mutate({
-            itemId,
-            request: nextState,
-          })
-        }}
-        onRemove={(itemId) => {
-          removeItemMutation.mutate(itemId)
-        }}
-      />
+      <Dialog open={dialogItem !== null} onOpenChange={(open) => { if (!open) setDialogItem(null) }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{dialogItem === "new" ? "Добавить покупку" : "Редактировать покупку"}</DialogTitle>
+            <DialogDescription>
+              Выберите продукт из каталога или добавьте новый с нужной категорией.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto px-5 pb-5">
+            <ShoppingListItemForm
+              key={dialogItem === "new" ? "new" : dialogItem?.id}
+              submitLabel={dialogItem === "new" ? "Добавить" : "Сохранить"}
+              submitIcon={dialogItem === "new" ? "add" : "save"}
+              isSubmitting={isPending}
+              initialValues={initialValues}
+              onSubmit={submitItem}
+              onCancel={() => { setDialogItem(null) }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

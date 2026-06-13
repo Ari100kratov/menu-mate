@@ -16,11 +16,9 @@ public sealed record SavedShoppingListItem
         string normalizedName,
         decimal? amount,
         ShoppingUnit unit,
-        ShoppingQuantityKind quantityKind,
         ShoppingProductCategory category,
         string? comment,
-        bool isPurchased,
-        bool isInStock)
+        bool isPurchased)
     {
         Id = id;
         ProductId = productId;
@@ -28,11 +26,9 @@ public sealed record SavedShoppingListItem
         NormalizedName = normalizedName;
         Amount = amount;
         Unit = unit;
-        QuantityKind = quantityKind;
         Category = category;
         Comment = comment;
         IsPurchased = isPurchased;
-        IsInStock = isInStock;
     }
 
     /// <summary>
@@ -66,11 +62,6 @@ public sealed record SavedShoppingListItem
     public ShoppingUnit Unit { get; }
 
     /// <summary>
-    /// Тип количества.
-    /// </summary>
-    public ShoppingQuantityKind QuantityKind { get; }
-
-    /// <summary>
     /// Категория продукта.
     /// </summary>
     public ShoppingProductCategory Category { get; }
@@ -86,11 +77,6 @@ public sealed record SavedShoppingListItem
     public bool IsPurchased { get; init; }
 
     /// <summary>
-    /// Признак продукта, который уже есть дома.
-    /// </summary>
-    public bool IsInStock { get; init; }
-
-    /// <summary>
     /// Создает сохраненную позицию списка покупок.
     /// </summary>
     public static Result<SavedShoppingListItem> Create(
@@ -100,18 +86,16 @@ public sealed record SavedShoppingListItem
         string normalizedName,
         decimal? amount,
         ShoppingUnit unit,
-        ShoppingQuantityKind quantityKind,
         ShoppingProductCategory category,
         string? comment,
-        bool isPurchased = false,
-        bool isInStock = false)
+        bool isPurchased = false)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             return Result.Failure<SavedShoppingListItem>(ShoppingListErrors.EmptyItemName);
         }
 
-        if (quantityKind != ShoppingQuantityKind.ToTaste && amount is null)
+        if (unit != ShoppingUnit.ToTaste && amount is null)
         {
             return Result.Failure<SavedShoppingListItem>(ShoppingListErrors.AmountRequired);
         }
@@ -126,8 +110,7 @@ public sealed record SavedShoppingListItem
             ? TextNormalizer.NormalizeSearchText(trimmedName)
             : normalizedName.Trim();
 
-        decimal? effectiveAmount = quantityKind == ShoppingQuantityKind.ToTaste ? null : amount;
-        ShoppingUnit effectiveUnit = quantityKind == ShoppingQuantityKind.ToTaste ? ShoppingUnit.ToTaste : unit;
+        decimal? effectiveAmount = unit == ShoppingUnit.ToTaste ? null : amount;
 
         return new SavedShoppingListItem(
             id,
@@ -135,12 +118,10 @@ public sealed record SavedShoppingListItem
             trimmedName,
             normalized,
             effectiveAmount,
-            effectiveUnit,
-            quantityKind,
+            unit,
             category,
             string.IsNullOrWhiteSpace(comment) ? null : comment.Trim(),
-            isPurchased,
-            isInStock);
+            isPurchased);
     }
 
     /// <summary>
@@ -157,11 +138,9 @@ public sealed record SavedShoppingListItem
             item.NormalizedName,
             item.Amount,
             item.Unit,
-            item.QuantityKind,
             item.Category,
             item.Comment,
-            item.IsPurchased,
-            item.IsInStock);
+            item.IsPurchased);
     }
 
     /// <summary>
@@ -174,15 +153,13 @@ public sealed record SavedShoppingListItem
             NormalizedName,
             Amount,
             Unit,
-            QuantityKind,
             Category,
             Comment,
-            IsPurchased,
-            IsInStock);
+            IsPurchased);
 
     /// <summary>
     /// Возвращает позицию с обновленными чекбоксами.
     /// </summary>
-    public SavedShoppingListItem WithState(bool isPurchased, bool isInStock) =>
-        this with { IsPurchased = isPurchased, IsInStock = isInStock };
+    public SavedShoppingListItem WithState(bool isPurchased) =>
+        this with { IsPurchased = isPurchased };
 }

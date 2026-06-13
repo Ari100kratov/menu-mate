@@ -19,15 +19,16 @@ internal sealed class UpdateShoppingListItemCommandHandler(
         UpdateShoppingListItemCommand command,
         CancellationToken cancellationToken)
     {
-        SavedShoppingList? shoppingList = await repository.GetByIdAsync(command.ShoppingListId, cancellationToken);
+        SavedShoppingList? shoppingList = await repository.GetByOwnerAsync(userContext.UserId, cancellationToken);
         if (shoppingList is null)
         {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.NotFound(command.ShoppingListId));
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.EmptyList);
         }
 
-        if (shoppingList.OwnerUserId != userContext.UserId)
+        SavedShoppingListItem? existingItem = shoppingList.Items.SingleOrDefault(item => item.Id == command.ItemId);
+        if (existingItem is null)
         {
-            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.AccessDenied);
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.ItemNotFound(command.ItemId));
         }
 
         Result<SavedShoppingListItem> item = await productResolver.ResolveAsync(
@@ -39,7 +40,8 @@ internal sealed class UpdateShoppingListItemCommandHandler(
             return Result.Failure<ShoppingListResponse>(item.Error);
         }
 
-        if (!shoppingList.UpdateItem(command.ItemId, item.Value, timeProvider.GetUtcNow()))
+        SavedShoppingListItem updatedItem = item.Value.WithState(existingItem.IsPurchased);
+        if (!shoppingList.UpdateItem(command.ItemId, updatedItem, timeProvider.GetUtcNow()))
         {
             return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.ItemNotFound(command.ItemId));
         }

@@ -14,15 +14,10 @@ internal sealed class RemoveShoppingListItemCommandHandler(
 {
     public async Task<Result> Handle(RemoveShoppingListItemCommand command, CancellationToken cancellationToken)
     {
-        SavedShoppingList? shoppingList = await repository.GetByIdAsync(command.ShoppingListId, cancellationToken);
+        SavedShoppingList? shoppingList = await repository.GetByOwnerAsync(userContext.UserId, cancellationToken);
         if (shoppingList is null)
         {
-            return Result.Failure(ShoppingListApplicationErrors.NotFound(command.ShoppingListId));
-        }
-
-        if (shoppingList.OwnerUserId != userContext.UserId)
-        {
-            return Result.Failure(ShoppingListApplicationErrors.AccessDenied);
+            return Result.Failure(ShoppingListApplicationErrors.EmptyList);
         }
 
         if (!shoppingList.RemoveItem(command.ItemId, timeProvider.GetUtcNow()))

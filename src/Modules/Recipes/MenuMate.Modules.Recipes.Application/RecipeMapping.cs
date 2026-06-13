@@ -41,6 +41,5 @@ internal static class RecipeMapping
             ingredient.Quantity.Unit.ToString(),
             ingredient.Comment,
             ingredient.IsOptional,
-            ingredient.Quantity.Kind.ToString(),
             ingredient.Category.ToString());
 }

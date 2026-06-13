@@ -61,7 +61,6 @@ public sealed record UpdateRecipeRequest(
 /// <param name="ProductName">Название продукта.</param>
 /// <param name="Amount">Количество, если оно числовое.</param>
 /// <param name="Unit">Единица измерения.</param>
-/// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта для списка покупок.</param>
 /// <param name="Comment">Комментарий.</param>
 /// <param name="IsOptional">Признак необязательного ингредиента.</param>
@@ -70,7 +69,6 @@ public sealed record RecipeIngredientRequest(
     string ProductName,
     decimal? Amount,
     string Unit,
-    string QuantityKind,
     string Category,
     string? Comment,
     bool IsOptional);
@@ -181,7 +179,6 @@ public sealed record RecipeImageResponse(
 /// <param name="Unit">Единица измерения.</param>
 /// <param name="Comment">Комментарий к ингредиенту.</param>
 /// <param name="IsOptional">Признак необязательного ингредиента.</param>
-/// <param name="QuantityKind">Тип количества.</param>
 /// <param name="Category">Категория продукта для списка покупок.</param>
 public sealed record IngredientResponse(
     Guid? IngredientId,
@@ -190,7 +187,6 @@ public sealed record IngredientResponse(
     string Unit,
     string? Comment,
     bool IsOptional,
-    string QuantityKind,
     string Category);
 
 /// <summary>

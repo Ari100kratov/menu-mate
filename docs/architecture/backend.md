@@ -69,14 +69,14 @@ Repository и Unit of Work остаются допустимыми для ком
 
 Для запросов чтения предпочтительны проекции через DbContext-интерфейс/read model или спецификации. Нельзя по умолчанию загружать полный агрегат, если конечная точка возвращает только список или небольшой DTO.
 
-## Recipe ownership and revisions
+## Владение рецептами и ревизии
 
-- A recipe has exactly one owner. Only the owner may edit, delete, or manage images.
-- The recipe row is the current editable projection; every content save appends an immutable recipe revision.
-- Visibility is explicit: private recipes are owner-only, while public recipes are readable and saveable.
-- Saved and favorite state belongs to a per-user recipe library entry, not to the recipe aggregate.
-- Copying another user's recipe creates a new private owned recipe with source recipe/revision lineage.
-- Menu items pin a recipe revision; shopping-list generation reads that immutable ingredient snapshot.
+- У рецепта ровно один владелец. Только владелец редактирует, удаляет рецепт и управляет изображениями.
+- Запись рецепта является текущей редактируемой проекцией; каждое сохранение содержимого добавляет неизменяемую ревизию.
+- Приватные рецепты доступны только владельцу, публичные можно читать и сохранять.
+- Состояния сохранения и избранного принадлежат пользовательской записи библиотеки, а не агрегату рецепта.
+- Изменение чужого рецепта создает новую приватную копию со ссылкой на исходный рецепт и ревизию.
+- Позиция меню фиксирует ревизию рецепта, а список покупок читает неизменяемый снимок ингредиентов этой ревизии.
 
 ## Auth
 

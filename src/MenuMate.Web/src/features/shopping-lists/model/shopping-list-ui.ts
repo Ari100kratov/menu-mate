@@ -2,20 +2,17 @@ import type {
   ShoppingListItem,
   ShoppingListItemRequest,
 } from "@/features/shopping-lists/api/shopping-lists.api"
+import type {
+  ProductLineEditorErrors,
+  ProductLineEditorValue,
+} from "@/features/products/model/product-line"
 import { defaultShoppingCategory, defaultShoppingUnit } from "@/shared/config/shopping-taxonomy"
 import { z } from "zod"
 
 const positiveDecimalPattern = /^(?:\d+(?:[,.]\d+)?|[,.]\d+)$/
 
-export interface ShoppingItemFormValues {
-  productId: string
-  name: string
-  amount: string
-  unit: string
-  quantityKind: string
-  category: string
-  comment: string
-}
+export type ShoppingItemFormValues = ProductLineEditorValue
+export type ShoppingItemFieldErrors = ProductLineEditorErrors
 
 export interface ShoppingItemDefaults {
   unit?: string
@@ -25,19 +22,28 @@ export interface ShoppingItemDefaults {
 export const shoppingItemFormSchema = z
   .object({
     productId: z.string().trim(),
-    name: z
+    productName: z
       .string()
       .trim()
       .min(1, "Введите название продукта.")
       .max(160, "Название слишком длинное."),
     amount: z.string().trim(),
     unit: z.string().trim().min(1, "Выберите единицу."),
-    quantityKind: z.string().trim().min(1, "Выберите тип количества."),
+    isToTaste: z.boolean(),
     category: z.string().trim().min(1, "Выберите категорию."),
     comment: z.string().trim(),
   })
   .superRefine((values, context) => {
-    if (!values.amount || values.quantityKind === "ToTaste") {
+    if (values.isToTaste) {
+      return
+    }
+
+    if (!values.amount) {
+      context.addIssue({
+        code: "custom",
+        path: ["amount"],
+        message: "Укажите количество или отметьте «по вкусу».",
+      })
       return
     }
 
@@ -56,10 +62,10 @@ export function getDefaultShoppingItemFormValues(
 ): ShoppingItemFormValues {
   return {
     productId: "",
-    name: "",
+    productName: "",
     amount: "",
     unit: defaults.unit ?? defaultShoppingUnit,
-    quantityKind: "Exact",
+    isToTaste: false,
     category: defaults.category ?? defaultShoppingCategory,
     comment: "",
   }
@@ -68,10 +74,10 @@ export function getDefaultShoppingItemFormValues(
 export function toShoppingListItemFormValues(item: ShoppingListItem): ShoppingItemFormValues {
   return {
     productId: item.productId,
-    name: item.name,
+    productName: item.name,
     amount: item.amount === null ? "" : String(item.amount),
     unit: item.unit,
-    quantityKind: item.quantityKind,
+    isToTaste: item.unit === "ToTaste",
     category: item.category,
     comment: item.comment ?? "",
   }
@@ -82,13 +88,30 @@ export function toShoppingListItemRequest(values: ShoppingItemFormValues): Shopp
 
   return {
     productId: normalizeOptionalText(values.productId),
-    name: values.name.trim(),
-    amount: amountText.length > 0 ? parseDecimalInput(amountText) : null,
-    unit: values.unit,
-    quantityKind: values.quantityKind,
+    name: values.productName.trim(),
+    amount: values.isToTaste ? null : amountText.length > 0 ? parseDecimalInput(amountText) : null,
+    unit: values.isToTaste ? "ToTaste" : values.unit,
     category: values.category,
     comment: normalizeOptionalText(values.comment),
   }
+}
+
+export function validateShoppingItem(values: ShoppingItemFormValues): ShoppingItemFieldErrors {
+  const result = shoppingItemFormSchema.safeParse(values)
+
+  if (result.success) {
+    return {}
+  }
+
+  return result.error.issues.reduce<ShoppingItemFieldErrors>((errors, issue) => {
+    const fieldName = issue.path[0]
+
+    if (typeof fieldName === "string" && !(fieldName in errors)) {
+      errors[fieldName as keyof ShoppingItemFieldErrors] = issue.message
+    }
+
+    return errors
+  }, {})
 }
 
 export function formatDateTime(value: string) {

@@ -1,107 +1,100 @@
-# Frontend UX decisions
+# UX-решения фронтенда
 
-## Navigation shell
+## Навигационный каркас
 
-MenuMate uses a mobile-first app shell:
+На мобильных устройствах основные разделы доступны через нижнюю навигацию, на широких экранах — через боковую панель. Заголовок маршрута располагается в общей верхней панели и не повторяется крупным заголовком внутри рабочей области.
 
-- Top app bar owns the current screen title.
-- Child/detail screens use a compact icon-only Back action in the top app bar.
-- Breadcrumbs are not shown in the mobile shell. They duplicate the Back action, compete with the title, and cost too much vertical space on narrow screens.
-- Bottom navigation is reserved for frequent workspace sections only: Recipes, Menu, Shopping.
-- Profile is an account action, not a primary workspace section. It lives in the top app bar on mobile and in the account area/sidebar on desktop.
+Основные действия должны находиться рядом с контекстом, к которому относятся. Плавающие кнопки допустимы для одного частого действия экрана, если они не перекрывают контент и мобильную навигацию.
 
-Desktop keeps the sidebar for workspace navigation, but the top app bar remains the single place for the current page title so mobile and desktop use the same mental model.
+## Создание и редактирование рецепта
 
-## Page title placement
+Редактор рецепта является одной последовательной формой без вкладок. Пользователь видит структуру целиком и может проверить рецепт перед сохранением.
 
-Route-level page titles must not be repeated as large headers inside the working area. The page content starts with the most relevant action, filters, form, or workspace. Section titles inside cards/forms are still allowed when they describe a local subsection rather than the whole route.
+Ингредиенты отображаются компактными строками. Добавление и редактирование ингредиента открывает адаптивный диалог: нижнюю панель на телефоне и обычное модальное окно на широком экране. Черновик ингредиента попадает в рецепт только после успешной валидации и явного подтверждения.
 
-## Recipe create/edit flow
+Шаги приготовления остаются внутри основной формы. Кнопки добавления ингредиентов и шагов находятся после соответствующего списка и не являются плавающими.
 
-Recipe create and edit are one vertically ordered form:
+Общее и активное время задаются отдельными полями часов и минут. Сырые поля с количеством минут пользователю не показываются.
 
-- Cover
-- About the recipe
-- Ingredients
-- Steps
-- Additional
+Основное изображение выбирается в редакторе. При создании файл загружается после создания записи рецепта, при редактировании заменяет текущую обложку после сохранения данных.
 
-The primary sections stay visible on one page. Tabs hid the overall recipe structure, made review before saving difficult, and required unnecessary context switching on mobile. The form remains a single TanStack Form instance and submits one recipe DTO.
+Кнопка сохранения остается заметной возле нижней границы экрана, но форма сохраняет нормальный нижний отступ. При ошибке валидации показывается нейтральное сообщение, форма прокручивается к первому неверному полю и переводит в него фокус. Ошибочные поля получают одинаковую destructive-рамку и сообщение; цвет лейбла не меняется.
 
-Ingredients are rendered as compact summary rows. Adding or editing an ingredient opens a focused mobile bottom sheet / desktop dialog, because displaying every ingredient field inline makes the recipe unreadably long. The dialog edits an isolated draft and updates the recipe only after successful validation and explicit confirmation; canceling never leaves an empty or partially edited row behind. Steps remain inline because their short ordered text is useful while reviewing the full recipe.
+## Выбор продуктов
 
-The ingredient and steps sections keep one full-width add action after the final item. Add actions stay in normal document flow and do not float above the recipe editor. Header actions are intentionally omitted so section titles remain clean.
+Рецепты и покупки используют общий каталог продуктов:
 
-Cooking duration is entered as separate hour and minute segments for total and active time. Raw minute-only number fields are not exposed to users.
+- выбор существующего продукта автоматически подставляет категорию;
+- категория выбранного продукта всегда видна;
+- новый продукт добавляется в общий каталог при сохранении;
+- идентичность продукта определяется нормализованным названием и категорией, поэтому одинаковые названия допустимы в разных категориях;
+- ингредиенты и покупки хранят идентификатор продукта, чтобы объединение не зависело от свободного текста;
+- количество имеет две формы: число с единицей измерения или «по вкусу»;
+- подготовка ингредиента показывается как пояснение;
+- необязательный ингредиент обозначается отдельной понятной пометкой.
 
-Cover selection is part of the main editor. On create it is staged locally and uploaded after the recipe record is created; on edit it replaces the current cover after saving recipe data.
+## Просмотр рецепта
 
-Repeatable sections keep add actions after the final item. Save remains sticky near the bottom of the viewport, with a small gap above the mobile bottom navigation and normal-flow spacing after the final form section. Tags and source URL are secondary fields and live in a collapsed Additional section.
+Просмотр рецепта является одной последовательной страницей: основная информация, ингредиенты и шаги. Описание находится сразу под названием. Факты рецепта показываются сеткой из двух столбцов с иконками и подписями, источник расположен после фактов, настоящие пользовательские теги показываются отдельно.
 
-Submitting an invalid recipe shows a neutral guidance toast and moves focus to the first invalid field. Compact ingredient rows also show their first validation message and an invalid border, even while their editing dialog is closed. Successful create and update operations also show a toast so save state is never communicated only through button loading state.
+Действия рецепта представлены компактными иконками возле названия с доступными подписями и подсказками. Добавление в меню открывает календарь в режиме последовательного размещения. Удаление всегда подтверждается через отдельный диалог.
 
-Ingredient validation also runs inside the focused editor. Invalid controls are highlighted, the editor scrolls to the first issue, and focus moves there without closing the dialog.
+## Список рецептов
 
-Validation styling is consistent across forms: labels keep their normal foreground color, invalid controls receive a destructive border/ring, and validation messages use destructive text. Invalid state must not recolor an entire field container.
+Список оптимизирован для быстрого просмотра:
 
-## Product selection
+- поиск является основным элементом управления;
+- категории представлены горизонтально прокручиваемыми чипами с поддержкой сенсорного экрана, трекпада и колесика мыши;
+- избранное фильтруется компактной кнопкой с сердцем;
+- название является главной строкой карточки;
+- категория, общее время, активное время и количество порций являются вторичными метаданными;
+- редактирование и удаление находятся на странице рецепта, а не на каждой карточке.
 
-Recipes and shopping lists use the same product catalog:
+## Календарь меню
 
-- Selecting an existing product fills its category automatically.
-- The selected catalog category stays visible in the ingredient editor. Product category is editable only while creating a new catalog product.
-- New product names are normalized and added to the shared catalog on save.
-- Recipe ingredients and shopping list items keep a product identifier so aggregation does not depend on matching free-form text.
-- Quantity kind is a compact three-option control paired with amount and unit inputs.
-- Ingredient preparation notes are displayed as supporting descriptions in both edit and read views.
-- Optional ingredients use the explicit wording "Можно пропустить" with a dedicated visual badge rather than being appended as comma-separated text.
-- Ingredient quantity and product category are shown together in both edit and read summaries.
+Меню — единый непрерывный календарь пользователя без отдельных именованных планов.
 
-## Recipe read flow
+- Диапазон дат является состоянием представления. Неделя, месяц и произвольный диапазон читают один календарь.
+- Для произвольного диапазона используется shadcn Calendar в режиме выбора диапазона.
+- При регистрации создаются обычные пользовательские приемы пищи «Завтрак», «Обед» и «Ужин». Их можно переименовывать, удалять, добавлять и менять местами через drag-and-drop.
+- Блюда показывают изображение рецепта, если оно доступно.
+- В обычном режиме добавление в прием пищи обозначается компактной иконкой. Текст «Добавить сюда» используется только в режиме последовательного размещения рецепта.
+- Каркас календаря и приемы пищи остаются на экране при асинхронной загрузке блюд нового диапазона.
+- Настройка приемов пищи и очистка диапазона находятся в компактном меню настроек.
+- Создание списка покупок открывает предпросмотр выбранного диапазона.
 
-Recipe details use one continuous read view: overview, ingredients, and cooking steps. Tabs are not used because they hide recipe content and differ from the compact reference flow.
+## Покупки
 
-Recipe detail actions are compact icon buttons beside the title, with accessible names and tooltips. Add-to-menu is not exposed from the recipe read view. Destructive deletion always uses an explicit confirmation dialog rather than a browser-native prompt.
+У пользователя существует один список покупок. На экране нет переключателя списков, режима магазина, массовых статусов и признака «есть дома».
 
-The description sits directly below the recipe title. Recipe facts use a two-column labeled icon grid on all viewport sizes, the source is shown after the facts, and actual user tags are displayed separately without decorative prefixes.
+- Каждая позиция имеет одну отметку «куплено».
+- Позиции сгруппированы по категориям продуктов.
+- Ручное добавление и редактирование открываются в адаптивном диалоге с поиском общего каталога.
+- Рецепт и ручная покупка используют один редактор продуктовой позиции: поиск или создание продукта, категория, количество, единица и комментарий. Контекстные поля добавляются поверх него отдельно.
+- На мобильном экране доступна одна плавающая кнопка добавления.
+- Создание списка из меню сначала открывает отдельный предпросмотр: блюда сгруппированы отдельно, порции можно изменить, каждый ингредиент можно исключить.
+- Подтверждение явно сообщает, что текущий список и его отметки будут заменены.
+- После подтверждения backend повторно рассчитывает выбранные ингредиенты, приводит совместимые единицы к общей системе и объединяет позиции.
 
-## Recipe images
+## UI-примитивы
 
-Cover image management is integrated into recipe create/edit. Step image management is hidden for now in the UI even though the backend contract supports it. This avoids presenting a half-polished workflow while the recipe form and cooking view are being stabilized.
+Базовые компоненты в `src/MenuMate.Web/src/shared/ui` должны поступать из реестра shadcn/ui, если соответствующий компонент существует. Команда добавления запускается из `src/MenuMate.Web`:
 
-## Recipe list
+```bash
+pnpm dlx shadcn@latest add <component>
+```
 
-The recipe list prioritizes scanning:
+Локальные компоненты могут компоновать и адаптировать примитивы под сценарии приложения, но не заменять базовые реализации кнопок, полей, диалогов, чекбоксов и уведомлений.
 
-- Search is the primary control.
-- Recipe categories use a horizontally scrollable chip row that supports touch, trackpad, and a desktop mouse wheel.
-- Favorites use a compact heart toggle next to search instead of consuming category-row space.
-- Tags are not exposed as a primary list filter.
-- Recipe items use compact horizontal image/title/metadata rows. The title is the primary line; category, total time, active time, and servings are secondary metadata.
-- Edit and delete actions live on the recipe detail page rather than every list row.
+## Типографика
 
-## UI primitives
+MenuMate использует небольшую семантическую шкалу:
 
-Base components in `src/MenuMate.Web/src/shared/ui` must come from the shadcn/ui registry when a registry component exists. Use `pnpm dlx shadcn@latest add <component>` from `src/MenuMate.Web`, then compose app-specific UX on top of the generated primitive.
+- `type-page-title`: заголовок маршрута, 18 px на телефоне и 20 px на широком экране;
+- `type-recipe-title`: название рецепта в просмотре, 24 px;
+- `type-section-title`: заголовок крупной секции или диалога, 18 px;
+- `type-subsection-title`: заголовок карточки или вложенной группы, 16 px semibold;
+- `type-body`: основной и длинный текст, 16 px с межстрочным интервалом 24 px;
+- `type-label` и `type-supporting`: лейблы, метаданные, пояснения и ошибки, 14 px с межстрочным интервалом 20 px.
 
-## Typography
-
-MenuMate uses a small semantic type scale:
-
-- `type-page-title`: route title, 18px on mobile and 20px on desktop.
-- `type-recipe-title`: recipe name on the read screen, 24px.
-- `type-section-title`: major content section or dialog title, 18px.
-- `type-subsection-title`: card title or nested group title, 16px semibold.
-- `type-body`: primary content and long-form text, 16px with 24px line height.
-- `type-label` and `type-supporting`: field labels, metadata, descriptions, and errors, 14px with 20px line height.
-
-Form control values stay at 16px on every viewport. This keeps controls consistent and prevents automatic zoom on iOS. The 12px size is reserved for constrained navigation and dense calendar-like interfaces, not recipe content or form guidance.
-
-## Recipe library and sharing
-
-- The recipe list has two explicit scopes: the user's library and the public catalog.
-- The library/catalog scope selector uses a high-contrast segmented control with an explicit selected state in both themes.
-- New recipes are public by default; the editor explains that only the owner can change the original recipe.
-- Only owned recipes expose edit and delete actions.
-- Public recipes can be saved to the library or copied into a new private owned recipe.
-- Adding a recipe to a menu sends both the recipe ID and its current immutable revision ID.
+Значения полей формы остаются размером 16 px на всех экранах, чтобы сохранять единообразие и не вызывать автоматическое масштабирование iOS.

@@ -9,10 +9,11 @@ namespace MenuMate.Modules.ShoppingLists.Application.Abstractions;
 internal interface IShoppingListSourceReader
 {
     /// <summary>
-    /// Возвращает рецепты из плана меню, доступного текущему владельцу.
+    /// Возвращает рецепты из диапазона календаря меню текущего владельца.
     /// </summary>
-    Task<IReadOnlyCollection<ShoppingRecipe>?> GetMenuPlanRecipesAsync(
-        MenuPlanId menuPlanId,
+    Task<IReadOnlyCollection<ShoppingRecipe>> GetMenuCalendarRecipesAsync(
         UserId ownerUserId,
+        DateOnly startDate,
+        DateOnly endDate,
         CancellationToken cancellationToken);
 }

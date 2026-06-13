@@ -184,12 +184,6 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("product_name");
 
-                    b.Property<string>("QuantityKind")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("quantity_kind");
-
                     b.Property<Guid>("RecipeId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_id");
@@ -395,12 +389,6 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("product_name");
-
-                    b.Property<string>("QuantityKind")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("quantity_kind");
 
                     b.Property<Guid>("RecipeRevisionId")
                         .HasColumnType("uuid")

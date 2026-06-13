@@ -1,115 +1,118 @@
-import { apiClient } from "@/shared/api/client"
-import { unwrapApiResponse, unwrapEmptyApiResponse } from "@/shared/api/unwrap"
-import type { components } from "@/shared/api/generated/schema"
+import { apiFetchJson } from "@/shared/api/client"
 
-export type ShoppingListSummary = components["schemas"]["ShoppingListSummaryResponse"]
-export type ShoppingList = components["schemas"]["ShoppingListResponse"]
-export type ShoppingListItem = components["schemas"]["ShoppingListItemResponse"]
-export type ShoppingListItemRequest = components["schemas"]["ShoppingListItemRequest"]
-export type ShoppingListItemStateRequest = components["schemas"]["ShoppingListItemStateRequest"]
-export type GenerateShoppingListRequest = components["schemas"]["GenerateShoppingListRequest"]
-
-export async function getShoppingLists() {
-  return unwrapApiResponse<ShoppingListSummary[]>(
-    apiClient.GET("/api/shopping-lists", {
-      params: {},
-    }),
-  )
+export interface ShoppingListItem {
+  id: string
+  productId: string
+  name: string
+  amount: number | string | null
+  unit: string
+  category: string
+  amountText: string
+  comment: string | null
+  isPurchased: boolean
 }
 
-export async function getShoppingList(shoppingListId: string) {
-  return unwrapApiResponse<ShoppingList>(
-    apiClient.GET("/api/shopping-lists/{shoppingListId}", {
-      params: {
-        path: {
-          shoppingListId,
-        },
-      },
-    }),
-  )
+export interface ShoppingListCategory {
+  name: string
+  items: ShoppingListItem[]
 }
 
-export async function generateShoppingList(request: GenerateShoppingListRequest) {
-  return unwrapApiResponse<ShoppingList>(
-    apiClient.POST("/api/shopping-lists", {
-      body: request,
-    }),
-  )
+export interface ShoppingList {
+  id: string
+  sourceStartDate: string
+  sourceEndDate: string
+  createdAt: string
+  updatedAt: string
+  categories: ShoppingListCategory[]
+  text: string
 }
 
-export async function deleteShoppingList(shoppingListId: string) {
-  await unwrapEmptyApiResponse(
-    apiClient.DELETE("/api/shopping-lists/{shoppingListId}", {
-      params: {
-        path: {
-          shoppingListId,
-        },
-      },
-    }),
-  )
+export interface ShoppingListItemRequest {
+  productId: string | null
+  name: string
+  amount: number | null
+  unit: string
+  category: string
+  comment: string | null
 }
 
-export async function addShoppingListItem(
-  shoppingListId: string,
-  request: ShoppingListItemRequest,
-) {
-  return unwrapApiResponse<ShoppingList>(
-    apiClient.POST("/api/shopping-lists/{shoppingListId}/items", {
-      params: {
-        path: {
-          shoppingListId,
-        },
-      },
-      body: request,
-    }),
-  )
+export interface ShoppingListItemStateRequest {
+  isPurchased: boolean
 }
 
-export async function updateShoppingListItem(
-  shoppingListId: string,
-  itemId: string,
-  request: ShoppingListItemRequest,
-) {
-  return unwrapApiResponse<ShoppingList>(
-    apiClient.PUT("/api/shopping-lists/{shoppingListId}/items/{itemId}", {
-      params: {
-        path: {
-          shoppingListId,
-          itemId,
-        },
-      },
-      body: request,
-    }),
-  )
+export interface MenuShoppingPreviewIngredient {
+  ingredientId: string
+  productId: string
+  name: string
+  amount: number | string | null
+  unit: string
+  category: string
+  amountText: string
+  comment: string | null
+  isOptional: boolean
 }
 
-export async function setShoppingListItemState(
-  shoppingListId: string,
-  itemId: string,
-  request: ShoppingListItemStateRequest,
-) {
-  return unwrapApiResponse<ShoppingList>(
-    apiClient.PATCH("/api/shopping-lists/{shoppingListId}/items/{itemId}/state", {
-      params: {
-        path: {
-          shoppingListId,
-          itemId,
-        },
-      },
-      body: request,
-    }),
-  )
+export interface MenuShoppingPreviewRecipe {
+  menuItemId: string
+  title: string
+  baseServings: number
+  servings: number
+  ingredients: MenuShoppingPreviewIngredient[]
 }
 
-export async function removeShoppingListItem(shoppingListId: string, itemId: string) {
-  await unwrapEmptyApiResponse(
-    apiClient.DELETE("/api/shopping-lists/{shoppingListId}/items/{itemId}", {
-      params: {
-        path: {
-          shoppingListId,
-          itemId,
-        },
-      },
-    }),
-  )
+export interface MenuShoppingPreview {
+  startDate: string
+  endDate: string
+  recipes: MenuShoppingPreviewRecipe[]
+}
+
+export interface ReplaceShoppingListFromMenuRequest {
+  startDate: string
+  endDate: string
+  recipes: {
+    menuItemId: string
+    servings: number
+    ingredientIds: string[]
+  }[]
+}
+
+export function getShoppingList() {
+  return apiFetchJson<ShoppingList>("/api/shopping-list")
+}
+
+export function getMenuShoppingPreview(startDate: string, endDate: string) {
+  const query = new URLSearchParams({ startDate, endDate })
+  return apiFetchJson<MenuShoppingPreview>(`/api/shopping-list/menu-preview?${query.toString()}`)
+}
+
+export function replaceShoppingListFromMenu(request: ReplaceShoppingListFromMenuRequest) {
+  return apiFetchJson<ShoppingList>("/api/shopping-list/from-menu", {
+    method: "PUT",
+    body: JSON.stringify(request),
+  })
+}
+
+export function addShoppingListItem(request: ShoppingListItemRequest) {
+  return apiFetchJson<ShoppingList>("/api/shopping-list/items", {
+    method: "POST",
+    body: JSON.stringify(request),
+  })
+}
+
+export function updateShoppingListItem(itemId: string, request: ShoppingListItemRequest) {
+  return apiFetchJson<ShoppingList>(`/api/shopping-list/items/${itemId}`, {
+    method: "PUT",
+    body: JSON.stringify(request),
+  })
+}
+
+export function setShoppingListItemState(itemId: string, request: ShoppingListItemStateRequest) {
+  return apiFetchJson<ShoppingList>(`/api/shopping-list/items/${itemId}/checked`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  })
+}
+
+export async function removeShoppingListItem(itemId: string) {
+  await apiFetchJson<unknown>(`/api/shopping-list/items/${itemId}`, { method: "DELETE" })
 }

@@ -3,6 +3,7 @@ import createQueryClient from "openapi-react-query"
 
 import { apiUrl } from "@/shared/config/api"
 import { clearSession, getAccessToken, saveAccessToken } from "@/shared/auth/session.store"
+import { toApiException } from "@/shared/api/errors"
 import type { components, paths } from "@/shared/api/generated/schema"
 
 type TokenResponse = components["schemas"]["TokenResponse"]
@@ -16,6 +17,35 @@ export const apiClient = createFetchClient<paths>({
 })
 
 export const apiQueryClient = createQueryClient(apiClient)
+
+export async function apiFetchJson<TData>(path: string, init?: RequestInit): Promise<TData> {
+  const headers = new Headers(init?.headers)
+  if (init?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
+  }
+
+  const response = await authFetch(apiUrl(path), {
+    ...init,
+    headers,
+  })
+
+  if (!response.ok) {
+    let error: unknown = response.statusText
+    try {
+      error = await response.json()
+    } catch {
+      // Keep the status text when the response is not JSON.
+    }
+
+    throw toApiException(error, response.status)
+  }
+
+  if (response.status === 204) {
+    return undefined as TData
+  }
+
+  return (await response.json()) as TData
+}
 
 async function authFetch(input: RequestInfo | URL, init?: RequestInit) {
   const response = await fetchWithAccessToken(input, init, getAccessToken())

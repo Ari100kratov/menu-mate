@@ -9,11 +9,10 @@ namespace MenuMate.Modules.Recipes.Domain.ValueObjects;
 /// </summary>
 public sealed record IngredientQuantity
 {
-    private IngredientQuantity(decimal? amount, MeasurementUnit unit, IngredientQuantityKind kind)
+    private IngredientQuantity(decimal? amount, MeasurementUnit unit)
     {
         Amount = amount;
         Unit = unit;
-        Kind = kind;
     }
 
     /// <summary>
@@ -27,27 +26,16 @@ public sealed record IngredientQuantity
     public MeasurementUnit Unit { get; }
 
     /// <summary>
-    /// Тип количества.
+    /// Создает числовое количество.
     /// </summary>
-    public IngredientQuantityKind Kind { get; }
-
-    /// <summary>
-    /// Создает точное количество.
-    /// </summary>
-    public static Result<IngredientQuantity> Exact(decimal amount, MeasurementUnit unit) =>
-        CreateMeasured(amount, unit, IngredientQuantityKind.Exact);
-
-    /// <summary>
-    /// Создает примерное количество.
-    /// </summary>
-    public static Result<IngredientQuantity> Approximate(decimal amount, MeasurementUnit unit) =>
-        CreateMeasured(amount, unit, IngredientQuantityKind.Approximate);
+    public static Result<IngredientQuantity> Measured(decimal amount, MeasurementUnit unit) =>
+        CreateMeasured(amount, unit);
 
     /// <summary>
     /// Создает количество по вкусу.
     /// </summary>
     public static IngredientQuantity ToTaste() =>
-        new(null, MeasurementUnit.ToTaste, IngredientQuantityKind.ToTaste);
+        new(null, MeasurementUnit.ToTaste);
 
     /// <summary>
     /// Возвращает новую величину, масштабированную под коэффициент персон.
@@ -59,20 +47,18 @@ public sealed record IngredientQuantity
             return this;
         }
 
-        return new IngredientQuantity(Math.Round(Amount.Value * factor, 2), Unit, Kind);
+        return new IngredientQuantity(Math.Round(Amount.Value * factor, 2), Unit);
     }
 
-    private static Result<IngredientQuantity> CreateMeasured(
-        decimal amount,
-        MeasurementUnit unit,
-        IngredientQuantityKind kind)
+    private static Result<IngredientQuantity> CreateMeasured(decimal amount, MeasurementUnit unit)
     {
         if (amount <= 0)
         {
             return Result.Failure<IngredientQuantity>(RecipeErrors.InvalidIngredientAmount);
         }
 
-        return new IngredientQuantity(amount, unit, kind);
+        return unit == MeasurementUnit.ToTaste
+            ? Result.Failure<IngredientQuantity>(RecipeErrors.InvalidIngredientAmount)
+            : new IngredientQuantity(amount, unit);
     }
 }
-

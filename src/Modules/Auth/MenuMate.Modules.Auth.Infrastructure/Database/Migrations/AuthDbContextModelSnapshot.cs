@@ -26,7 +26,6 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.RefreshTokenRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -64,7 +63,6 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.RoleRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -99,7 +97,6 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
             modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.UserRecord", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 

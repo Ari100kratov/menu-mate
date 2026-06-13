@@ -1,32 +1,23 @@
-# ADR 0015: Recipe revisions, user library, and forks
+# 0015 Ревизии рецептов, библиотека пользователя и копии
 
-## Status
+## Статус
 
-Accepted.
+Принято.
 
-## Context
+## Контекст
 
-A recipe is authored by one user but can be reused by other users in menus and shopping lists. A mutable
-`RecipeId` is not sufficient for that workflow: an author edit must not silently change another user's planned
-menu or generated shopping list. Favorite state is also user-specific and cannot belong to the recipe aggregate.
+Публичный рецепт может использоваться другими пользователями в библиотеке и меню. Изменение оригинала владельцем не должно неожиданно менять уже запланированные блюда. Пользователь также должен иметь возможность адаптировать чужой рецепт, не получая права редактировать оригинал.
 
-Recipe titles are presentation data and are not globally unique.
+## Решение
 
-## Decision
+- Только владелец редактирует и удаляет оригинальный рецепт.
+- Каждое сохранение содержимого создает неизменяемую ревизию рецепта.
+- Запись рецепта остается текущей редактируемой проекцией и указывает на актуальную ревизию.
+- Добавление в меню фиксирует `RecipeId` и конкретный `RecipeRevisionId`.
+- Сохранение публичного рецепта в библиотеку не создает копию.
+- Изменение чужого рецепта создает новый рецепт-копию с собственным владельцем и ссылкой на источник.
+- Названия рецептов не являются уникальными.
 
-- Every recipe has one owner and `Private` or `Public` visibility.
-- Only the owner can edit, delete, or manage images of the recipe.
-- Every content save creates an immutable `RecipeRevision` containing the full recipe content snapshot.
-- The recipe row remains the current editable projection and points to its current revision.
-- Menu items store both `RecipeId` and `RecipeRevisionId`. Shopping lists read ingredients from the pinned revision.
-- `RecipeLibraryEntry` stores per-user saved/favorite state. It does not grant edit access.
-- A user who wants to change another user's recipe creates a fork. The fork is a new owned recipe with its source
-  recipe and source revision recorded.
-- Duplicate titles are allowed. Identity and lineage are represented by IDs, not names.
+## Последствия
 
-## Consequences
-
-- Author edits are visible when opening the public recipe but do not alter already planned menus.
-- Removing or privatizing a recipe does not invalidate immutable revisions already referenced by a user's menu.
-- Forks can diverge independently while preserving attribution and future comparison options.
-- Discovery and the personal library are separate query scopes.
+План меню воспроизводим и не меняется после редактирования оригинала. Копии могут расходиться независимо, а одинаковые названия в базе являются допустимым и ожидаемым состоянием.

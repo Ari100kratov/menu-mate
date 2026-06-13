@@ -35,7 +35,7 @@ public static class ShoppingListGenerator
         [
             .. items
                 .Where(item => item.CanMerge)
-                .GroupBy(item => new MergeKey(item.ProductId, item.Unit, item.QuantityKind))
+                .GroupBy(item => new MergeKey(item.ProductId, item.Unit))
                 .Select(Merge)
                 .Concat(items.Where(item => !item.CanMerge))
         ];
@@ -61,7 +61,6 @@ public static class ShoppingListGenerator
             ingredient.NormalizedName,
             amount,
             unit,
-            ingredient.QuantityKind,
             ingredient.Category,
             comment);
     }
@@ -76,7 +75,6 @@ public static class ShoppingListGenerator
             line.NormalizedName,
             amount,
             unit,
-            line.QuantityKind,
             line.Category,
             line.Comment);
     }
@@ -93,7 +91,6 @@ public static class ShoppingListGenerator
             first.NormalizedName,
             amount,
             first.Unit,
-            first.QuantityKind,
             first.Category,
             comment);
     }
@@ -113,8 +110,5 @@ public static class ShoppingListGenerator
         return nonEmptyComments.Length == 0 ? null : string.Join("; ", nonEmptyComments);
     }
 
-    private readonly record struct MergeKey(
-        Guid ProductId,
-        ShoppingUnit Unit,
-        ShoppingQuantityKind QuantityKind);
+    private readonly record struct MergeKey(Guid ProductId, ShoppingUnit Unit);
 }

@@ -26,7 +26,7 @@ public readonly record struct MenuServings
     {
         if (value is < 1 or > 100)
         {
-            return Result.Failure<MenuServings>(MenuPlanErrors.InvalidServings);
+            return Result.Failure<MenuServings>(MenuCalendarErrors.InvalidServings);
         }
 
         return new MenuServings(value);
@@ -35,4 +35,3 @@ public readonly record struct MenuServings
     /// <inheritdoc />
     public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
 }
-

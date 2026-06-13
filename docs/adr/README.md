@@ -15,3 +15,7 @@ ADR — короткие записи архитектурных решений,
 - [0011 Стратегия доступа к данным](0011-data-access-strategy.md)
 - [0012 Frontend: генерация API и auth-flow](0012-frontend-api-generation-and-auth.md)
 - [0013 Изображения через MinIO](0013-image-storage-through-minio.md)
+- [0014 Общий каталог продуктов и категория рецепта](0014-shared-product-catalog-and-recipe-category.md)
+- [0015 Ревизии рецептов, библиотека пользователя и копии](0015-recipe-revisions-library-and-forks.md)
+- [0016 Календарь меню и настраиваемые приемы пищи](0016-calendar-menu-and-custom-meal-slots.md)
+- [0017 Единый список покупок и предпросмотр меню](0017-single-shopping-list-and-menu-preview.md)

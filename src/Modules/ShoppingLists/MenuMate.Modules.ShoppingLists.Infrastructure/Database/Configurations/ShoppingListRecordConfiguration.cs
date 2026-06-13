@@ -17,11 +17,8 @@ internal sealed class ShoppingListRecordConfiguration : IEntityTypeConfiguration
         builder.Property(shoppingList => shoppingList.OwnerUserId)
             .HasConversion(userId => userId.Value, value => UserId.From(value))
             .IsRequired();
-        builder.Property(shoppingList => shoppingList.SourceMenuPlanId)
-            .HasConversion(menuPlanId => menuPlanId.Value, value => MenuPlanId.From(value))
-            .IsRequired();
-        builder.HasIndex(shoppingList => shoppingList.OwnerUserId);
-        builder.HasIndex(shoppingList => shoppingList.SourceMenuPlanId);
+        builder.HasIndex(shoppingList => shoppingList.OwnerUserId).IsUnique();
+        builder.HasIndex(shoppingList => new { shoppingList.OwnerUserId, shoppingList.SourceStartDate, shoppingList.SourceEndDate });
         builder.HasIndex(shoppingList => shoppingList.CreatedAt);
 
         builder.HasMany(shoppingList => shoppingList.Items)

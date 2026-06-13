@@ -1,14 +1,7 @@
 using MenuMate.Common.Application;
 using MenuMate.Common.Presentation;
 using MenuMate.Contracts.MenuPlanning;
-using MenuMate.Modules.MenuPlanning.Application.AddMenuPlanItem;
-using MenuMate.Modules.MenuPlanning.Application.CreateMenuPlan;
-using MenuMate.Modules.MenuPlanning.Application.DeleteMenuPlan;
-using MenuMate.Modules.MenuPlanning.Application.GetMenuPlanById;
-using MenuMate.Modules.MenuPlanning.Application.GetMenuPlans;
-using MenuMate.Modules.MenuPlanning.Application.RemoveMenuPlanItem;
-using MenuMate.Modules.MenuPlanning.Application.UpdateMenuPlan;
-using MenuMate.Modules.MenuPlanning.Application.UpdateMenuPlanItem;
+using MenuMate.Modules.MenuPlanning.Application;
 using MenuMate.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -17,7 +10,7 @@ using Microsoft.AspNetCore.Routing;
 namespace MenuMate.Modules.MenuPlanning.Presentation;
 
 /// <summary>
-/// HTTP-конечные точки модуля планирования меню.
+/// HTTP-конечные точки календаря меню.
 /// </summary>
 public static class MenuPlanningEndpoints
 {
@@ -26,163 +19,197 @@ public static class MenuPlanningEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapMenuPlanningEndpoints(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup("/api/menu-plans")
+        RouteGroupBuilder group = app.MapGroup("/api/menu-calendar")
             .WithTags("MenuPlanning")
             .RequireAuthorization();
 
-        group.MapGet("/", GetMenuPlansAsync)
-            .WithName("GetMenuPlans")
-            .Produces<IReadOnlyCollection<MenuPlanResponse>>();
-
-        group.MapGet("/{menuPlanId:guid}", GetMenuPlanByIdAsync)
-            .WithName("GetMenuPlanById")
-            .Produces<MenuPlanResponse>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
-
-        group.MapPost("/", CreateMenuPlanAsync)
-            .WithName("CreateMenuPlan")
-            .Accepts<CreateMenuPlanRequest>("application/json")
-            .Produces<MenuPlanResponse>(StatusCodes.Status201Created)
+        group.MapGet("/", GetMenuCalendarAsync)
+            .WithName("GetMenuCalendar")
+            .Produces<MenuCalendarResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
-        group.MapPut("/{menuPlanId:guid}", UpdateMenuPlanAsync)
-            .WithName("UpdateMenuPlan")
-            .Accepts<UpdateMenuPlanRequest>("application/json")
-            .Produces<MenuPlanResponse>()
+        group.MapDelete("/", ClearMenuCalendarAsync)
+            .WithName("ClearMenuCalendar")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        group.MapPost("/items", AddMenuCalendarItemAsync)
+            .WithName("AddMenuCalendarItem")
+            .Accepts<CreateMenuCalendarItemRequest>("application/json")
+            .Produces<MenuCalendarItemResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{menuPlanId:guid}", DeleteMenuPlanAsync)
-            .WithName("DeleteMenuPlan")
+        group.MapPut("/items/{itemId:guid}", UpdateMenuCalendarItemAsync)
+            .WithName("UpdateMenuCalendarItem")
+            .Accepts<UpdateMenuCalendarItemRequest>("application/json")
+            .Produces<MenuCalendarItemResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/items/{itemId:guid}", RemoveMenuCalendarItemAsync)
+            .WithName("RemoveMenuCalendarItem")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("/{menuPlanId:guid}/items", AddMenuPlanItemAsync)
-            .WithName("AddMenuPlanItem")
-            .Accepts<CreateMenuPlanItemRequest>("application/json")
-            .Produces<MenuPlanResponse>()
+        group.MapGet("/meal-slots", GetMealSlotsAsync)
+            .WithName("GetMealSlots")
+            .Produces<IReadOnlyCollection<MealSlotResponse>>();
+
+        group.MapPost("/meal-slots", CreateMealSlotAsync)
+            .WithName("CreateMealSlot")
+            .Accepts<CreateMealSlotRequest>("application/json")
+            .Produces<IReadOnlyCollection<MealSlotResponse>>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPut("/meal-slots/{mealSlotId:guid}", UpdateMealSlotAsync)
+            .WithName("UpdateMealSlot")
+            .Accepts<UpdateMealSlotRequest>("application/json")
+            .Produces<IReadOnlyCollection<MealSlotResponse>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/meal-slots/{mealSlotId:guid}", DeleteMealSlotAsync)
+            .WithName("DeleteMealSlot")
+            .Produces<IReadOnlyCollection<MealSlotResponse>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        group.MapPut("/{menuPlanId:guid}/items/{itemId:guid}", UpdateMenuPlanItemAsync)
-            .WithName("UpdateMenuPlanItem")
-            .Accepts<UpdateMenuPlanItemRequest>("application/json")
-            .Produces<MenuPlanResponse>()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
-
-        group.MapDelete("/{menuPlanId:guid}/items/{itemId:guid}", RemoveMenuPlanItemAsync)
-            .WithName("RemoveMenuPlanItem")
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+        group.MapPut("/meal-slots/order", ReorderMealSlotsAsync)
+            .WithName("ReorderMealSlots")
+            .Accepts<ReorderMealSlotsRequest>("application/json")
+            .Produces<IReadOnlyCollection<MealSlotResponse>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         return app;
     }
 
-    private static async Task<IResult> GetMenuPlansAsync(
-        IQueryHandler<GetMenuPlansQuery, IReadOnlyCollection<MenuPlanResponse>> handler,
+    private static async Task<IResult> GetMenuCalendarAsync(
+        DateOnly startDate,
+        DateOnly endDate,
+        IQueryHandler<GetMenuCalendarQuery, MenuCalendarResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<IReadOnlyCollection<MenuPlanResponse>> result = await handler.Handle(
-            new GetMenuPlansQuery(),
+        Result<MenuCalendarResponse> result = await handler.Handle(
+            new GetMenuCalendarQuery(startDate, endDate),
             cancellationToken);
-
         return result.ToHttpResult(httpContext);
     }
 
-    private static async Task<IResult> GetMenuPlanByIdAsync(
-        Guid menuPlanId,
-        IQueryHandler<GetMenuPlanByIdQuery, MenuPlanResponse> handler,
+    private static async Task<IResult> ClearMenuCalendarAsync(
+        DateOnly startDate,
+        DateOnly endDate,
+        ICommandHandler<ClearMenuCalendarCommand> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<MenuPlanResponse> result = await handler.Handle(
-            new GetMenuPlanByIdQuery(menuPlanId),
-            cancellationToken);
-
+        Result result = await handler.Handle(new ClearMenuCalendarCommand(startDate, endDate), cancellationToken);
         return result.ToHttpResult(httpContext);
     }
 
-    private static async Task<IResult> CreateMenuPlanAsync(
-        CreateMenuPlanRequest request,
-        ICommandHandler<CreateMenuPlanCommand, MenuPlanResponse> handler,
+    private static async Task<IResult> AddMenuCalendarItemAsync(
+        CreateMenuCalendarItemRequest request,
+        ICommandHandler<AddMenuCalendarItemCommand, MenuCalendarItemResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<MenuPlanResponse> result = await handler.Handle(new CreateMenuPlanCommand(request), cancellationToken);
-
+        Result<MenuCalendarItemResponse> result = await handler.Handle(
+            new AddMenuCalendarItemCommand(request),
+            cancellationToken);
         return result.IsSuccess
-            ? Results.Created($"/api/menu-plans/{result.Value.Id}", result.Value)
+            ? Results.Created($"/api/menu-calendar/items/{result.Value.Id}", result.Value)
             : result.ToHttpResult(httpContext);
     }
 
-    private static async Task<IResult> UpdateMenuPlanAsync(
-        Guid menuPlanId,
-        UpdateMenuPlanRequest request,
-        ICommandHandler<UpdateMenuPlanCommand, MenuPlanResponse> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken)
-    {
-        Result<MenuPlanResponse> result = await handler.Handle(
-            new UpdateMenuPlanCommand(menuPlanId, request),
-            cancellationToken);
-
-        return result.ToHttpResult(httpContext);
-    }
-
-    private static async Task<IResult> DeleteMenuPlanAsync(
-        Guid menuPlanId,
-        ICommandHandler<DeleteMenuPlanCommand> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken)
-    {
-        Result result = await handler.Handle(new DeleteMenuPlanCommand(menuPlanId), cancellationToken);
-        return result.ToHttpResult(httpContext);
-    }
-
-    private static async Task<IResult> AddMenuPlanItemAsync(
-        Guid menuPlanId,
-        CreateMenuPlanItemRequest request,
-        ICommandHandler<AddMenuPlanItemCommand, MenuPlanResponse> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken)
-    {
-        Result<MenuPlanResponse> result = await handler.Handle(
-            new AddMenuPlanItemCommand(menuPlanId, request),
-            cancellationToken);
-
-        return result.ToHttpResult(httpContext);
-    }
-
-    private static async Task<IResult> UpdateMenuPlanItemAsync(
-        Guid menuPlanId,
+    private static async Task<IResult> UpdateMenuCalendarItemAsync(
         Guid itemId,
-        UpdateMenuPlanItemRequest request,
-        ICommandHandler<UpdateMenuPlanItemCommand, MenuPlanResponse> handler,
+        UpdateMenuCalendarItemRequest request,
+        ICommandHandler<UpdateMenuCalendarItemCommand, MenuCalendarItemResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<MenuPlanResponse> result = await handler.Handle(
-            new UpdateMenuPlanItemCommand(menuPlanId, itemId, request),
+        Result<MenuCalendarItemResponse> result = await handler.Handle(
+            new UpdateMenuCalendarItemCommand(itemId, request),
             cancellationToken);
-
         return result.ToHttpResult(httpContext);
     }
 
-    private static async Task<IResult> RemoveMenuPlanItemAsync(
-        Guid menuPlanId,
+    private static async Task<IResult> RemoveMenuCalendarItemAsync(
         Guid itemId,
-        ICommandHandler<RemoveMenuPlanItemCommand> handler,
+        ICommandHandler<RemoveMenuCalendarItemCommand> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result result = await handler.Handle(new RemoveMenuPlanItemCommand(menuPlanId, itemId), cancellationToken);
+        Result result = await handler.Handle(new RemoveMenuCalendarItemCommand(itemId), cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> GetMealSlotsAsync(
+        IQueryHandler<GetMealSlotsQuery, IReadOnlyCollection<MealSlotResponse>> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyCollection<MealSlotResponse>> result =
+            await handler.Handle(new GetMealSlotsQuery(), cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> CreateMealSlotAsync(
+        CreateMealSlotRequest request,
+        ICommandHandler<CreateMealSlotCommand, IReadOnlyCollection<MealSlotResponse>> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyCollection<MealSlotResponse>> result = await handler.Handle(
+            new CreateMealSlotCommand(request),
+            cancellationToken);
+        return result.IsSuccess
+            ? Results.Created("/api/menu-calendar/meal-slots", result.Value)
+            : result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> UpdateMealSlotAsync(
+        Guid mealSlotId,
+        UpdateMealSlotRequest request,
+        ICommandHandler<UpdateMealSlotCommand, IReadOnlyCollection<MealSlotResponse>> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyCollection<MealSlotResponse>> result = await handler.Handle(
+            new UpdateMealSlotCommand(mealSlotId, request),
+            cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> DeleteMealSlotAsync(
+        Guid mealSlotId,
+        ICommandHandler<DeleteMealSlotCommand, IReadOnlyCollection<MealSlotResponse>> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyCollection<MealSlotResponse>> result = await handler.Handle(
+            new DeleteMealSlotCommand(mealSlotId),
+            cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> ReorderMealSlotsAsync(
+        ReorderMealSlotsRequest request,
+        ICommandHandler<ReorderMealSlotsCommand, IReadOnlyCollection<MealSlotResponse>> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyCollection<MealSlotResponse>> result = await handler.Handle(
+            new ReorderMealSlotsCommand(request),
+            cancellationToken);
         return result.ToHttpResult(httpContext);
     }
 }

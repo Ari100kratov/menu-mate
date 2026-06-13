@@ -590,8 +590,6 @@ export interface components {
             comment: null | string;
             /** @description Признак необязательного ингредиента. */
             isOptional: boolean;
-            /** @description Тип количества. */
-            quantityKind: string;
             /** @description Категория продукта для списка покупок. */
             category: string;
         };
@@ -740,8 +738,6 @@ export interface components {
             amount: null | number | string;
             /** @description Единица измерения. */
             unit: string;
-            /** @description Тип количества. */
-            quantityKind: string;
             /** @description Категория продукта для списка покупок. */
             category: string;
             /** @description Комментарий. */
@@ -879,8 +875,6 @@ export interface components {
             amount: null | number | string;
             /** @description Единица измерения. */
             unit: string;
-            /** @description Тип количества. */
-            quantityKind: string;
             /** @description Категория продукта. */
             category: string;
             /** @description Комментарий. */
@@ -907,8 +901,6 @@ export interface components {
             amount: null | number | string;
             /** @description Единица измерения. */
             unit: string;
-            /** @description Тип количества. */
-            quantityKind: string;
             /** @description Категория продукта. */
             category: string;
             /** @description Количество в человекочитаемом виде. */
@@ -917,15 +909,11 @@ export interface components {
             comment: null | string;
             /** @description Признак купленного продукта. */
             isPurchased: boolean;
-            /** @description Признак продукта, который уже есть дома. */
-            isInStock: boolean;
         };
         /** @description Запрос на обновление чекбоксов позиции. */
         ShoppingListItemStateRequest: {
             /** @description Признак купленного продукта. */
             isPurchased: boolean;
-            /** @description Признак продукта, который уже есть дома. */
-            isInStock: boolean;
         };
         /** @description Список покупок во внешнем контракте. */
         ShoppingListResponse: {

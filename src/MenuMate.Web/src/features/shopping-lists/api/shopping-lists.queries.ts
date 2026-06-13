@@ -2,112 +2,82 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import {
   addShoppingListItem,
-  deleteShoppingList,
-  generateShoppingList,
+  getMenuShoppingPreview,
   getShoppingList,
-  getShoppingLists,
   removeShoppingListItem,
+  replaceShoppingListFromMenu,
   setShoppingListItemState,
   updateShoppingListItem,
-  type GenerateShoppingListRequest,
+  type ReplaceShoppingListFromMenuRequest,
   type ShoppingListItemRequest,
   type ShoppingListItemStateRequest,
 } from "@/features/shopping-lists/api/shopping-lists.api"
 
 export const shoppingListQueryKeys = {
-  all: ["shopping-lists"] as const,
-  lists: () => [...shoppingListQueryKeys.all, "list"] as const,
-  detail: (shoppingListId: string) =>
-    [...shoppingListQueryKeys.all, "detail", shoppingListId] as const,
+  current: ["shopping-list"] as const,
+  preview: (startDate: string, endDate: string) =>
+    ["shopping-list", "menu-preview", startDate, endDate] as const,
 }
 
-export function useShoppingListsQuery() {
+export function useShoppingListQuery() {
   return useQuery({
-    queryKey: shoppingListQueryKeys.lists(),
-    queryFn: getShoppingLists,
+    queryKey: shoppingListQueryKeys.current,
+    queryFn: getShoppingList,
     staleTime: 30_000,
   })
 }
 
-export function useShoppingListQuery(shoppingListId: string | undefined) {
+export function useMenuShoppingPreviewQuery(startDate: string, endDate: string) {
   return useQuery({
-    queryKey: shoppingListQueryKeys.detail(shoppingListId ?? ""),
-    queryFn: () => getShoppingList(shoppingListId ?? ""),
-    enabled: Boolean(shoppingListId),
+    queryKey: shoppingListQueryKeys.preview(startDate, endDate),
+    queryFn: () => getMenuShoppingPreview(startDate, endDate),
+    enabled: Boolean(startDate && endDate),
     staleTime: 30_000,
   })
 }
 
-export function useGenerateShoppingListMutation() {
+function useShoppingListMutation<TVariables>(
+  mutationFn: (variables: TVariables) => Promise<Awaited<ReturnType<typeof getShoppingList>>>,
+) {
   const queryClient = useQueryClient()
-
   return useMutation({
-    mutationFn: (request: GenerateShoppingListRequest) => generateShoppingList(request),
+    mutationFn,
     onSuccess: (shoppingList) => {
-      queryClient.setQueryData(shoppingListQueryKeys.detail(shoppingList.id), shoppingList)
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
+      queryClient.setQueryData(shoppingListQueryKeys.current, shoppingList)
     },
   })
 }
 
-export function useDeleteShoppingListMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: deleteShoppingList,
-    onSuccess: (_data, shoppingListId) => {
-      queryClient.removeQueries({ queryKey: shoppingListQueryKeys.detail(shoppingListId) })
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
-    },
-  })
+export function useReplaceShoppingListFromMenuMutation() {
+  return useShoppingListMutation((request: ReplaceShoppingListFromMenuRequest) =>
+    replaceShoppingListFromMenu(request),
+  )
 }
 
-export function useAddShoppingListItemMutation(shoppingListId: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (request: ShoppingListItemRequest) => addShoppingListItem(shoppingListId, request),
-    onSuccess: (shoppingList) => {
-      queryClient.setQueryData(shoppingListQueryKeys.detail(shoppingListId), shoppingList)
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
-    },
-  })
+export function useAddShoppingListItemMutation() {
+  return useShoppingListMutation((request: ShoppingListItemRequest) => addShoppingListItem(request))
 }
 
-export function useUpdateShoppingListItemMutation(shoppingListId: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ itemId, request }: { itemId: string; request: ShoppingListItemRequest }) =>
-      updateShoppingListItem(shoppingListId, itemId, request),
-    onSuccess: (shoppingList) => {
-      queryClient.setQueryData(shoppingListQueryKeys.detail(shoppingListId), shoppingList)
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
-    },
-  })
+export function useUpdateShoppingListItemMutation() {
+  return useShoppingListMutation(
+    ({ itemId, request }: { itemId: string; request: ShoppingListItemRequest }) =>
+      updateShoppingListItem(itemId, request),
+  )
 }
 
-export function useSetShoppingListItemStateMutation(shoppingListId: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ itemId, request }: { itemId: string; request: ShoppingListItemStateRequest }) =>
-      setShoppingListItemState(shoppingListId, itemId, request),
-    onSuccess: (shoppingList) => {
-      queryClient.setQueryData(shoppingListQueryKeys.detail(shoppingListId), shoppingList)
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
-    },
-  })
+export function useSetShoppingListItemStateMutation() {
+  return useShoppingListMutation(
+    ({ itemId, request }: { itemId: string; request: ShoppingListItemStateRequest }) =>
+      setShoppingListItemState(itemId, request),
+  )
 }
 
-export function useRemoveShoppingListItemMutation(shoppingListId: string) {
+export function useRemoveShoppingListItemMutation() {
   const queryClient = useQueryClient()
-
   return useMutation({
-    mutationFn: (itemId: string) => removeShoppingListItem(shoppingListId, itemId),
+    mutationFn: removeShoppingListItem,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.detail(shoppingListId) })
-      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.current })
     },
   })
 }

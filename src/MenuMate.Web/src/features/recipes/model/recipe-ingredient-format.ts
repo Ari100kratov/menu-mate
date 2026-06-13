@@ -1,16 +1,12 @@
-import {
-  measurementUnitOptions,
-  quantityKindOptions,
-} from "@/features/recipes/model/recipe-form-options"
+import { measurementUnitOptions } from "@/features/recipes/model/recipe-form-options"
 
 interface IngredientQuantity {
   amount: null | number | string
   unit: string
-  quantityKind: string
 }
 
 export function formatRecipeIngredientQuantity(ingredient: IngredientQuantity) {
-  if (ingredient.quantityKind === "ToTaste") {
+  if (ingredient.unit === "ToTaste") {
     return "По вкусу"
   }
 
@@ -20,13 +16,5 @@ export function formatRecipeIngredientQuantity(ingredient: IngredientQuantity) {
     measurementUnitOptions.find((option) => option.value === ingredient.unit)?.label ??
     ingredient.unit
   const quantity = [amount, unit].filter(Boolean).join(" ")
-  const quantityKind =
-    quantityKindOptions.find((option) => option.value === ingredient.quantityKind)?.label ??
-    ingredient.quantityKind
-
-  if (ingredient.quantityKind === "Exact") {
-    return quantity || "Количество не указано"
-  }
-
-  return `${quantityKind}: ${quantity || "количество не указано"}`
+  return quantity || "Количество не указано"
 }

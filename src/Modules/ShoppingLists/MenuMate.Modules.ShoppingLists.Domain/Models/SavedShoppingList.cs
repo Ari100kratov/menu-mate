@@ -13,13 +13,15 @@ public sealed class SavedShoppingList : Entity<Guid>
     private SavedShoppingList(
         Guid id,
         UserId ownerUserId,
-        MenuPlanId sourceMenuPlanId,
+        DateOnly sourceStartDate,
+        DateOnly sourceEndDate,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt)
         : base(id)
     {
         OwnerUserId = ownerUserId;
-        SourceMenuPlanId = sourceMenuPlanId;
+        SourceStartDate = sourceStartDate;
+        SourceEndDate = sourceEndDate;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
     }
@@ -30,9 +32,14 @@ public sealed class SavedShoppingList : Entity<Guid>
     public UserId OwnerUserId { get; }
 
     /// <summary>
-    /// План меню, по которому был создан список.
+    /// Дата начала диапазона меню, по которому был создан список.
     /// </summary>
-    public MenuPlanId SourceMenuPlanId { get; }
+    public DateOnly SourceStartDate { get; private set; }
+
+    /// <summary>
+    /// Дата окончания диапазона меню, по которому был создан список.
+    /// </summary>
+    public DateOnly SourceEndDate { get; private set; }
 
     /// <summary>
     /// Момент создания списка.
@@ -55,13 +62,14 @@ public sealed class SavedShoppingList : Entity<Guid>
     public static Result<SavedShoppingList> Create(
         Guid id,
         UserId ownerUserId,
-        MenuPlanId sourceMenuPlanId,
+        DateOnly sourceStartDate,
+        DateOnly sourceEndDate,
         IEnumerable<ShoppingListItem> generatedItems,
         DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(generatedItems);
 
-        var list = new SavedShoppingList(id, ownerUserId, sourceMenuPlanId, now, now);
+        var list = new SavedShoppingList(id, ownerUserId, sourceStartDate, sourceEndDate, now, now);
 
         foreach (ShoppingListItem item in generatedItems)
         {
@@ -78,19 +86,55 @@ public sealed class SavedShoppingList : Entity<Guid>
     }
 
     /// <summary>
+    /// Заменяет содержимое списка результатом расчета по меню.
+    /// </summary>
+    public Result Replace(
+        DateOnly sourceStartDate,
+        DateOnly sourceEndDate,
+        IEnumerable<ShoppingListItem> generatedItems,
+        DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(generatedItems);
+
+        _items.Clear();
+        foreach (ShoppingListItem item in generatedItems)
+        {
+            Result<SavedShoppingListItem> savedItem = SavedShoppingListItem.FromGenerated(Guid.CreateVersion7(), item);
+            if (savedItem.IsFailure)
+            {
+                return savedItem;
+            }
+
+            _items.Add(savedItem.Value);
+        }
+
+        SourceStartDate = sourceStartDate;
+        SourceEndDate = sourceEndDate;
+        UpdatedAt = now;
+        return Result.Success();
+    }
+
+    /// <summary>
     /// Восстанавливает список покупок из persistence-снимка.
     /// </summary>
     public static SavedShoppingList Rehydrate(
         Guid id,
         UserId ownerUserId,
-        MenuPlanId sourceMenuPlanId,
+        DateOnly sourceStartDate,
+        DateOnly sourceEndDate,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         IEnumerable<SavedShoppingListItem> items)
     {
         ArgumentNullException.ThrowIfNull(items);
 
-        var list = new SavedShoppingList(id, ownerUserId, sourceMenuPlanId, createdAt, updatedAt);
+        var list = new SavedShoppingList(
+            id,
+            ownerUserId,
+            sourceStartDate,
+            sourceEndDate,
+            createdAt,
+            updatedAt);
         list._items.AddRange(items);
         return list;
     }
@@ -142,7 +186,7 @@ public sealed class SavedShoppingList : Entity<Guid>
     /// <summary>
     /// Обновляет отметки позиции.
     /// </summary>
-    public bool SetItemState(Guid itemId, bool isPurchased, bool isInStock, DateTimeOffset now)
+    public bool SetItemState(Guid itemId, bool isPurchased, DateTimeOffset now)
     {
         int index = _items.FindIndex(item => item.Id == itemId);
         if (index < 0)
@@ -150,7 +194,7 @@ public sealed class SavedShoppingList : Entity<Guid>
             return false;
         }
 
-        _items[index] = _items[index].WithState(isPurchased, isInStock);
+        _items[index] = _items[index].WithState(isPurchased);
         UpdatedAt = now;
         return true;
     }
