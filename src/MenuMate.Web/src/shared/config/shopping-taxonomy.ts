@@ -1,7 +1,4 @@
-import {
-  measurementUnitOptions,
-  productCategoryOptions,
-} from "@/shared/config/product-taxonomy"
+import { measurementUnitOptions, productCategoryOptions } from "@/shared/config/product-taxonomy"
 
 export const defaultShoppingUnit = "Piece"
 export const defaultShoppingCategory = "Other"

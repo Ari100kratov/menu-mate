@@ -94,7 +94,11 @@ export function MealSlotSettings({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
             <SortableContext
               items={orderedSlots.map((slot) => slot.id)}
               strategy={verticalListSortingStrategy}
@@ -110,8 +114,12 @@ export function MealSlotSettings({
                     onNameChange={(name) => {
                       setNames((current) => ({ ...current, [slot.id]: name }))
                     }}
-                    onRename={() => { onRename(slot.id, (names[slot.id] ?? slot.name).trim()) }}
-                    onDelete={() => { onDelete(slot.id) }}
+                    onRename={() => {
+                      onRename(slot.id, (names[slot.id] ?? slot.name).trim())
+                    }}
+                    onDelete={() => {
+                      onDelete(slot.id)
+                    }}
                   />
                 ))}
               </div>
@@ -131,7 +139,9 @@ export function MealSlotSettings({
             <Input
               value={newName}
               placeholder="Новый прием пищи"
-              onChange={(event) => { setNewName(event.target.value) }}
+              onChange={(event) => {
+                setNewName(event.target.value)
+              }}
             />
             <Button type="submit" disabled={isPending || !newName.trim()}>
               <Plus />
@@ -189,7 +199,7 @@ function SortableMealSlot({
         type="button"
         variant="ghost"
         size="icon"
-        className="touch-none cursor-grab active:cursor-grabbing"
+        className="cursor-grab touch-none active:cursor-grabbing"
         aria-label={`Изменить порядок: ${slot.name}`}
         disabled={isPending}
         {...attributes}
@@ -200,7 +210,9 @@ function SortableMealSlot({
       <Input
         value={name}
         aria-label={`Название приема пищи ${slot.name}`}
-        onChange={(event) => { onNameChange(event.target.value) }}
+        onChange={(event) => {
+          onNameChange(event.target.value)
+        }}
       />
       <div className="flex">
         <Button
@@ -230,7 +242,8 @@ function SortableMealSlot({
             <AlertDialogHeader>
               <AlertDialogTitle>Убрать прием пищи?</AlertDialogTitle>
               <AlertDialogDescription>
-                «{slot.name}» исчезнет из календаря. Прием пищи с запланированными блюдами удалить нельзя.
+                «{slot.name}» исчезнет из календаря. Прием пищи с запланированными блюдами удалить
+                нельзя.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

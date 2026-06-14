@@ -1,4 +1,4 @@
-import { ImagePlus } from "lucide-react"
+import { ImagePlus, LoaderCircle, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
 
 import { Button } from "@/shared/ui/button"
@@ -7,12 +7,16 @@ interface RecipeCoverPickerProps {
   existingImageUrl?: string
   file: File | null
   onFileChange: (file: File | null) => void
+  onGenerate?: () => void
+  isGenerating?: boolean
 }
 
 export function RecipeCoverPicker({
   existingImageUrl,
   file,
   onFileChange,
+  onGenerate,
+  isGenerating = false,
 }: RecipeCoverPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : undefined), [file])
@@ -41,13 +45,17 @@ export function RecipeCoverPicker({
 
       <button
         type="button"
-        className="group bg-muted/50 grid w-full grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-4 overflow-hidden rounded-xl border p-2 text-left outline-none transition hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring"
+        className="group bg-muted/50 hover:border-primary/50 focus-visible:ring-ring grid w-full grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-4 overflow-hidden rounded-xl border p-2 text-left transition outline-none focus-visible:ring-2"
         onClick={() => {
           inputRef.current?.click()
         }}
       >
         {imageUrl ? (
-          <img className="bg-muted aspect-square size-[5.5rem] rounded-lg object-cover" src={imageUrl} alt="" />
+          <img
+            className="bg-muted aspect-square size-[5.5rem] rounded-lg object-cover"
+            src={imageUrl}
+            alt=""
+          />
         ) : (
           <span className="bg-muted text-muted-foreground flex aspect-square size-[5.5rem] items-center justify-center rounded-lg">
             <ImagePlus className="size-7" />
@@ -62,6 +70,19 @@ export function RecipeCoverPicker({
           </span>
         </span>
       </button>
+
+      {onGenerate ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 w-full"
+          disabled={isGenerating}
+          onClick={onGenerate}
+        >
+          {isGenerating ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
+          {isGenerating ? "Генерируем обложку..." : "Сгенерировать фото блюда с ИИ"}
+        </Button>
+      ) : null}
 
       {file ? (
         <div className="mt-2 flex items-center justify-between gap-3">

@@ -19,10 +19,7 @@ interface RecipeMainFieldsProps {
 
 export function RecipeMainFields({ form }: RecipeMainFieldsProps) {
   return (
-    <PageSection
-      title="О рецепте"
-      className="rounded-none border-0 border-b p-4 md:p-6"
-    >
+    <PageSection title="О рецепте" className="rounded-none border-0 border-b p-4 md:p-6">
       <FieldGroup className="grid gap-4 md:grid-cols-2">
         <form.Field name="title">
           {(field) => {

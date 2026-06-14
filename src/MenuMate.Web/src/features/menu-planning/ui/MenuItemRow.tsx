@@ -47,7 +47,13 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
         }}
       >
         {!item.recipeId ? (
-          <Input value={text} aria-label="Название блюда" onChange={(event) => { setText(event.target.value) }} />
+          <Input
+            value={text}
+            aria-label="Название блюда"
+            onChange={(event) => {
+              setText(event.target.value)
+            }}
+          />
         ) : (
           <p className="type-label">{title}</p>
         )}
@@ -58,7 +64,9 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
             </SelectTrigger>
             <SelectContent>
               {mealSlots.map((slot) => (
-                <SelectItem key={slot.id} value={slot.id}>{slot.name}</SelectItem>
+                <SelectItem key={slot.id} value={slot.id}>
+                  {slot.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -68,15 +76,34 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
             max={100}
             value={servings}
             aria-label="Количество порций"
-            onChange={(event) => { setServings(event.target.value) }}
+            onChange={(event) => {
+              setServings(event.target.value)
+            }}
           />
         </div>
-        <Input value={comment} placeholder="Комментарий" onChange={(event) => { setComment(event.target.value) }} />
+        <Input
+          value={comment}
+          placeholder="Комментарий"
+          onChange={(event) => {
+            setComment(event.target.value)
+          }}
+        />
         <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={isPending || !Number(servings) || (!item.recipeId && !text.trim())}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isPending || !Number(servings) || (!item.recipeId && !text.trim())}
+          >
             Сохранить
           </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={() => { setIsEditing(false) }}>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setIsEditing(false)
+            }}
+          >
             <X />
             Отмена
           </Button>
@@ -96,7 +123,10 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
       )}
       <div className="min-w-0 flex-1">
         {item.recipeId ? (
-          <Link to={`/recipes/${item.recipeId}`} className="type-label hover:text-primary block truncate hover:underline">
+          <Link
+            to={`/recipes/${item.recipeId}`}
+            className="type-label hover:text-primary block truncate hover:underline"
+          >
             {title}
           </Link>
         ) : (
@@ -109,10 +139,27 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
         </div>
       </div>
       <div className="flex shrink-0">
-        <Button type="button" variant="ghost" size="icon-sm" aria-label="Редактировать блюдо" disabled={isPending} onClick={() => { setIsEditing(true) }}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Редактировать блюдо"
+          disabled={isPending}
+          onClick={() => {
+            setIsEditing(true)
+          }}
+        >
           <Pencil />
         </Button>
-        <Button type="button" variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive" aria-label="Убрать блюдо" disabled={isPending} onClick={onRemove}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="text-destructive hover:text-destructive"
+          aria-label="Убрать блюдо"
+          disabled={isPending}
+          onClick={onRemove}
+        >
           <Trash2 />
         </Button>
       </div>

@@ -33,12 +33,20 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
   return (
     <section className="mx-auto max-w-3xl space-y-4">
       <div className="flex items-center gap-2">
-        <Button type="button" variant="ghost" size="icon" aria-label="Назад к меню" onClick={onBack}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Назад к меню"
+          onClick={onBack}
+        >
           <ArrowLeft />
         </Button>
         <div>
           <h2 className="type-section-title">Выбрать блюдо</h2>
-          <p className="type-supporting text-muted-foreground">Поиск начинается без автоматических фильтров.</p>
+          <p className="type-supporting text-muted-foreground">
+            Поиск начинается без автоматических фильтров.
+          </p>
         </div>
       </div>
 
@@ -72,7 +80,9 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         <Input
           value={text}
           placeholder="Или добавить блюдо текстом"
-          onChange={(event) => { setText(event.target.value) }}
+          onChange={(event) => {
+            setText(event.target.value)
+          }}
         />
         <Button type="submit" size="icon" aria-label="Добавить текстом" disabled={!text.trim()}>
           <Plus />

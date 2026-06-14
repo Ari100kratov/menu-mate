@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Modules\RecipeImports\MenuMate.Modules.RecipeImports.Application\MenuMate.Modules.RecipeImports.Application.csproj" />
+  </ItemGroup>
+
+</Project>

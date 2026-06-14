@@ -26,21 +26,43 @@ export function ShoppingListItemRow({
         checked={item.isPurchased}
         disabled={isPending}
         aria-label={`Отметить «${item.name}»`}
-        onCheckedChange={(checked) => { onCheckedChange(checked === true) }}
+        onCheckedChange={(checked) => {
+          onCheckedChange(checked === true)
+        }}
       />
       <button type="button" className="min-w-0 flex-1 text-left" onClick={onEdit}>
-        <span className={cn("type-body block", item.isPurchased && "text-muted-foreground line-through")}>
+        <span
+          className={cn(
+            "type-body block",
+            item.isPurchased && "text-muted-foreground line-through",
+          )}
+        >
           {item.name}
         </span>
         <span className="type-supporting text-muted-foreground block">
-          {item.amountText}{item.comment ? ` · ${item.comment}` : ""}
+          {item.amountText}
+          {item.comment ? ` · ${item.comment}` : ""}
         </span>
       </button>
       <div className="flex shrink-0">
-        <Button type="button" variant="ghost" size="icon" aria-label="Редактировать" disabled={isPending} onClick={onEdit}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Редактировать"
+          disabled={isPending}
+          onClick={onEdit}
+        >
           <Pencil className="size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" aria-label="Удалить" disabled={isPending} onClick={onRemove}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Удалить"
+          disabled={isPending}
+          onClick={onRemove}
+        >
           <Trash2 className="size-4" />
         </Button>
       </div>

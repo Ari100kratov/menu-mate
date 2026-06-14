@@ -67,7 +67,9 @@ export function PageSection({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             {title ? <h2 className="type-section-title">{title}</h2> : null}
-            {description ? <p className="type-supporting text-muted-foreground">{description}</p> : null}
+            {description ? (
+              <p className="type-supporting text-muted-foreground">{description}</p>
+            ) : null}
           </div>
           {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
         </div>

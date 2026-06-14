@@ -56,6 +56,22 @@ function getPageChrome(pathname: string): PageChrome {
     }
   }
 
+  if (matchPath({ path: "/recipes/import", end: true }, pathname)) {
+    return {
+      title: "Рецепт из фото",
+      description: "Загрузка скриншота и создание черновика с помощью ИИ",
+      backTo: "/recipes",
+    }
+  }
+
+  if (matchPath({ path: "/recipes/import/:draftId", end: true }, pathname)) {
+    return {
+      title: "Проверка черновика",
+      description: "Сверьте распознанный рецепт перед созданием",
+      backTo: "/recipes/import",
+    }
+  }
+
   if (matchPath({ path: "/recipes/:recipeId", end: true }, pathname)) {
     return {
       title: "Рецепт",

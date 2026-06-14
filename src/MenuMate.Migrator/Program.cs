@@ -1,6 +1,8 @@
 using MenuMate.Migrator;
 using MenuMate.Modules.Auth.Infrastructure;
 using MenuMate.Modules.Auth.Infrastructure.Database;
+using MenuMate.Modules.RecipeImports.Infrastructure;
+using MenuMate.Modules.RecipeImports.Infrastructure.Database;
 using MenuMate.Modules.MenuPlanning.Infrastructure;
 using MenuMate.Modules.MenuPlanning.Infrastructure.Database;
 using MenuMate.Modules.Products.Infrastructure;
@@ -24,6 +26,7 @@ builder.AddServiceDefaults();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services
     .AddAuthInfrastructure(builder.Configuration)
+    .AddRecipeImportsInfrastructure(builder.Configuration)
     .AddRecipesInfrastructure(builder.Configuration)
     .AddProductsInfrastructure(builder.Configuration)
     .AddTagsInfrastructure(builder.Configuration)
@@ -40,6 +43,7 @@ ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Men
 MigratorLogMessages.StartingMigrations(logger);
 
 await MigrateDbContextAsync<RecipesDbContext>(services, logger);
+await MigrateDbContextAsync<RecipeImportsDbContext>(services, logger);
 await MigrateDbContextAsync<ProductsDbContext>(services, logger);
 await MigrateDbContextAsync<AuthDbContext>(services, logger);
 await MigrateDbContextAsync<TagsDbContext>(services, logger);

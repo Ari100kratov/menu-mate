@@ -1,5 +1,3 @@
-#pragma warning disable CS1573
-
 namespace MenuMate.Contracts.MenuPlanning;
 
 /// <summary>
@@ -36,6 +34,7 @@ public sealed record MealSlotResponse(Guid Id, string Name, int SortOrder);
 /// <param name="Text">Свободный текст для позиции без рецепта.</param>
 /// <param name="Servings">Количество порций.</param>
 /// <param name="Comment">Необязательный комментарий.</param>
+/// <param name="ImageUrl">Ссылка на изображение рецепта.</param>
 public sealed record MenuCalendarItemResponse(
     Guid Id,
     DateOnly Date,

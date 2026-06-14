@@ -15,9 +15,7 @@ export function ErrorAlert({ error }: ErrorAlertProps) {
     <Alert variant="destructive">
       <AlertCircle />
       <AlertTitle className="line-clamp-none">Не удалось выполнить действие</AlertTitle>
-      <AlertDescription className="min-w-0">
-        {messages[0] ?? "Неизвестная ошибка"}
-      </AlertDescription>
+      <AlertDescription className="min-w-0">{messages[0] ?? "Неизвестная ошибка"}</AlertDescription>
     </Alert>
   )
 }

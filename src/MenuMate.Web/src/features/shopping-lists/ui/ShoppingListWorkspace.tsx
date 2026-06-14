@@ -102,7 +102,13 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
               : `${String(purchasedCount)} из ${String(itemCount)} отмечено`}
           </p>
         </div>
-        <Button type="button" variant="secondary" onClick={() => { setDialogItem("new") }}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            setDialogItem("new")
+          }}
+        >
           <Plus />
           Добавить
         </Button>
@@ -118,7 +124,16 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
           icon={ShoppingBasket}
           title="Список пока пуст"
           description="Добавьте первую покупку или сформируйте список из меню."
-          action={<Button onClick={() => { setDialogItem("new") }}><Plus />Добавить покупку</Button>}
+          action={
+            <Button
+              onClick={() => {
+                setDialogItem("new")
+              }}
+            >
+              <Plus />
+              Добавить покупку
+            </Button>
+          }
         />
       ) : (
         <div className="space-y-4">
@@ -134,10 +149,14 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
                     onCheckedChange={(isPurchased) => {
                       stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
                     }}
-                    onEdit={() => { setDialogItem(item) }}
+                    onEdit={() => {
+                      setDialogItem(item)
+                    }}
                     onRemove={() => {
                       removeItemMutation.mutate(item.id, {
-                        onSuccess: () => { toast.success("Покупка удалена") },
+                        onSuccess: () => {
+                          toast.success("Покупка удалена")
+                        },
                       })
                     }}
                   />
@@ -153,15 +172,24 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         size="icon-lg"
         className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
         aria-label="Добавить покупку"
-        onClick={() => { setDialogItem("new") }}
+        onClick={() => {
+          setDialogItem("new")
+        }}
       >
         <Plus className="size-5" />
       </Button>
 
-      <Dialog open={dialogItem !== null} onOpenChange={(open) => { if (!open) setDialogItem(null) }}>
+      <Dialog
+        open={dialogItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setDialogItem(null)
+        }}
+      >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{dialogItem === "new" ? "Добавить покупку" : "Редактировать покупку"}</DialogTitle>
+            <DialogTitle>
+              {dialogItem === "new" ? "Добавить покупку" : "Редактировать покупку"}
+            </DialogTitle>
             <DialogDescription>
               Выберите продукт из каталога или добавьте новый с нужной категорией.
             </DialogDescription>
@@ -174,7 +202,9 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
               isSubmitting={isPending}
               initialValues={initialValues}
               onSubmit={submitItem}
-              onCancel={() => { setDialogItem(null) }}
+              onCancel={() => {
+                setDialogItem(null)
+              }}
             />
           </div>
         </DialogContent>

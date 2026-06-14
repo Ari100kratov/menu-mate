@@ -92,7 +92,9 @@ export function RecipeIngredientDialog({
 
           <div className="bg-background flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
             <Dialog.Close asChild>
-              <Button type="button" variant="outline">Отмена</Button>
+              <Button type="button" variant="outline">
+                Отмена
+              </Button>
             </Dialog.Close>
             <Button type="button" onClick={handleSave}>
               {mode === "create" ? "Добавить ингредиент" : "Сохранить изменения"}

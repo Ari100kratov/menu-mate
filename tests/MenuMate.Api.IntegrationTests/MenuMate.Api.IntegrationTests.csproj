@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
@@ -8,6 +8,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\MenuMate.Api\MenuMate.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\Auth\MenuMate.Modules.Auth.Infrastructure\MenuMate.Modules.Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\RecipeImports\MenuMate.Modules.RecipeImports.Application\MenuMate.Modules.RecipeImports.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\RecipeImports\MenuMate.Modules.RecipeImports.Infrastructure\MenuMate.Modules.RecipeImports.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\MenuPlanning\MenuMate.Modules.MenuPlanning.Infrastructure\MenuMate.Modules.MenuPlanning.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Recipes\MenuMate.Modules.Recipes.Infrastructure\MenuMate.Modules.Recipes.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\ShoppingLists\MenuMate.Modules.ShoppingLists.Infrastructure\MenuMate.Modules.ShoppingLists.Infrastructure.csproj" />

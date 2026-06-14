@@ -11,9 +11,7 @@ export function RecipeAdditionalFields({ form }: { form: RecipeFormApi }) {
       <summary className="type-section-title flex cursor-pointer list-none items-center justify-between gap-3">
         <span>
           Дополнительно
-          <span className="type-supporting text-muted-foreground ml-2">
-            источник и теги
-          </span>
+          <span className="type-supporting text-muted-foreground ml-2">источник и теги</span>
         </span>
         <ChevronDown className="size-4 transition group-open:rotate-180" />
       </summary>

@@ -13,7 +13,7 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
   return (
-    <article className="bg-card group relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:border-primary/30 hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
+    <article className="bg-card group hover:border-primary/30 relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
       <Link to={`/recipes/${recipe.id}`} className="bg-muted block min-h-full outline-none">
         {recipe.coverImage?.readUrl ? (
           <img
@@ -79,7 +79,7 @@ export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: Reci
         disabled={isFavoritePending}
         onClick={onToggleFavorite}
       >
-        <Heart className={recipe.isFavorite ? "size-4 fill-primary text-primary" : "size-4"} />
+        <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
       </Button>
     </article>
   )

@@ -7,5 +7,5 @@ namespace MenuMate.Modules.Recipes.Application.CreateRecipe;
 /// Команда создания рецепта.
 /// </summary>
 /// <param name="Request">Данные рецепта.</param>
-public sealed record CreateRecipeCommand(CreateRecipeRequest Request) : ICommand<RecipeResponse>;
-
+/// <param name="RecipeId">Необязательный заранее назначенный идентификатор рецепта.</param>
+public sealed record CreateRecipeCommand(CreateRecipeRequest Request, Guid? RecipeId = null) : ICommand<RecipeResponse>;

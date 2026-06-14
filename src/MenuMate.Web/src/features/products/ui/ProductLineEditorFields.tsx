@@ -148,9 +148,7 @@ export function ProductLineEditorFields({
                 : `Будет создан отдельный вариант «${value.productName.trim()}» в категории «${getProductCategoryLabel(value.category)}».`}
             </FieldDescription>
           ) : (
-            <FieldDescription>
-              После сохранения продукт появится в общем каталоге.
-            </FieldDescription>
+            <FieldDescription>После сохранения продукт появится в общем каталоге.</FieldDescription>
           )}
           {errors.category ? <FieldError>{errors.category}</FieldError> : null}
         </Field>

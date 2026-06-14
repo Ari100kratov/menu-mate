@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\MenuMate.Common.Application\MenuMate.Common.Application.csproj" />
+    <ProjectReference Include="..\..\..\MenuMate.Contracts\MenuMate.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\MenuMate.SharedKernel\MenuMate.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Recipes\MenuMate.Modules.Recipes.Application\MenuMate.Modules.Recipes.Application.csproj" />
+    <ProjectReference Include="..\MenuMate.Modules.RecipeImports.Domain\MenuMate.Modules.RecipeImports.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -69,7 +69,7 @@ export function RecipeDetailsActions({
           disabled={isFavoritePending}
           onClick={onToggleFavorite}
         >
-          <Heart className={recipe.isFavorite ? "size-4 fill-primary text-primary" : "size-4"} />
+          <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
         </Button>
       </ActionTooltip>
 
@@ -84,7 +84,9 @@ export function RecipeDetailsActions({
               disabled={isSavedPending}
               onClick={onToggleSaved}
             >
-              <Bookmark className={recipe.isSaved ? "size-4 fill-primary text-primary" : "size-4"} />
+              <Bookmark
+                className={recipe.isSaved ? "fill-primary text-primary size-4" : "size-4"}
+              />
             </Button>
           </ActionTooltip>
           <ActionTooltip label="Создать свою копию">

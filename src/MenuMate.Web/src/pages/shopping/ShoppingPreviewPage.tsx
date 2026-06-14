@@ -36,7 +36,11 @@ export default function ShoppingPreviewPage() {
   const [showReplaceConfirm, setShowReplaceConfirm] = useState(false)
 
   const currentItemCount = useMemo(
-    () => currentListQuery.data?.categories.reduce((total, category) => total + category.items.length, 0) ?? 0,
+    () =>
+      currentListQuery.data?.categories.reduce(
+        (total, category) => total + category.items.length,
+        0,
+      ) ?? 0,
     [currentListQuery.data],
   )
   const totalIngredientCount =
@@ -55,7 +59,10 @@ export default function ShoppingPreviewPage() {
           menuItemId: recipe.menuItemId,
           servings: servings[recipe.menuItemId] ?? recipe.servings,
           ingredientIds: recipe.ingredients
-            .filter((ingredient) => !excluded.has(selectionKey(recipe.menuItemId, ingredient.ingredientId)))
+            .filter(
+              (ingredient) =>
+                !excluded.has(selectionKey(recipe.menuItemId, ingredient.ingredientId)),
+            )
             .map((ingredient) => ingredient.ingredientId),
         })),
       },
@@ -78,7 +85,8 @@ export default function ShoppingPreviewPage() {
       <section className="bg-primary/5 border-primary/15 rounded-xl border p-4">
         <h2 className="type-section-title">Проверьте будущий список</h2>
         <p className="type-supporting text-muted-foreground mt-1">
-          Снимите отметки с ненужных ингредиентов. Совместимые единицы будут приведены к одной системе и объединены.
+          Снимите отметки с ненужных ингредиентов. Совместимые единицы будут приведены к одной
+          системе и объединены.
         </p>
       </section>
 
@@ -109,17 +117,29 @@ export default function ShoppingPreviewPage() {
                       size="icon-sm"
                       aria-label="Уменьшить количество порций"
                       disabled={recipeServings <= 1}
-                      onClick={() => { setServings((current) => ({ ...current, [recipe.menuItemId]: recipeServings - 1 })) }}
+                      onClick={() => {
+                        setServings((current) => ({
+                          ...current,
+                          [recipe.menuItemId]: recipeServings - 1,
+                        }))
+                      }}
                     >
                       <Minus />
                     </Button>
-                    <span className="min-w-7 text-center text-sm font-semibold">{recipeServings}</span>
+                    <span className="min-w-7 text-center text-sm font-semibold">
+                      {recipeServings}
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon-sm"
                       aria-label="Увеличить количество порций"
-                      onClick={() => { setServings((current) => ({ ...current, [recipe.menuItemId]: recipeServings + 1 })) }}
+                      onClick={() => {
+                        setServings((current) => ({
+                          ...current,
+                          [recipe.menuItemId]: recipeServings + 1,
+                        }))
+                      }}
                     >
                       <Plus />
                     </Button>
@@ -144,7 +164,12 @@ export default function ShoppingPreviewPage() {
                         <span className="min-w-0 flex-1">
                           <span className="type-body block">{ingredient.name}</span>
                           <span className="type-supporting text-muted-foreground block">
-                            {formatPreviewAmount(ingredient.amount, ingredient.unit, recipe.servings, recipeServings)}
+                            {formatPreviewAmount(
+                              ingredient.amount,
+                              ingredient.unit,
+                              recipe.servings,
+                              recipeServings,
+                            )}
                             {ingredient.isOptional ? " · необязательно" : ""}
                             {ingredient.comment ? ` · ${ingredient.comment}` : ""}
                           </span>
@@ -183,7 +208,8 @@ export default function ShoppingPreviewPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Заменить текущий список покупок?</AlertDialogTitle>
             <AlertDialogDescription>
-              Все текущие позиции и отметки будут удалены. В список попадут только выбранные ингредиенты из меню.
+              Все текущие позиции и отметки будут удалены. В список попадут только выбранные
+              ингредиенты из меню.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

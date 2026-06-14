@@ -1,0 +1,182 @@
+import { FileImage, ImagePlus, Trash2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+
+import {
+  useCreateRecipeImportDraftMutation,
+  useDeleteRecipeImportDraftMutation,
+  useRecipeImportDraftsQuery,
+} from "@/features/imports/api/imports.queries"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shared/ui/alert-dialog"
+import { Button } from "@/shared/ui/button"
+import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { Input } from "@/shared/ui/input"
+import { PageSection } from "@/shared/ui/page"
+
+export default function RecipeImportPage() {
+  const navigate = useNavigate()
+  const draftsQuery = useRecipeImportDraftsQuery()
+  const createMutation = useCreateRecipeImportDraftMutation()
+  const deleteMutation = useDeleteRecipeImportDraftMutation()
+  const [files, setFiles] = useState<File[]>([])
+  const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
+
+  useEffect(
+    () => () => {
+      previewUrls.forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl)
+      })
+    },
+    [previewUrls],
+  )
+
+  function handleFileChange(nextFiles: FileList | null) {
+    setFiles(nextFiles ? Array.from(nextFiles).slice(0, 8) : [])
+  }
+
+  function handleUpload() {
+    if (files.length === 0) {
+      return
+    }
+
+    createMutation.mutate(files, {
+      onSuccess: (draft) => {
+        void navigate(`/recipes/import/${draft.id}`)
+      },
+    })
+  }
+
+  return (
+    <div className="space-y-5">
+      <PageSection
+        title="Загрузите скриншоты рецепта"
+        description="Можно загрузить до 8 скриншотов JPEG, PNG или WebP по 10 МБ каждый и до 40 МБ суммарно. ИИ объединит их в один черновик рецепта."
+      >
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="space-y-3">
+            <Input
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              disabled={createMutation.isPending}
+              onChange={(event) => {
+                handleFileChange(event.target.files)
+              }}
+            />
+            {createMutation.error ? <ErrorAlert error={createMutation.error} /> : null}
+            <Button
+              type="button"
+              disabled={files.length === 0 || createMutation.isPending}
+              onClick={handleUpload}
+            >
+              <ImagePlus />
+              {createMutation.isPending ? "Распознаём рецепт..." : "Создать черновик"}
+            </Button>
+          </div>
+          <div className="bg-muted min-h-48 overflow-hidden rounded-lg border p-2">
+            {previewUrls.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {previewUrls.map((previewUrl, index) => (
+                  <img
+                    key={previewUrl}
+                    src={previewUrl}
+                    alt={`Предпросмотр выбранного скриншота ${String(index + 1)}`}
+                    className="max-h-64 w-full rounded-md object-contain"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-muted-foreground flex flex-col items-center gap-2 p-6 text-center text-sm">
+                <FileImage className="size-8" />
+                Предпросмотр появится после выбора файла
+              </div>
+            )}
+          </div>
+        </div>
+      </PageSection>
+
+      <PageSection
+        title="Недавние черновики"
+        description="Исходные изображения и черновики автоматически удаляются через 7 дней после последнего изменения."
+      >
+        {draftsQuery.error ? <ErrorAlert error={draftsQuery.error} /> : null}
+        {deleteMutation.error ? <ErrorAlert error={deleteMutation.error} /> : null}
+        {draftsQuery.isPending ? (
+          <PageSkeleton />
+        ) : draftsQuery.data?.length ? (
+          <div className="divide-y rounded-lg border">
+            {draftsQuery.data.map((draft) => (
+              <div key={draft.id} className="flex items-center gap-3 p-3">
+                <div className="min-w-0 flex-1">
+                  <Link to={`/recipes/import/${draft.id}`} className="font-medium hover:underline">
+                    {draft.title}
+                  </Link>
+                  <p className="text-muted-foreground text-sm">
+                    {draft.status === "Confirmed" ? "Рецепт создан" : "Готов к проверке"}
+                  </p>
+                </div>
+                <DeleteDraftButton
+                  title={draft.title}
+                  disabled={deleteMutation.isPending}
+                  onDelete={() => {
+                    deleteMutation.mutate(draft.id)
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">Черновиков пока нет.</p>
+        )}
+      </PageSection>
+    </div>
+  )
+}
+
+function DeleteDraftButton({
+  title,
+  disabled,
+  onDelete,
+}: {
+  title: string
+  disabled: boolean
+  onDelete: () => void
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          disabled={disabled}
+          aria-label="Удалить черновик"
+        >
+          <Trash2 />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Удалить черновик?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Черновик «{title}» и исходные скриншоты будут удалены без возможности восстановления.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogAction onClick={onDelete}>Удалить</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}

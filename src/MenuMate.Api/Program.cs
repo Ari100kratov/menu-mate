@@ -4,6 +4,9 @@ using MenuMate.Common.Presentation;
 using MenuMate.Modules.Auth.Application;
 using MenuMate.Modules.Auth.Infrastructure;
 using MenuMate.Modules.Auth.Presentation;
+using MenuMate.Modules.RecipeImports.Application;
+using MenuMate.Modules.RecipeImports.Infrastructure;
+using MenuMate.Modules.RecipeImports.Presentation;
 using MenuMate.Modules.MenuPlanning.Application;
 using MenuMate.Modules.MenuPlanning.Infrastructure;
 using MenuMate.Modules.MenuPlanning.Presentation;
@@ -85,6 +88,8 @@ builder.Services
     .AddCommonInfrastructure(builder.Configuration)
     .AddAuthApplication()
     .AddAuthInfrastructure(builder.Configuration)
+    .AddRecipeImportsApplication()
+    .AddRecipeImportsInfrastructure(builder.Configuration)
     .AddRecipesApplication()
     .AddRecipesInfrastructure(builder.Configuration)
     .AddProductsInfrastructure(builder.Configuration)
@@ -124,7 +129,7 @@ app.MapGet("/api/modules", () => new[]
         new ModuleResponse("Tags", "Гибкие системные, пользовательские и предложенные теги."),
         new ModuleResponse("MenuPlanning", "Календарь питания, приемы пищи и запланированные блюда."),
         new ModuleResponse("ShoppingLists", "Расчет, группировка, отметки и текстовый шаринг покупок."),
-        new ModuleResponse("Imports", "Будущий контур черновиков импорта из URL и изображений."),
+        new ModuleResponse("RecipeImports", "Черновики импорта рецептов из изображений."),
         new ModuleResponse("Files", "Будущий контур загрузки и проверки изображений.")
     })
     .WithName("GetModules");
@@ -133,6 +138,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapRecipeImportsEndpoints();
 app.MapRecipesEndpoints();
 app.MapProductsEndpoints();
 app.MapTagsEndpoints();

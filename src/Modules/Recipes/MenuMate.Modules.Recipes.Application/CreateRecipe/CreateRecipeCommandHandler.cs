@@ -18,6 +18,26 @@ internal sealed class CreateRecipeCommandHandler(
         CreateRecipeCommand command,
         CancellationToken cancellationToken)
     {
+        if (command.RecipeId.HasValue)
+        {
+            Recipe? existingRecipe = await repository.GetByIdAsync(
+                command.RecipeId.Value,
+                cancellationToken);
+            if (existingRecipe is not null)
+            {
+                if (existingRecipe.OwnerUserId != userContext.UserId)
+                {
+                    return Result.Failure<RecipeResponse>(RecipeApplicationErrors.AccessDenied);
+                }
+
+                return RecipeMapping.ToResponse(
+                    existingRecipe,
+                    userContext.UserId,
+                    isSaved: true,
+                    isFavorite: false);
+            }
+        }
+
         Result<RecipeDraft> draft = RecipeRequestMapper.Map(command.Request);
         if (draft.IsFailure)
         {
@@ -34,7 +54,7 @@ internal sealed class CreateRecipeCommandHandler(
         }
 
         var recipe = Recipe.Create(
-            Guid.CreateVersion7(),
+            command.RecipeId ?? Guid.CreateVersion7(),
             userContext.UserId,
             draft.Value.Title,
             draft.Value.Servings,

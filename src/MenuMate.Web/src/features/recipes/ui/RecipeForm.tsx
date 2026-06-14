@@ -19,6 +19,8 @@ interface RecipeFormProps {
   isSubmitting: boolean
   error?: unknown
   coverImageUrl?: string
+  onValuesChange?: (values: RecipeFormValues) => void
+  generateCover?: (values: RecipeFormValues) => Promise<File>
   onSubmit: (values: RecipeFormValues, coverFile: File | null) => void
 }
 
@@ -28,10 +30,14 @@ export function RecipeForm({
   isSubmitting,
   error,
   coverImageUrl,
+  onValuesChange,
+  generateCover,
   onSubmit,
 }: RecipeFormProps) {
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const [isGeneratingCover, setIsGeneratingCover] = useState(false)
+  const [generateCoverError, setGenerateCoverError] = useState<unknown>()
   const formElementRef = useRef<HTMLFormElement>(null)
   const form = useRecipeForm({
     initialValues,
@@ -76,6 +82,24 @@ export function RecipeForm({
     })
   }
 
+  async function handleGenerateCover() {
+    if (!generateCover) {
+      return
+    }
+
+    setGenerateCoverError(undefined)
+    setIsGeneratingCover(true)
+    try {
+      setCoverFile(await generateCover(form.state.values))
+      toast.success("Обложка сгенерирована")
+    } catch (generationError) {
+      setGenerateCoverError(generationError)
+      toast.error(getApiErrorMessages(generationError)[0] ?? "Не удалось сгенерировать обложку.")
+    } finally {
+      setIsGeneratingCover(false)
+    }
+  }
+
   return (
     <form
       ref={formElementRef}
@@ -87,13 +111,29 @@ export function RecipeForm({
         void handleSubmit()
       }}
     >
-      {error ? <div className="mb-4"><ErrorAlert error={error} /></div> : null}
+      {error ? (
+        <div className="mb-4">
+          <ErrorAlert error={error} />
+        </div>
+      ) : null}
+      {generateCoverError ? (
+        <div className="mb-4">
+          <ErrorAlert error={generateCoverError} />
+        </div>
+      ) : null}
+      {onValuesChange ? (
+        <form.Subscribe selector={(state) => state.values}>
+          {(values) => <RecipeFormChangeObserver values={values} onChange={onValuesChange} />}
+        </form.Subscribe>
+      ) : null}
 
       <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
         <RecipeCoverPicker
           existingImageUrl={coverImageUrl}
           file={coverFile}
           onFileChange={setCoverFile}
+          onGenerate={generateCover ? () => void handleGenerateCover() : undefined}
+          isGenerating={isGeneratingCover}
         />
         <RecipeMainFields form={form} />
         <RecipeIngredientsFields form={form} showValidationErrors={showValidationErrors} />
@@ -109,4 +149,18 @@ export function RecipeForm({
       </div>
     </form>
   )
+}
+
+function RecipeFormChangeObserver({
+  values,
+  onChange,
+}: {
+  values: RecipeFormValues
+  onChange: (values: RecipeFormValues) => void
+}) {
+  useEffect(() => {
+    onChange(values)
+  }, [onChange, values])
+
+  return null
 }

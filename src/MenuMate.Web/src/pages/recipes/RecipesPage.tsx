@@ -1,11 +1,13 @@
 import { Plus } from "lucide-react"
 import { useMemo, useState } from "react"
-import { Link } from "react-router-dom"
 
-import { useRecipesQuery, useSetRecipeFavoriteMutation } from "@/features/recipes/api/recipes.queries"
+import { RecipeCreateMenu } from "@/features/imports/ui/RecipeCreateMenu"
+import {
+  useRecipesQuery,
+  useSetRecipeFavoriteMutation,
+} from "@/features/recipes/api/recipes.queries"
 import { RecipeCard } from "@/features/recipes/ui/RecipeCard"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
-import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
 
@@ -33,12 +35,7 @@ export default function RecipesPage() {
   return (
     <div className="space-y-5">
       <div className="hidden justify-end sm:flex">
-        <Button asChild>
-          <Link to="/recipes/new">
-            <Plus />
-            Добавить
-          </Link>
-        </Button>
+        <RecipeCreateMenu />
       </div>
 
       <RecipeFiltersSection
@@ -80,26 +77,14 @@ export default function RecipesPage() {
           icon={Plus}
           title="Рецептов пока нет"
           description="Добавьте первый рецепт, чтобы использовать его в меню и списках покупок."
-          action={
-            <Button asChild>
-              <Link to="/recipes/new">
-                <Plus />
-                Добавить рецепт
-              </Link>
-            </Button>
-          }
+          action={<RecipeCreateMenu />}
         />
       )}
 
-      <Button
-        asChild
-        size="icon-lg"
+      <RecipeCreateMenu
+        iconOnly
         className="fixed right-4 bottom-20 z-30 rounded-full shadow-lg sm:hidden"
-      >
-        <Link to="/recipes/new" aria-label="Добавить рецепт">
-          <Plus />
-        </Link>
-      </Button>
+      />
     </div>
   )
 }

@@ -29,7 +29,13 @@ services:
       Minio__AccessKey: ${MINIO_ROOT_USER:-admin}
       Minio__SecretKey: ${MINIO_ROOT_PASSWORD:-password123}
       Minio__ImagesBucketName: ${MINIO_IMAGES_BUCKET:-images}
+      Minio__ImportsBucketName: ${MINIO_IMPORTS_BUCKET:-imports}
       Minio__UseSsl: false
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-}
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-5.4-mini}
+      OpenAI__ImageModel: ${OPENAI_IMAGE_MODEL:-gpt-image-1-mini}
+      RecipeImports__DraftRetentionDays: ${RECIPE_IMPORT_DRAFT_RETENTION_DAYS:-7}
+      RecipeImports__CleanupIntervalMinutes: ${RECIPE_IMPORT_CLEANUP_INTERVAL_MINUTES:-60}
     ports:
       - "5000:8080"
     depends_on:
@@ -71,11 +77,13 @@ services:
         set -e
         until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done
         mc mb --ignore-existing "local/$${MINIO_IMAGES_BUCKET}"
+        mc mb --ignore-existing "local/$${MINIO_IMPORTS_BUCKET}"
         mc anonymous set download "local/$${MINIO_IMAGES_BUCKET}"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
       MINIO_IMAGES_BUCKET: ${MINIO_IMAGES_BUCKET:-images}
+      MINIO_IMPORTS_BUCKET: ${MINIO_IMPORTS_BUCKET:-imports}
     depends_on:
       - minio
 

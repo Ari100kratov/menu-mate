@@ -12,7 +12,9 @@ export default function ShoppingPage() {
   return (
     <div className="mx-auto max-w-3xl">
       {shoppingListQuery.error ? <ErrorAlert error={shoppingListQuery.error} /> : null}
-      {shoppingListQuery.data ? <ShoppingListWorkspace shoppingList={shoppingListQuery.data} /> : null}
+      {shoppingListQuery.data ? (
+        <ShoppingListWorkspace shoppingList={shoppingListQuery.data} />
+      ) : null}
     </div>
   )
 }

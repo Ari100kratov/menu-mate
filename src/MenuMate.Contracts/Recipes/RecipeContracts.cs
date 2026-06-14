@@ -1,5 +1,3 @@
-#pragma warning disable CS1573
-
 namespace MenuMate.Contracts.Recipes;
 
 /// <summary>
@@ -9,6 +7,7 @@ namespace MenuMate.Contracts.Recipes;
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
 /// <param name="Category">Основная категория блюда.</param>
+/// <param name="Visibility">Видимость рецепта.</param>
 /// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
 /// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="SourceUrl">URL источника рецепта.</param>
@@ -35,6 +34,7 @@ public sealed record CreateRecipeRequest(
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
 /// <param name="Category">Основная категория блюда.</param>
+/// <param name="Visibility">Видимость рецепта.</param>
 /// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
 /// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="SourceUrl">URL источника рецепта.</param>
@@ -83,10 +83,15 @@ public sealed record PreparationStepRequest(string Text);
 /// Краткая карточка рецепта для списков.
 /// </summary>
 /// <param name="Id">Идентификатор рецепта.</param>
+/// <param name="CurrentRevisionId">Идентификатор текущей ревизии рецепта.</param>
+/// <param name="RevisionNumber">Номер текущей ревизии рецепта.</param>
+/// <param name="IsOwnedByCurrentUser">Признак принадлежности рецепта текущему пользователю.</param>
+/// <param name="IsSaved">Признак сохранения рецепта текущим пользователем.</param>
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
 /// <param name="Category">Основная категория блюда.</param>
+/// <param name="Visibility">Видимость рецепта.</param>
 /// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
 /// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="IsFavorite">Признак избранного рецепта.</param>
@@ -113,10 +118,17 @@ public sealed record RecipeListItemResponse(
 /// Рецепт, возвращаемый внешним API.
 /// </summary>
 /// <param name="Id">Идентификатор рецепта.</param>
+/// <param name="CurrentRevisionId">Идентификатор текущей ревизии рецепта.</param>
+/// <param name="RevisionNumber">Номер текущей ревизии рецепта.</param>
+/// <param name="IsOwnedByCurrentUser">Признак принадлежности рецепта текущему пользователю.</param>
+/// <param name="IsSaved">Признак сохранения рецепта текущим пользователем.</param>
+/// <param name="SourceRecipeId">Идентификатор исходного рецепта, если рецепт создан как копия.</param>
+/// <param name="SourceRevisionId">Идентификатор исходной ревизии, если рецепт создан как копия.</param>
 /// <param name="Title">Название блюда.</param>
 /// <param name="Description">Краткое описание.</param>
 /// <param name="Servings">Количество персон в исходном рецепте.</param>
 /// <param name="Category">Основная категория блюда.</param>
+/// <param name="Visibility">Видимость рецепта.</param>
 /// <param name="TotalTimeMinutes">Общее время приготовления в минутах.</param>
 /// <param name="ActiveTimeMinutes">Активное время приготовления в минутах.</param>
 /// <param name="IsFavorite">Признак избранного рецепта.</param>

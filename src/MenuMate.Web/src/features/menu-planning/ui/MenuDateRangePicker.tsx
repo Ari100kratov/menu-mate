@@ -40,7 +40,7 @@ export function MenuDateRangePicker({ range, onChange }: MenuDateRangePickerProp
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="ghost" className="min-w-0 max-w-full px-2">
+        <Button type="button" variant="ghost" className="max-w-full min-w-0 px-2">
           <CalendarRange />
           <span className="truncate">{formatRangeLabel(range)}</span>
         </Button>

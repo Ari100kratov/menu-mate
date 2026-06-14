@@ -184,6 +184,33 @@ export function recipeToFormValues(recipe: Recipe): RecipeFormValues {
   }
 }
 
+export function recipeRequestToFormValues(recipe: CreateRecipeRequest): RecipeFormValues {
+  return {
+    title: recipe.title,
+    description: recipe.description ?? "",
+    category: recipe.category,
+    visibility: recipe.visibility as "Private" | "Public",
+    servings: String(recipe.servings),
+    totalTimeMinutes: recipe.totalTimeMinutes === null ? "" : String(recipe.totalTimeMinutes),
+    activeTimeMinutes: recipe.activeTimeMinutes === null ? "" : String(recipe.activeTimeMinutes),
+    sourceUrl: recipe.sourceUrl ?? "",
+    ingredients: recipe.ingredients.map((ingredient) => ({
+      ingredientId: ingredient.ingredientId ?? "",
+      productName: ingredient.productName,
+      amount: ingredient.amount === null ? "" : String(ingredient.amount),
+      unit: ingredient.unit,
+      isToTaste: ingredient.unit === "ToTaste",
+      category: ingredient.category,
+      comment: ingredient.comment ?? "",
+      isOptional: ingredient.isOptional,
+    })),
+    steps: recipe.steps.map((step) => ({
+      text: step.text,
+    })),
+    tags: recipe.tags.join(", "),
+  }
+}
+
 export function toRecipeRequest(
   values: RecipeFormValues,
 ): CreateRecipeRequest | UpdateRecipeRequest {
@@ -199,8 +226,7 @@ export function toRecipeRequest(
     ingredients: values.ingredients.map((ingredient) => ({
       ingredientId: normalizeOptionalString(ingredient.ingredientId),
       productName: ingredient.productName.trim(),
-      amount:
-        ingredient.isToTaste ? null : parseDecimalInput(ingredient.amount.trim()),
+      amount: ingredient.isToTaste ? null : parseDecimalInput(ingredient.amount.trim()),
       unit: ingredient.isToTaste ? "ToTaste" : ingredient.unit,
       category: ingredient.category,
       comment: normalizeOptionalString(ingredient.comment),

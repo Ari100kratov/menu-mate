@@ -21,6 +21,7 @@
     <File Path="docs/architecture/frontend.md" />
     <File Path="docs/architecture/modules.md" />
     <File Path="docs/architecture/overview.md" />
+    <File Path="docs/architecture/recipe-import-from-image.md" />
   </Folder>
   <Folder Name="/docs/adr/">
     <File Path="docs/adr/0001-modular-monolith.md" />
@@ -51,6 +52,12 @@
     <Project Path="src/MenuMate.SharedKernel/MenuMate.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/RecipeImports/">
+    <Project Path="src/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Application/MenuMate.Modules.RecipeImports.Application.csproj" />
+    <Project Path="src/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Domain/MenuMate.Modules.RecipeImports.Domain.csproj" />
+    <Project Path="src/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Infrastructure/MenuMate.Modules.RecipeImports.Infrastructure.csproj" />
+    <Project Path="src/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Presentation/MenuMate.Modules.RecipeImports.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Auth/">
     <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Application/MenuMate.Modules.Auth.Application.csproj" />
     <Project Path="src/Modules/Auth/MenuMate.Modules.Auth.Domain/MenuMate.Modules.Auth.Domain.csproj" />
@@ -91,6 +98,10 @@
   </Folder>
   <Folder Name="/tests/Modules/Auth/">
     <Project Path="tests/Modules/Auth/MenuMate.Modules.Auth.Domain.UnitTests/MenuMate.Modules.Auth.Domain.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/RecipeImports/">
+    <Project Path="tests/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Application.UnitTests/MenuMate.Modules.RecipeImports.Application.UnitTests.csproj" />
+    <Project Path="tests/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Domain.UnitTests/MenuMate.Modules.RecipeImports.Domain.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/MenuPlanning/">
     <Project Path="tests/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Domain.UnitTests/MenuMate.Modules.MenuPlanning.Domain.UnitTests.csproj" />

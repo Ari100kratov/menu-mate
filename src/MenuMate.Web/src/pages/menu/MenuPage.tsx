@@ -103,8 +103,12 @@ export default function MenuPage() {
   if (pickerTarget) {
     return (
       <RecipePickerPanel
-        onBack={() => { setPickerTarget(null) }}
-        onSelect={(recipe) => { addRecipe(pickerTarget, recipe, false) }}
+        onBack={() => {
+          setPickerTarget(null)
+        }}
+        onSelect={(recipe) => {
+          addRecipe(pickerTarget, recipe, false)
+        }}
         onAddText={(text) => {
           addItemMutation.mutate(toTextRequest(pickerTarget, text), {
             onSuccess: () => {
@@ -133,12 +137,20 @@ export default function MenuPage() {
           setRangeMode("custom")
           setRange(nextRange)
         }}
-        onPrevious={() => { setRange((current) => shiftRange(current, rangeMode, -1)) }}
-        onNext={() => { setRange((current) => shiftRange(current, rangeMode, 1)) }}
+        onPrevious={() => {
+          setRange((current) => shiftRange(current, rangeMode, -1))
+        }}
+        onNext={() => {
+          setRange((current) => shiftRange(current, rangeMode, 1))
+        }}
         onToday={goToToday}
         canClearRange={hasItemsInRange}
-        onEditMealSlots={() => { setShowMealSlotSettings(true) }}
-        onClearRange={() => { setShowClearConfirm(true) }}
+        onEditMealSlots={() => {
+          setShowMealSlotSettings(true)
+        }}
+        onClearRange={() => {
+          setShowClearConfirm(true)
+        }}
       />
 
       {placementRecipe ? (
@@ -146,7 +158,9 @@ export default function MenuPage() {
           <div className="min-w-0 flex-1">
             <p className="type-supporting opacity-80">Выбрано блюдо</p>
             <p className="type-label truncate">{placementRecipe.title}</p>
-            <p className="type-supporting opacity-80">Нажимайте «Добавить сюда» в нужных приемах пищи.</p>
+            <p className="type-supporting opacity-80">
+              Нажимайте «Добавить сюда» в нужных приемах пищи.
+            </p>
           </div>
           <Button type="button" variant="secondary" size="sm" onClick={finishPlacement}>
             <Check />
@@ -161,10 +175,18 @@ export default function MenuPage() {
         mealSlots={mealSlots}
         isPending={isMealSlotMutationPending}
         onOpenChange={setShowMealSlotSettings}
-        onCreate={(name) => { createMealSlotMutation.mutate(name) }}
-        onRename={(mealSlotId, name) => { updateMealSlotMutation.mutate({ mealSlotId, name }) }}
-        onDelete={(mealSlotId) => { deleteMealSlotMutation.mutate(mealSlotId) }}
-        onReorder={(mealSlotIds) => { reorderMealSlotsMutation.mutate(mealSlotIds) }}
+        onCreate={(name) => {
+          createMealSlotMutation.mutate(name)
+        }}
+        onRename={(mealSlotId, name) => {
+          updateMealSlotMutation.mutate({ mealSlotId, name })
+        }}
+        onDelete={(mealSlotId) => {
+          deleteMealSlotMutation.mutate(mealSlotId)
+        }}
+        onReorder={(mealSlotIds) => {
+          reorderMealSlotsMutation.mutate(mealSlotIds)
+        }}
       />
 
       <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
@@ -179,7 +201,9 @@ export default function MenuPage() {
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction
               disabled={clearCalendarMutation.isPending}
-              onClick={() => { clearCalendarMutation.mutate(range) }}
+              onClick={() => {
+                clearCalendarMutation.mutate(range)
+              }}
             >
               Очистить
             </AlertDialogAction>
@@ -196,7 +220,9 @@ export default function MenuPage() {
       {createMealSlotMutation.error ? <ErrorAlert error={createMealSlotMutation.error} /> : null}
       {updateMealSlotMutation.error ? <ErrorAlert error={updateMealSlotMutation.error} /> : null}
       {deleteMealSlotMutation.error ? <ErrorAlert error={deleteMealSlotMutation.error} /> : null}
-      {reorderMealSlotsMutation.error ? <ErrorAlert error={reorderMealSlotsMutation.error} /> : null}
+      {reorderMealSlotsMutation.error ? (
+        <ErrorAlert error={reorderMealSlotsMutation.error} />
+      ) : null}
 
       <MenuCalendarView
         range={range}
@@ -213,8 +239,12 @@ export default function MenuPage() {
             setPickerTarget(target)
           }
         }}
-        onUpdate={(itemId, request) => { updateItemMutation.mutate({ itemId, request }) }}
-        onRemove={(itemId) => { removeItemMutation.mutate(itemId) }}
+        onUpdate={(itemId, request) => {
+          updateItemMutation.mutate({ itemId, request })
+        }}
+        onRemove={(itemId) => {
+          removeItemMutation.mutate(itemId)
+        }}
       />
 
       <Button

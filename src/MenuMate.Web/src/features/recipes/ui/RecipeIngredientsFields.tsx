@@ -5,9 +5,7 @@ import {
   getRecipeIngredientErrorMessages,
   type RecipeIngredientFormValues,
 } from "@/features/recipes/model/recipe-form"
-import {
-  getProductCategoryLabel,
-} from "@/features/recipes/model/recipe-form-options"
+import { getProductCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { formatRecipeIngredientQuantity } from "@/features/recipes/model/recipe-ingredient-format"
 import { RecipeIngredientDialog } from "@/features/recipes/ui/RecipeIngredientDialog"
 import type { RecipeFormApi } from "@/features/recipes/ui/useRecipeForm"
@@ -24,9 +22,9 @@ export function RecipeIngredientsFields({
   form,
   showValidationErrors,
 }: RecipeIngredientsFieldsProps) {
-  const [editor, setEditor] = useState<
-    { mode: "create" } | { mode: "edit"; index: number } | null
-  >(null)
+  const [editor, setEditor] = useState<{ mode: "create" } | { mode: "edit"; index: number } | null>(
+    null,
+  )
 
   return (
     <form.Field name="ingredients" mode="array">
@@ -112,7 +110,6 @@ export function RecipeIngredientsFields({
                 />
               ) : null}
             </PageSection>
-
           </div>
         )
       }}
@@ -133,14 +130,12 @@ function IngredientRow({
   onEdit: () => void
   onRemove: () => void
 }) {
-  const errorMessages = showValidationError
-    ? getRecipeIngredientErrorMessages(ingredient)
-    : []
+  const errorMessages = showValidationError ? getRecipeIngredientErrorMessages(ingredient) : []
   const isInvalid = errorMessages.length > 0
 
   return (
     <div
-      className="flex min-h-16 items-center gap-3 rounded-lg border px-3 py-2 data-[invalid=true]:border-destructive/70 data-[invalid=true]:bg-destructive/5"
+      className="data-[invalid=true]:border-destructive/70 data-[invalid=true]:bg-destructive/5 flex min-h-16 items-center gap-3 rounded-lg border px-3 py-2"
       data-invalid={isInvalid}
       tabIndex={isInvalid ? -1 : undefined}
       aria-label={isInvalid ? `Ингредиент ${String(index + 1)}: ${errorMessages[0]}` : undefined}
@@ -187,13 +182,7 @@ function IngredientRow({
       <Button type="button" variant="ghost" size="icon-sm" aria-label="Изменить" onClick={onEdit}>
         <Pencil />
       </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Удалить"
-        onClick={onRemove}
-      >
+      <Button type="button" variant="ghost" size="icon-sm" aria-label="Удалить" onClick={onRemove}>
         <Trash2 />
       </Button>
     </div>

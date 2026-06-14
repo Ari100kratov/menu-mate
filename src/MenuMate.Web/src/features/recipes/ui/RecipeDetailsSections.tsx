@@ -80,10 +80,7 @@ export function RecipeSteps({ recipe }: RecipeDetailsSectionsProps) {
           const image = findStepImage(recipe.images, Number(step.number))
 
           return (
-            <article
-              key={step.number}
-              className="grid grid-cols-[2.25rem_1fr] gap-3"
-            >
+            <article key={step.number} className="grid grid-cols-[2.25rem_1fr] gap-3">
               <div className="bg-secondary text-secondary-foreground flex size-9 items-center justify-center rounded-full text-sm font-semibold">
                 {step.number}
               </div>

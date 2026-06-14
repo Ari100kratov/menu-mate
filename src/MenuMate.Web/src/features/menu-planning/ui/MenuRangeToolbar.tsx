@@ -48,7 +48,13 @@ export function MenuRangeToolbar({
   return (
     <section className="bg-secondary/60 border-primary/15 space-y-3 rounded-2xl border p-3 shadow-sm sm:p-4">
       <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" size="icon" aria-label="Предыдущий диапазон" onClick={onPrevious}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label="Предыдущий диапазон"
+          onClick={onPrevious}
+        >
           <ChevronLeft />
         </Button>
         <div className="flex min-w-0 flex-1 justify-center">
@@ -58,13 +64,24 @@ export function MenuRangeToolbar({
             onChange={onRangeChange}
           />
         </div>
-        <Button type="button" variant="outline" size="icon" aria-label="Следующий диапазон" onClick={onNext}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label="Следующий диапазон"
+          onClick={onNext}
+        >
           <ChevronRight />
         </Button>
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
-        <Select value={mode} onValueChange={(value) => { onModeChange(value as MenuRangeMode) }}>
+        <Select
+          value={mode}
+          onValueChange={(value) => {
+            onModeChange(value as MenuRangeMode)
+          }}
+        >
           <SelectTrigger className="w-full rounded-lg">
             <CalendarDays className="size-4" />
             <SelectValue />

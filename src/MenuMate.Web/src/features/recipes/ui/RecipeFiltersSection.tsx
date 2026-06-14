@@ -98,7 +98,7 @@ export function RecipeFiltersSection({
       </div>
 
       <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
         aria-label="Категории рецептов"
         onWheel={scrollCategoriesWithMouseWheel}
       >
@@ -140,8 +140,7 @@ function scrollCategoriesWithMouseWheel(event: WheelEvent<HTMLDivElement>) {
   const isHorizontalGesture = Math.abs(event.deltaX) >= Math.abs(event.deltaY)
   const delta = isHorizontalGesture ? event.deltaX : event.deltaY
   const canScroll =
-    (delta < 0 && container.scrollLeft > 0) ||
-    (delta > 0 && container.scrollLeft < maxScrollLeft)
+    (delta < 0 && container.scrollLeft > 0) || (delta > 0 && container.scrollLeft < maxScrollLeft)
 
   if (!canScroll) {
     return
