@@ -721,6 +721,12 @@ export interface components {
              * @description Временная или публичная ссылка для прямого чтения из MinIO.
              */
             readUrl: null | string;
+            /** Format: uri */
+            sourceUrl: null | string;
+            authorName: null | string;
+            licenseName: null | string;
+            /** Format: uri */
+            licenseUrl: null | string;
         };
         /** @description Ингредиент рецепта во входящем API-запросе. */
         RecipeIngredientRequest: {

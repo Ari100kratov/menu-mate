@@ -308,12 +308,6 @@ internal sealed class DeleteMealSlotCommandHandler(
             return Result.Failure<IReadOnlyCollection<MealSlotResponse>>(MenuCalendarErrors.CannotDeleteLastMealSlot);
         }
 
-        if (await repository.HasItemsForMealSlotAsync(userContext.UserId, mealSlot.Id, cancellationToken))
-        {
-            return Result.Failure<IReadOnlyCollection<MealSlotResponse>>(
-                MenuPlanningApplicationErrors.MealSlotHasItems(mealSlot.Id));
-        }
-
         DateTimeOffset now = timeProvider.GetUtcNow();
         await repository.DeleteMealSlotAsync(mealSlot, cancellationToken);
 

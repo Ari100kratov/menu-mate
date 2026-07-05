@@ -171,6 +171,10 @@ public sealed record RecipeResponse(
 /// <param name="SizeBytes">Размер файла в байтах.</param>
 /// <param name="AltText">Альтернативное описание изображения.</param>
 /// <param name="ReadUrl">Временная или публичная ссылка для прямого чтения из MinIO.</param>
+/// <param name="SourceUrl">Страница исходного изображения.</param>
+/// <param name="AuthorName">Имя автора исходного изображения.</param>
+/// <param name="LicenseName">Название лицензии исходного изображения.</param>
+/// <param name="LicenseUrl">Ссылка на текст лицензии исходного изображения.</param>
 public sealed record RecipeImageResponse(
     Guid Id,
     string Scope,
@@ -180,7 +184,11 @@ public sealed record RecipeImageResponse(
     string ContentType,
     long SizeBytes,
     string? AltText,
-    Uri? ReadUrl);
+    Uri? ReadUrl,
+    Uri? SourceUrl,
+    string? AuthorName,
+    string? LicenseName,
+    Uri? LicenseUrl);
 
 /// <summary>
 /// Ингредиент рецепта во внешнем контракте.

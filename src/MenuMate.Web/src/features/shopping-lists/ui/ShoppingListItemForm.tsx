@@ -1,4 +1,4 @@
-import { ListPlus, Pencil, X } from "lucide-react"
+import { ListPlus, Pencil } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -16,7 +16,6 @@ interface ShoppingListItemFormProps {
   isSubmitting: boolean
   initialValues: ShoppingItemFormValues
   onSubmit: (values: ShoppingItemFormValues) => void
-  onCancel?: () => void
 }
 
 export function ShoppingListItemForm({
@@ -25,7 +24,6 @@ export function ShoppingListItemForm({
   isSubmitting,
   initialValues,
   onSubmit,
-  onCancel,
 }: ShoppingListItemFormProps) {
   const contentRef = useRef<HTMLFormElement>(null)
   const [draft, setDraft] = useState<ShoppingItemFormValues>(() => ({ ...initialValues }))
@@ -36,9 +34,7 @@ export function ShoppingListItemForm({
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {
-      toast.error("Проверьте покупку", {
-        description: "Мы выделили поля, которые нужно заполнить.",
-      })
+      toast.error("Проверьте корректность заполненных данных.")
       requestAnimationFrame(() => {
         const invalidElement = contentRef.current?.querySelector<HTMLElement>(
           '[data-editor-invalid="true"]',
@@ -57,34 +53,30 @@ export function ShoppingListItemForm({
   return (
     <form
       ref={contentRef}
-      className="space-y-6"
+      className="flex min-h-full flex-col"
       noValidate
       onSubmit={(event) => {
         event.preventDefault()
         handleSubmit()
       }}
     >
-      <ProductLineEditorFields
-        idPrefix="shopping-item"
-        value={draft}
-        errors={errors}
-        commentLabel="Комментарий к покупке"
-        commentPlaceholder="Например, взять спелые или определенной марки"
-        commentDescription="Комментарий будет виден в списке покупок."
-        onChange={(value) => {
-          setDraft(value)
-          setErrors({})
-        }}
-      />
+      <div className="space-y-6 py-5">
+        <ProductLineEditorFields
+          idPrefix="shopping-item"
+          value={draft}
+          errors={errors}
+          commentLabel="Комментарий к покупке"
+          commentPlaceholder="Например, взять спелые или определенной марки"
+          commentDescription="Комментарий будет виден в списке покупок."
+          onChange={(value) => {
+            setDraft(value)
+            setErrors({})
+          }}
+        />
+      </div>
 
-      <div className="bg-background sticky bottom-0 -mx-5 flex flex-col-reverse gap-2 border-t px-5 pt-4 sm:flex-row sm:justify-end">
-        {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            <X />
-            Отмена
-          </Button>
-        ) : null}
-        <Button type="submit" disabled={isSubmitting}>
+      <div className="bg-background sticky bottom-0 -mx-5 mt-auto flex justify-end border-t px-5 py-4">
+        <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
           {submitIcon === "add" ? <ListPlus /> : <Pencil />}
           {isSubmitting ? "Сохраняем..." : submitLabel}
         </Button>

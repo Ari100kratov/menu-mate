@@ -19,6 +19,10 @@ internal sealed record RecipeImageMetadata(
     long SizeBytes,
     string? OriginalFileName,
     string? AltText,
+    Uri? SourceUrl,
+    string? AuthorName,
+    string? LicenseName,
+    Uri? LicenseUrl,
     DateTimeOffset CreatedAt)
 {
     /// <summary>
@@ -34,5 +38,9 @@ internal sealed record RecipeImageMetadata(
             ContentType,
             SizeBytes,
             AltText,
-            readUrl);
+            readUrl,
+            SourceUrl,
+            AuthorName,
+            LicenseName,
+            LicenseUrl);
 }

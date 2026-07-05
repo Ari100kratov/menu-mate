@@ -17,6 +17,7 @@
   </Folder>
   <Folder Name="/docs/architecture/">
     <File Path="docs/architecture/backend.md" />
+    <File Path="docs/architecture/data-importer.md" />
     <File Path="docs/architecture/deployment.md" />
     <File Path="docs/architecture/frontend.md" />
     <File Path="docs/architecture/modules.md" />
@@ -47,6 +48,8 @@
     <Project Path="src/MenuMate.Common.Infrastructure/MenuMate.Common.Infrastructure.csproj" />
     <Project Path="src/MenuMate.Common.Presentation/MenuMate.Common.Presentation.csproj" />
     <Project Path="src/MenuMate.Contracts/MenuMate.Contracts.csproj" />
+    <Project Path="src/MenuMate.DataImporter/MenuMate.DataImporter.csproj" />
+    <Project Path="src/MenuMate.DataImporter.Infrastructure/MenuMate.DataImporter.Infrastructure.csproj" />
     <Project Path="src/MenuMate.Migrator/MenuMate.Migrator.csproj" />
     <Project Path="src/MenuMate.ServiceDefaults/MenuMate.ServiceDefaults.csproj" />
     <Project Path="src/MenuMate.SharedKernel/MenuMate.SharedKernel.csproj" />
@@ -93,6 +96,7 @@
     <Project Path="src/Modules/Tags/MenuMate.Modules.Tags.Presentation/MenuMate.Modules.Tags.Presentation.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/MenuMate.DataImporter.UnitTests/MenuMate.DataImporter.UnitTests.csproj" />
     <Project Path="tests/MenuMate.Api.IntegrationTests/MenuMate.Api.IntegrationTests.csproj" />
     <Project Path="tests/MenuMate.SharedKernel.UnitTests/MenuMate.SharedKernel.UnitTests.csproj" />
   </Folder>

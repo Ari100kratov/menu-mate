@@ -44,9 +44,6 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         </Button>
         <div>
           <h2 className="type-section-title">Выбрать блюдо</h2>
-          <p className="type-supporting text-muted-foreground">
-            Поиск начинается без автоматических фильтров.
-          </p>
         </div>
       </div>
 

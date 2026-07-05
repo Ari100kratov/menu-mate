@@ -38,9 +38,7 @@ export function RecipeIngredientDialog({
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {
-      toast.error("Проверьте ингредиент", {
-        description: "Мы выделили поля, которые нужно заполнить.",
-      })
+      toast.error("Проверьте корректность заполненных данных.")
 
       requestAnimationFrame(() => {
         const invalidElement = contentRef.current?.querySelector<HTMLElement>(
@@ -69,7 +67,7 @@ export function RecipeIngredientDialog({
                 {mode === "create" ? "Добавить ингредиент" : "Редактировать ингредиент"}
               </Dialog.Title>
               <Dialog.Description className="type-supporting text-muted-foreground">
-                Выберите продукт, укажите количество и полезную подсказку.
+                Выберите продукт из каталога или добавьте новый.
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>
@@ -90,13 +88,8 @@ export function RecipeIngredientDialog({
             />
           </div>
 
-          <div className="bg-background flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
-            <Dialog.Close asChild>
-              <Button type="button" variant="outline">
-                Отмена
-              </Button>
-            </Dialog.Close>
-            <Button type="button" onClick={handleSave}>
+          <div className="bg-background flex justify-end border-t px-5 py-4">
+            <Button type="button" className="w-full sm:w-auto" onClick={handleSave}>
               {mode === "create" ? "Добавить ингредиент" : "Сохранить изменения"}
             </Button>
           </div>

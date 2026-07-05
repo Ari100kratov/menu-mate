@@ -9,6 +9,7 @@ import {
   setShoppingListItemState,
   updateShoppingListItem,
   type ReplaceShoppingListFromMenuRequest,
+  type ShoppingList,
   type ShoppingListItemRequest,
   type ShoppingListItemStateRequest,
 } from "@/features/shopping-lists/api/shopping-lists.api"
@@ -66,10 +67,37 @@ export function useUpdateShoppingListItemMutation() {
 }
 
 export function useSetShoppingListItemStateMutation() {
-  return useShoppingListMutation(
-    ({ itemId, request }: { itemId: string; request: ShoppingListItemStateRequest }) =>
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ itemId, request }: { itemId: string; request: ShoppingListItemStateRequest }) =>
       setShoppingListItemState(itemId, request),
-  )
+    onMutate: async ({ itemId, request }) => {
+      await queryClient.cancelQueries({ queryKey: shoppingListQueryKeys.current })
+      const previous = queryClient.getQueryData<ShoppingList>(shoppingListQueryKeys.current)
+      queryClient.setQueryData<ShoppingList>(shoppingListQueryKeys.current, (current) =>
+        setCachedItemPurchasedState(current, itemId, request.isPurchased),
+      )
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(shoppingListQueryKeys.current, context.previous)
+      }
+    },
+    onSuccess: (shoppingList, { itemId, request }) => {
+      queryClient.setQueryData<ShoppingList>(shoppingListQueryKeys.current, (current) => {
+        const stableList = setCachedItemPurchasedState(current, itemId, request.isPurchased)
+        return stableList
+          ? {
+              ...stableList,
+              updatedAt: shoppingList.updatedAt,
+              text: shoppingList.text,
+            }
+          : shoppingList
+      })
+    },
+  })
 }
 
 export function useRemoveShoppingListItemMutation() {
@@ -80,4 +108,29 @@ export function useRemoveShoppingListItemMutation() {
       void queryClient.invalidateQueries({ queryKey: shoppingListQueryKeys.current })
     },
   })
+}
+
+function setCachedItemPurchasedState(
+  shoppingList: ShoppingList | undefined,
+  itemId: string,
+  isPurchased: boolean,
+) {
+  if (!shoppingList) {
+    return shoppingList
+  }
+
+  return {
+    ...shoppingList,
+    categories: shoppingList.categories.map((category) => ({
+      ...category,
+      items: category.items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              isPurchased,
+            }
+          : item,
+      ),
+    })),
+  }
 }

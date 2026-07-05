@@ -58,6 +58,40 @@ public enum ShoppingProductCategory
     /// <summary>
     /// Прочее.
     /// </summary>
-    Other = 10
-}
+    Other = 10,
 
+    /// <summary>
+    /// Яйца.
+    /// </summary>
+    Eggs = 11,
+
+    /// <summary>
+    /// Масла и соусы.
+    /// </summary>
+    OilsAndSauces = 12,
+
+    /// <summary>
+    /// Бобовые.
+    /// </summary>
+    Legumes = 13,
+
+    /// <summary>
+    /// Орехи и семена.
+    /// </summary>
+    NutsAndSeeds = 14,
+
+    /// <summary>
+    /// Консервы и заготовки.
+    /// </summary>
+    CannedAndPreserved = 15,
+
+    /// <summary>
+    /// Сладости.
+    /// </summary>
+    SweetsAndConfectionery = 16,
+
+    /// <summary>
+    /// Зелень и травы.
+    /// </summary>
+    HerbsAndGreens = 17
+}

@@ -7,6 +7,7 @@ import {
   useDeleteRecipeImportDraftMutation,
   useRecipeImportDraftsQuery,
 } from "@/features/imports/api/imports.queries"
+import { cn } from "@/shared/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog"
-import { Button } from "@/shared/ui/button"
+import { Button, buttonVariants } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
-import { Input } from "@/shared/ui/input"
 import { PageSection } from "@/shared/ui/page"
 
 export default function RecipeImportPage() {
@@ -59,12 +59,14 @@ export default function RecipeImportPage() {
   return (
     <div className="space-y-5">
       <PageSection
-        title="Загрузите скриншоты рецепта"
-        description="Можно загрузить до 8 скриншотов JPEG, PNG или WebP по 10 МБ каждый и до 40 МБ суммарно. ИИ объединит их в один черновик рецепта."
+        title="Изображения рецепта"
+        description="Добавьте до 8 изображений рецепта: снимки экрана, страницы сайта или разворот книги. Поддерживаются JPEG, PNG и WebP до 10 МБ каждое и до 40 МБ суммарно. ИИ объединит их в один черновик."
       >
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="space-y-3">
-            <Input
+            <input
+              id="recipe-import-files"
+              className="sr-only"
               type="file"
               multiple
               accept="image/jpeg,image/png,image/webp"
@@ -73,6 +75,25 @@ export default function RecipeImportPage() {
                 handleFileChange(event.target.files)
               }}
             />
+            <div className="space-y-2">
+              <label
+                htmlFor="recipe-import-files"
+                aria-disabled={createMutation.isPending}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-10 w-full cursor-pointer justify-start sm:w-auto",
+                  createMutation.isPending && "pointer-events-none opacity-50",
+                )}
+              >
+                <FileImage />
+                Выбрать изображения
+              </label>
+              <p className="text-muted-foreground text-sm">
+                {files.length > 0
+                  ? `Выбрано файлов: ${String(files.length)}`
+                  : "Можно выбрать одно или несколько изображений."}
+              </p>
+            </div>
             {createMutation.error ? <ErrorAlert error={createMutation.error} /> : null}
             <Button
               type="button"
@@ -83,22 +104,22 @@ export default function RecipeImportPage() {
               {createMutation.isPending ? "Распознаём рецепт..." : "Создать черновик"}
             </Button>
           </div>
-          <div className="bg-muted min-h-48 overflow-hidden rounded-lg border p-2">
+          <div className="bg-muted flex min-h-48 overflow-hidden rounded-lg border p-2">
             {previewUrls.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid w-full grid-cols-2 gap-2">
                 {previewUrls.map((previewUrl, index) => (
                   <img
                     key={previewUrl}
                     src={previewUrl}
-                    alt={`Предпросмотр выбранного скриншота ${String(index + 1)}`}
+                    alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
                     className="max-h-64 w-full rounded-md object-contain"
                   />
                 ))}
               </div>
             ) : (
-              <div className="text-muted-foreground flex flex-col items-center gap-2 p-6 text-center text-sm">
+              <div className="text-muted-foreground flex min-h-44 flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm">
                 <FileImage className="size-8" />
-                Предпросмотр появится после выбора файла
+                Предпросмотр появится после выбора изображений
               </div>
             )}
           </div>
@@ -169,7 +190,7 @@ function DeleteDraftButton({
         <AlertDialogHeader>
           <AlertDialogTitle>Удалить черновик?</AlertDialogTitle>
           <AlertDialogDescription>
-            Черновик «{title}» и исходные скриншоты будут удалены без возможности восстановления.
+            Черновик «{title}» и исходные изображения будут удалены без возможности восстановления.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

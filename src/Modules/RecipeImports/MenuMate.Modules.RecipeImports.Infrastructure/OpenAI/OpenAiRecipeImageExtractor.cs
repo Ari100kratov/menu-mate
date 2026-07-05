@@ -37,8 +37,8 @@ internal sealed class OpenAiRecipeImageExtractor(
                       "ingredientId": { "type": "null" },
                       "productName": { "type": "string" },
                       "amount": { "type": ["number", "null"] },
-                      "unit": { "type": "string", "enum": ["Gram","Kilogram","Milliliter","Liter","Piece","Teaspoon","Tablespoon","Pinch","Pack","ToTaste","Unknown"] },
-                      "category": { "type": "string", "enum": ["Produce","Dairy","MeatAndPoultry","FishAndSeafood","Grocery","GrainsAndPasta","Spices","Bakery","Drinks","Frozen","Other"] },
+                      "unit": { "type": "string", "enum": ["Gram","Kilogram","Milliliter","Liter","Piece","Teaspoon","Tablespoon","Pinch","Pack","ToTaste","Unknown","Glass","Cup","Dessertspoon","Clove","Bunch","Sprig","Head","Stalk","Slice","Sheet","Handful","Drop","Can","Jar","Bottle","Sachet","Cube"] },
+                      "category": { "type": "string", "enum": ["Produce","Dairy","MeatAndPoultry","FishAndSeafood","Grocery","GrainsAndPasta","Spices","Bakery","Drinks","Frozen","Other","Eggs","OilsAndSauces","Legumes","NutsAndSeeds","CannedAndPreserved","SweetsAndConfectionery","HerbsAndGreens"] },
                       "comment": { "type": ["string", "null"] },
                       "isOptional": { "type": "boolean" }
                     },
@@ -103,7 +103,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                 ])
             {
                 Instructions =
-                    "Ты извлекаешь структурированные данные рецепта из пользовательского скриншота.",
+                    "Ты извлекаешь структурированные данные рецепта из пользовательских изображений.",
                 StoredOutputEnabled = false,
                 TextOptions = new ResponseTextOptions
                 {

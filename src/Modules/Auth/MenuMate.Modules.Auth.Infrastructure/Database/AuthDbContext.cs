@@ -39,6 +39,27 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Возвращает идентификатор существующего администратора по адресу электронной почты.
+    /// </summary>
+    public async Task<UserId?> FindAdminUserIdByEmailAsync(
+        string email,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        string normalizedEmail = Domain.ValueObjects.EmailNormalizer.Normalize(email);
+        Guid? userId = await Users
+            .AsNoTracking()
+            .Where(user =>
+                user.Email == normalizedEmail &&
+                user.Roles.Any(role => role.Role!.Name == Domain.ValueObjects.AuthRoleNames.Admin))
+            .Select(user => (Guid?)user.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return userId.HasValue ? UserId.From(userId.Value) : null;
+    }
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

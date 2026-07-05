@@ -27,11 +27,6 @@ internal interface IMenuCalendarRepository
 
     Task DeleteMealSlotAsync(MealSlot mealSlot, CancellationToken cancellationToken);
 
-    Task<bool> HasItemsForMealSlotAsync(
-        UserId ownerUserId,
-        Guid mealSlotId,
-        CancellationToken cancellationToken);
-
     Task<MenuCalendarItem?> GetItemByIdAsync(Guid itemId, CancellationToken cancellationToken);
 
     Task<int> GetNextItemPositionAsync(

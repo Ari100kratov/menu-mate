@@ -9,6 +9,7 @@ public sealed class ShoppingUnitNormalizerTests
     [InlineData(1, ShoppingUnit.Kilogram, 1000, ShoppingUnit.Gram)]
     [InlineData(1.5, ShoppingUnit.Liter, 1500, ShoppingUnit.Milliliter)]
     [InlineData(3, ShoppingUnit.Piece, 3, ShoppingUnit.Piece)]
+    [InlineData(1, ShoppingUnit.Glass, 1, ShoppingUnit.Glass)]
     public void NormalizeShouldConvertOnlyCompatibleBaseUnits(
         decimal amount,
         ShoppingUnit unit,

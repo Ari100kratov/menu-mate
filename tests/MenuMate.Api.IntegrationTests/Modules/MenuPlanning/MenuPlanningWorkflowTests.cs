@@ -86,9 +86,15 @@ public sealed class MenuPlanningWorkflowTests : IAsyncLifetime, IDisposable
         Assert.NotNull(reordered);
         Assert.Equal(reversedIds, reordered.Select(slot => slot.Id).ToArray());
 
+        MenuCalendarItemResponse customSlotItem = await AddTextItemAsync(httpClient, custom.Id);
+
         HttpResponseMessage deleteResponse = await httpClient.DeleteAsync(
             RelativeUri($"/api/menu-calendar/meal-slots/{custom.Id}"));
         deleteResponse.EnsureSuccessStatusCode();
+
+        MenuCalendarResponse afterDelete = await GetCalendarAsync(httpClient);
+        Assert.DoesNotContain(afterDelete.MealSlots, slot => slot.Id == custom.Id);
+        Assert.DoesNotContain(afterDelete.Items, item => item.Id == customSlotItem.Id);
     }
 
     [Fact]

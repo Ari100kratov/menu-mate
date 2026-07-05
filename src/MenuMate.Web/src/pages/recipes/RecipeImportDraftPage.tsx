@@ -114,7 +114,7 @@ export default function RecipeImportDraftPage() {
   return (
     <div className="space-y-5">
       <PageSection
-        title="Исходные скриншоты"
+        title="Исходные изображения"
         description="Сверьте распознанные поля со всеми оригиналами перед созданием рецепта."
         action={
           <Button
@@ -134,7 +134,7 @@ export default function RecipeImportDraftPage() {
               <img
                 key={`${image.fileName}-${String(index)}`}
                 src={image.readUrl}
-                alt={`Исходный скриншот рецепта ${String(index + 1)}`}
+                alt={`Исходное изображение рецепта ${String(index + 1)}`}
                 className="max-h-[32rem] w-full rounded-lg border object-contain"
               />
             ) : null,

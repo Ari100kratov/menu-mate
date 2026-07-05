@@ -63,9 +63,7 @@ export function RecipeForm({
     }
 
     setShowValidationErrors(true)
-    toast.error("Проверьте заполнение формы", {
-      description: "Мы выделили поля, которые нужно заполнить.",
-    })
+    toast.error("Проверьте корректность заполненных данных.")
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {

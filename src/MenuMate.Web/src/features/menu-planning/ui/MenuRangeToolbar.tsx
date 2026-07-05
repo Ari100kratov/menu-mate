@@ -75,7 +75,7 @@ export function MenuRangeToolbar({
         </Button>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2">
         <Select
           value={mode}
           onValueChange={(value) => {
@@ -95,6 +95,7 @@ export function MenuRangeToolbar({
         <Button
           type="button"
           variant="secondary"
+          className="h-10"
           aria-label="Перейти к текущему диапазону"
           title="Сегодня"
           onClick={onToday}
@@ -104,7 +105,7 @@ export function MenuRangeToolbar({
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="icon" aria-label="Настройки меню">
+            <Button type="button" variant="outline" size="icon-lg" aria-label="Настройки меню">
               <Settings2 />
             </Button>
           </DropdownMenuTrigger>

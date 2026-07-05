@@ -28,6 +28,14 @@ internal sealed class RecipeImageRecord
 
     public string? AltText { get; set; }
 
+    public string? SourceUrl { get; set; }
+
+    public string? AuthorName { get; set; }
+
+    public string? LicenseName { get; set; }
+
+    public string? LicenseUrl { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public bool IsDeleted { get; set; }
@@ -46,6 +54,10 @@ internal sealed class RecipeImageRecord
             SizeBytes = image.SizeBytes,
             OriginalFileName = image.OriginalFileName,
             AltText = image.AltText,
+            SourceUrl = image.SourceUrl?.ToString(),
+            AuthorName = image.AuthorName,
+            LicenseName = image.LicenseName,
+            LicenseUrl = image.LicenseUrl?.ToString(),
             CreatedAt = image.CreatedAt
         };
 }

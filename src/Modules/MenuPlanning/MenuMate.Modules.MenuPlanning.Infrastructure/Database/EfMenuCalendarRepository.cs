@@ -68,6 +68,11 @@ internal sealed class EfMenuCalendarRepository(MenuPlanningDbContext dbContext) 
 
     public async Task DeleteMealSlotAsync(MealSlot mealSlot, CancellationToken cancellationToken)
     {
+        MenuCalendarItemRecord[] itemRecords = await dbContext.MenuCalendarItems
+            .Where(item => item.OwnerUserId == mealSlot.OwnerUserId && item.MealSlotId == mealSlot.Id)
+            .ToArrayAsync(cancellationToken);
+        dbContext.MenuCalendarItems.RemoveRange(itemRecords);
+
         MealSlotRecord? record = await dbContext.MealSlots
             .SingleOrDefaultAsync(
                 existing => existing.OwnerUserId == mealSlot.OwnerUserId && existing.Id == mealSlot.Id,
@@ -77,16 +82,6 @@ internal sealed class EfMenuCalendarRepository(MenuPlanningDbContext dbContext) 
             dbContext.MealSlots.Remove(record);
         }
     }
-
-    public Task<bool> HasItemsForMealSlotAsync(
-        UserId ownerUserId,
-        Guid mealSlotId,
-        CancellationToken cancellationToken) =>
-        dbContext.MenuCalendarItems
-            .AsNoTracking()
-            .AnyAsync(
-                item => item.OwnerUserId == ownerUserId && item.MealSlotId == mealSlotId,
-                cancellationToken);
 
     public async Task<MenuCalendarItem?> GetItemByIdAsync(Guid itemId, CancellationToken cancellationToken)
     {

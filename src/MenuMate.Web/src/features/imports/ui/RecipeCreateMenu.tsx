@@ -36,7 +36,7 @@ export function RecipeCreateMenu({ iconOnly = false, className }: RecipeCreateMe
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void navigate("/recipes/import")}>
           <ImagePlus />
-          Загрузить фото с ИИ
+          Создать по изображению
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

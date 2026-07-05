@@ -34,6 +34,10 @@ internal sealed class RecipeImageRecordConfiguration : IEntityTypeConfiguration<
         builder.Property(image => image.ContentType).HasMaxLength(100).IsRequired();
         builder.Property(image => image.OriginalFileName).HasMaxLength(255);
         builder.Property(image => image.AltText).HasMaxLength(500);
+        builder.Property(image => image.SourceUrl).HasMaxLength(2048);
+        builder.Property(image => image.AuthorName).HasMaxLength(500);
+        builder.Property(image => image.LicenseName).HasMaxLength(200);
+        builder.Property(image => image.LicenseUrl).HasMaxLength(2048);
         builder.HasIndex(image => image.OwnerUserId);
         builder.HasIndex(image => image.RecipeId);
         builder.HasIndex(image => new { image.RecipeId, image.Scope });

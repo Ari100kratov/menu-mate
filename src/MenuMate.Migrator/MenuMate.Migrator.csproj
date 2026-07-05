@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MenuMate.DataImporter.Infrastructure\MenuMate.DataImporter.Infrastructure.csproj" />
     <ProjectReference Include="..\MenuMate.ServiceDefaults\MenuMate.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Modules\Auth\MenuMate.Modules.Auth.Infrastructure\MenuMate.Modules.Auth.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\RecipeImports\MenuMate.Modules.RecipeImports.Infrastructure\MenuMate.Modules.RecipeImports.Infrastructure.csproj" />

@@ -23,7 +23,23 @@ public static class ShoppingUnitNames
             ShoppingUnit.Pinch => "щепотка",
             ShoppingUnit.Pack => "уп.",
             ShoppingUnit.ToTaste => "по вкусу",
+            ShoppingUnit.Glass => "стакан",
+            ShoppingUnit.Cup => "чашка",
+            ShoppingUnit.Dessertspoon => "дес. л.",
+            ShoppingUnit.Clove => "зубчик",
+            ShoppingUnit.Bunch => "пучок",
+            ShoppingUnit.Sprig => "веточка",
+            ShoppingUnit.Head => "головка",
+            ShoppingUnit.Stalk => "стебель",
+            ShoppingUnit.Slice => "ломтик",
+            ShoppingUnit.Sheet => "лист",
+            ShoppingUnit.Handful => "горсть",
+            ShoppingUnit.Drop => "капля",
+            ShoppingUnit.Can => "банка",
+            ShoppingUnit.Jar => "банка",
+            ShoppingUnit.Bottle => "бутылка",
+            ShoppingUnit.Sachet => "пакетик",
+            ShoppingUnit.Cube => "кубик",
             _ => string.Empty
         };
 }
-

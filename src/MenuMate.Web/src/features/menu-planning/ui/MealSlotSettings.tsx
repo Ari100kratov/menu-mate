@@ -33,10 +33,8 @@ import {
 import { Button } from "@/shared/ui/button"
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
@@ -88,9 +86,7 @@ export function MealSlotSettings({
       <DialogContent className="flex flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Приемы пищи</DialogTitle>
-          <DialogDescription>
-            Перетаскивайте приемы пищи за маркер, чтобы изменить порядок во всем календаре.
-          </DialogDescription>
+          <DialogDescription>Изменения применяются ко всему календарю.</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
@@ -127,7 +123,7 @@ export function MealSlotSettings({
           </DndContext>
 
           <form
-            className="flex gap-2 border-t pt-4"
+            className="flex items-center gap-2 border-t pt-4"
             onSubmit={(event) => {
               event.preventDefault()
               const normalized = newName.trim()
@@ -143,18 +139,12 @@ export function MealSlotSettings({
                 setNewName(event.target.value)
               }}
             />
-            <Button type="submit" disabled={isPending || !newName.trim()}>
+            <Button type="submit" className="h-10" disabled={isPending || !newName.trim()}>
               <Plus />
               Добавить
             </Button>
           </form>
         </div>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button">Готово</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -242,13 +232,12 @@ function SortableMealSlot({
             <AlertDialogHeader>
               <AlertDialogTitle>Убрать прием пищи?</AlertDialogTitle>
               <AlertDialogDescription>
-                «{slot.name}» исчезнет из календаря. Прием пищи с запланированными блюдами удалить
-                нельзя.
+                «{slot.name}» и все запланированные в нем блюда будут удалены из календаря.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Отмена</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete}>Убрать</AlertDialogAction>
+              <AlertDialogAction onClick={onDelete}>Удалить</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

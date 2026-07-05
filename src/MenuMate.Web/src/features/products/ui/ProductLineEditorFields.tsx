@@ -157,9 +157,6 @@ export function ProductLineEditorFields({
       <section className="space-y-3">
         <div>
           <h3 className="type-subsection-title">Количество</h3>
-          <p className="type-supporting text-muted-foreground">
-            Укажите количество и единицу измерения либо отметьте «по вкусу».
-          </p>
         </div>
 
         <label className="has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors">

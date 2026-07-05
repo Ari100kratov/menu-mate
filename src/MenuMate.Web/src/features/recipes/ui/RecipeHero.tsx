@@ -20,14 +20,12 @@ export function RecipeHero({ recipe, actions }: RecipeHeroProps) {
         <RecipeImagePreview image={coverImage} fallbackTitle={recipe.title} />
       </div>
       <div className="space-y-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-2">
-            <h2 className="type-recipe-title">{recipe.title}</h2>
-            {recipe.description ? (
-              <p className="type-body text-muted-foreground">{recipe.description}</p>
-            ) : null}
-          </div>
-          {actions}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2">
+          <h2 className="type-recipe-title min-w-0">{recipe.title}</h2>
+          <div className="justify-self-end">{actions}</div>
+          {recipe.description ? (
+            <p className="type-body text-muted-foreground col-span-2">{recipe.description}</p>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-4">

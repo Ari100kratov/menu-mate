@@ -23,7 +23,13 @@ public static class ShoppingProductCategoryNames
             ShoppingProductCategory.Bakery => "Хлеб и выпечка",
             ShoppingProductCategory.Drinks => "Напитки",
             ShoppingProductCategory.Frozen => "Заморозка",
+            ShoppingProductCategory.Eggs => "Яйца",
+            ShoppingProductCategory.OilsAndSauces => "Масла и соусы",
+            ShoppingProductCategory.Legumes => "Бобовые",
+            ShoppingProductCategory.NutsAndSeeds => "Орехи и семена",
+            ShoppingProductCategory.CannedAndPreserved => "Консервы и заготовки",
+            ShoppingProductCategory.SweetsAndConfectionery => "Сладости",
+            ShoppingProductCategory.HerbsAndGreens => "Зелень и травы",
             _ => "Прочее"
         };
 }
-

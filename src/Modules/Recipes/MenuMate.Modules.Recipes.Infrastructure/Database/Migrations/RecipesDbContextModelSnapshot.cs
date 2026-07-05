@@ -64,6 +64,11 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("alt_text");
 
+                    b.Property<string>("AuthorName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("author_name");
+
                     b.Property<string>("BucketName")
                         .IsRequired()
                         .HasMaxLength(63)
@@ -83,6 +88,16 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("LicenseName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("license_name");
+
+                    b.Property<string>("LicenseUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("license_url");
 
                     b.Property<string>("ObjectKey")
                         .IsRequired()
@@ -112,6 +127,11 @@ namespace MenuMate.Modules.Recipes.Infrastructure.Database.Migrations
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint")
                         .HasColumnName("size_bytes");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("source_url");
 
                     b.Property<int?>("StepNumber")
                         .HasColumnType("integer")

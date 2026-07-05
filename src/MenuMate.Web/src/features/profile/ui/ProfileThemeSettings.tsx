@@ -16,10 +16,7 @@ export function ProfileThemeSettings() {
   const currentTheme = theme ?? "system"
 
   return (
-    <PageSection
-      title="Интерфейс"
-      description="Настройки интерфейса хранятся локально и применяются без перезагрузки."
-    >
+    <PageSection title="Интерфейс">
       <div className="grid grid-cols-3 gap-2">
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <Button

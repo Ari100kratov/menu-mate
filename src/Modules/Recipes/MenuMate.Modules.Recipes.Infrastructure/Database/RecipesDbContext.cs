@@ -61,7 +61,11 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                         image.ObjectKey,
                         image.ContentType,
                         image.SizeBytes,
-                        image.AltText))
+                        image.AltText,
+                        image.SourceUrl,
+                        image.AuthorName,
+                        image.LicenseName,
+                        image.LicenseUrl))
                     .ToArray(),
                 item.Tags.OrderBy(tag => tag.Value).Select(tag => tag.Value).ToArray(),
                 item.Ingredients
@@ -173,7 +177,11 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                         image.ObjectKey,
                         image.ContentType,
                         image.SizeBytes,
-                        image.AltText))
+                        image.AltText,
+                        image.SourceUrl,
+                        image.AuthorName,
+                        image.LicenseName,
+                        image.LicenseUrl))
                     .FirstOrDefault()))
             .ToArrayAsync(cancellationToken);
 
@@ -213,7 +221,11 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             image.ContentType,
             image.SizeBytes,
             image.AltText,
-            null);
+            null,
+            image.SourceUrl is null ? null : new Uri(image.SourceUrl, UriKind.Absolute),
+            image.AuthorName,
+            image.LicenseName,
+            image.LicenseUrl is null ? null : new Uri(image.LicenseUrl, UriKind.Absolute));
 
     private sealed record RecipeDetailsProjection(
         Guid Id,
@@ -262,5 +274,9 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         string ObjectKey,
         string ContentType,
         long SizeBytes,
-        string? AltText);
+        string? AltText,
+        string? SourceUrl,
+        string? AuthorName,
+        string? LicenseName,
+        string? LicenseUrl);
 }

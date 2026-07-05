@@ -28,7 +28,7 @@ export function RecipeIngredientEditorFields({
         idPrefix="ingredient"
         value={productLineValue}
         errors={toProductLineErrors(errors)}
-        commentLabel="Описание или подготовка"
+        commentLabel="Примечание"
         commentPlaceholder="Например, промыть, мелко нарезать или заменить по желанию"
         commentDescription="Эта подсказка будет видна рядом с ингредиентом в рецепте."
         onChange={(nextValue) => {

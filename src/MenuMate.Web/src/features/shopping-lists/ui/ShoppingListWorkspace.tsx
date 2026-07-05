@@ -18,7 +18,6 @@ import {
   toShoppingListItemRequest,
   type ShoppingItemFormValues,
 } from "@/features/shopping-lists/model/shopping-list-ui"
-import { useUserPreferencesStore } from "@/shared/config/user-preferences.store"
 import { Button } from "@/shared/ui/button"
 import {
   Dialog,
@@ -36,14 +35,15 @@ interface ShoppingListWorkspaceProps {
   shoppingList: ShoppingList
 }
 
+type ShoppingDialogItem = ShoppingListItem | "new"
+
 export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspaceProps) {
   const addItemMutation = useAddShoppingListItemMutation()
   const updateItemMutation = useUpdateShoppingListItemMutation()
   const stateMutation = useSetShoppingListItemStateMutation()
   const removeItemMutation = useRemoveShoppingListItemMutation()
-  const defaultUnit = useUserPreferencesStore((state) => state.defaultShoppingUnit)
-  const defaultCategory = useUserPreferencesStore((state) => state.defaultShoppingCategory)
-  const [dialogItem, setDialogItem] = useState<ShoppingListItem | "new" | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogItem, setDialogItem] = useState<ShoppingDialogItem>("new")
   const itemCount = useMemo(
     () => shoppingList.categories.reduce((total, category) => total + category.items.length, 0),
     [shoppingList.categories],
@@ -56,26 +56,34 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
       ),
     [shoppingList.categories],
   )
-  const isPending =
-    addItemMutation.isPending ||
-    updateItemMutation.isPending ||
-    stateMutation.isPending ||
-    removeItemMutation.isPending
+  const isFormSubmitting = addItemMutation.isPending || updateItemMutation.isPending
 
   const initialValues =
     dialogItem === "new"
-      ? getDefaultShoppingItemFormValues({ unit: defaultUnit, category: defaultCategory })
-      : dialogItem
-        ? toShoppingListItemFormValues(dialogItem)
-        : getDefaultShoppingItemFormValues()
+      ? getDefaultShoppingItemFormValues()
+      : toShoppingListItemFormValues(dialogItem)
+
+  function openCreateDialog() {
+    setDialogItem("new")
+    setDialogOpen(true)
+  }
+
+  function openEditDialog(item: ShoppingListItem) {
+    setDialogItem(item)
+    setDialogOpen(true)
+  }
+
+  function closeDialog() {
+    setDialogOpen(false)
+  }
 
   function submitItem(values: ShoppingItemFormValues) {
-    if (dialogItem !== "new" && dialogItem) {
+    if (dialogItem !== "new") {
       updateItemMutation.mutate(
         { itemId: dialogItem.id, request: toShoppingListItemRequest(values) },
         {
           onSuccess: () => {
-            setDialogItem(null)
+            closeDialog()
             toast.success("Покупка обновлена")
           },
         },
@@ -85,7 +93,7 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
 
     addItemMutation.mutate(toShoppingListItemRequest(values), {
       onSuccess: () => {
-        setDialogItem(null)
+        closeDialog()
         toast.success("Покупка добавлена")
       },
     })
@@ -93,26 +101,13 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
 
   return (
     <div className="space-y-5">
-      <section className="bg-primary/5 border-primary/15 flex items-center justify-between gap-4 rounded-xl border p-4">
-        <div>
-          <p className="type-section-title">Список покупок</p>
+      {itemCount > 0 ? (
+        <section className="bg-primary/5 border-primary/15 rounded-xl border p-4">
           <p className="type-supporting text-muted-foreground">
-            {itemCount === 0
-              ? "Добавьте продукты вручную или создайте список из меню."
-              : `${String(purchasedCount)} из ${String(itemCount)} отмечено`}
+            {String(purchasedCount)} из {String(itemCount)} отмечено
           </p>
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            setDialogItem("new")
-          }}
-        >
-          <Plus />
-          Добавить
-        </Button>
-      </section>
+        </section>
+      ) : null}
 
       {addItemMutation.error ? <ErrorAlert error={addItemMutation.error} /> : null}
       {updateItemMutation.error ? <ErrorAlert error={updateItemMutation.error} /> : null}
@@ -124,16 +119,6 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
           icon={ShoppingBasket}
           title="Список пока пуст"
           description="Добавьте первую покупку или сформируйте список из меню."
-          action={
-            <Button
-              onClick={() => {
-                setDialogItem("new")
-              }}
-            >
-              <Plus />
-              Добавить покупку
-            </Button>
-          }
         />
       ) : (
         <div className="space-y-4">
@@ -145,12 +130,15 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
                   <ShoppingListItemRow
                     key={item.id}
                     item={item}
-                    isPending={isPending}
+                    isPending={
+                      (stateMutation.isPending && stateMutation.variables.itemId === item.id) ||
+                      (removeItemMutation.isPending && removeItemMutation.variables === item.id)
+                    }
                     onCheckedChange={(isPurchased) => {
                       stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
                     }}
                     onEdit={() => {
-                      setDialogItem(item)
+                      openEditDialog(item)
                     }}
                     onRemove={() => {
                       removeItemMutation.mutate(item.id, {
@@ -172,39 +160,32 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         size="icon-lg"
         className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
         aria-label="Добавить покупку"
-        onClick={() => {
-          setDialogItem("new")
-        }}
+        onClick={openCreateDialog}
       >
         <Plus className="size-5" />
       </Button>
 
       <Dialog
-        open={dialogItem !== null}
+        open={dialogOpen}
         onOpenChange={(open) => {
-          if (!open) setDialogItem(null)
+          setDialogOpen(open)
         }}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="flex max-h-[92svh] flex-col sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {dialogItem === "new" ? "Добавить покупку" : "Редактировать покупку"}
             </DialogTitle>
-            <DialogDescription>
-              Выберите продукт из каталога или добавьте новый с нужной категорией.
-            </DialogDescription>
+            <DialogDescription>Выберите продукт из каталога или добавьте новый.</DialogDescription>
           </DialogHeader>
-          <div className="overflow-y-auto px-5 pb-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5">
             <ShoppingListItemForm
-              key={dialogItem === "new" ? "new" : dialogItem?.id}
+              key={dialogItem === "new" ? "new" : dialogItem.id}
               submitLabel={dialogItem === "new" ? "Добавить" : "Сохранить"}
               submitIcon={dialogItem === "new" ? "add" : "save"}
-              isSubmitting={isPending}
+              isSubmitting={isFormSubmitting}
               initialValues={initialValues}
               onSubmit={submitItem}
-              onCancel={() => {
-                setDialogItem(null)
-              }}
             />
           </div>
         </DialogContent>

@@ -43,6 +43,13 @@ public static class RecipeApplicationErrors
         "Поддерживаются только изображения JPEG, PNG, WebP и AVIF.");
 
     /// <summary>
+    /// Ссылка атрибуции изображения не является абсолютной.
+    /// </summary>
+    public static readonly AppError InvalidImageAttributionUrl = AppError.Validation(
+        "Recipes.InvalidImageAttributionUrl",
+        "Ссылки атрибуции изображения должны быть абсолютными URL.");
+
+    /// <summary>
     /// Обложка рецепта не может ссылаться на шаг приготовления.
     /// </summary>
     public static readonly AppError CoverImageCannotHaveStep = AppError.Validation(

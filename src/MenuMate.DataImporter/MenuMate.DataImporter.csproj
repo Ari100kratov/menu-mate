@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MenuMate.DataImporter.Infrastructure\MenuMate.DataImporter.Infrastructure.csproj" />
+    <ProjectReference Include="..\MenuMate.Common.Application\MenuMate.Common.Application.csproj" />
+    <ProjectReference Include="..\MenuMate.Common.Infrastructure\MenuMate.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\MenuMate.Contracts\MenuMate.Contracts.csproj" />
+    <ProjectReference Include="..\MenuMate.ServiceDefaults\MenuMate.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\MenuMate.SharedKernel\MenuMate.SharedKernel.csproj" />
+    <ProjectReference Include="..\Modules\Auth\MenuMate.Modules.Auth.Infrastructure\MenuMate.Modules.Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Products\MenuMate.Modules.Products.Infrastructure\MenuMate.Modules.Products.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Recipes\MenuMate.Modules.Recipes.Application\MenuMate.Modules.Recipes.Application.csproj" />
+    <ProjectReference Include="..\Modules\Recipes\MenuMate.Modules.Recipes.Infrastructure\MenuMate.Modules.Recipes.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

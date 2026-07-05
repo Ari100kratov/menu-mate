@@ -10,6 +10,23 @@ export const measurementUnitOptions = [
   { value: "Pack", label: "упаковка" },
   { value: "ToTaste", label: "по вкусу" },
   { value: "Unknown", label: "без единицы" },
+  { value: "Glass", label: "стакан" },
+  { value: "Cup", label: "чашка" },
+  { value: "Dessertspoon", label: "дес. л." },
+  { value: "Clove", label: "зубчик" },
+  { value: "Bunch", label: "пучок" },
+  { value: "Sprig", label: "веточка" },
+  { value: "Head", label: "головка" },
+  { value: "Stalk", label: "стебель" },
+  { value: "Slice", label: "ломтик" },
+  { value: "Sheet", label: "лист" },
+  { value: "Handful", label: "горсть" },
+  { value: "Drop", label: "капля" },
+  { value: "Can", label: "банка" },
+  { value: "Jar", label: "банка с крышкой" },
+  { value: "Bottle", label: "бутылка" },
+  { value: "Sachet", label: "пакетик" },
+  { value: "Cube", label: "кубик" },
 ] as const
 
 export const productCategoryOptions = [
@@ -24,6 +41,13 @@ export const productCategoryOptions = [
   { value: "Drinks", label: "Напитки" },
   { value: "Frozen", label: "Заморозка" },
   { value: "Other", label: "Другое" },
+  { value: "Eggs", label: "Яйца" },
+  { value: "OilsAndSauces", label: "Масла и соусы" },
+  { value: "Legumes", label: "Бобовые" },
+  { value: "NutsAndSeeds", label: "Орехи и семена" },
+  { value: "CannedAndPreserved", label: "Консервы и заготовки" },
+  { value: "SweetsAndConfectionery", label: "Сладости" },
+  { value: "HerbsAndGreens", label: "Зелень и травы" },
 ] as const
 
 export function getProductCategoryLabel(category: string) {

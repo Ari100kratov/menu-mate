@@ -20,10 +20,6 @@ internal static class MenuPlanningApplicationErrors
         "MenuPlanning.MealSlotNotFound",
         $"Прием пищи с идентификатором '{mealSlotId}' не найден.");
 
-    public static AppError MealSlotHasItems(Guid mealSlotId) => AppError.Conflict(
-        "MenuPlanning.MealSlotHasItems",
-        $"Прием пищи с идентификатором '{mealSlotId}' уже используется в меню. Сначала перенесите или удалите блюда.");
-
     public static AppError ItemNotFound(Guid itemId) => AppError.NotFound(
         "MenuPlanning.ItemNotFound",
         $"Позиция меню с идентификатором '{itemId}' не найдена.");

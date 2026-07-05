@@ -90,6 +90,10 @@ internal sealed class UploadRecipeImageCommandHandler(
             command.ContentLength,
             Path.GetFileName(command.FileName),
             NormalizeOptionalText(command.AltText),
+            command.SourceUrl,
+            NormalizeOptionalText(command.AuthorName),
+            NormalizeOptionalText(command.LicenseName),
+            command.LicenseUrl,
             now);
 
         try
@@ -171,6 +175,12 @@ internal sealed class UploadRecipeImageCommandHandler(
         if (!FileExtensionsByContentType.ContainsKey(command.ContentType))
         {
             return Result.Failure(RecipeApplicationErrors.UnsupportedImageContentType);
+        }
+
+        if (command.SourceUrl is { IsAbsoluteUri: false } ||
+            command.LicenseUrl is { IsAbsoluteUri: false })
+        {
+            return Result.Failure(RecipeApplicationErrors.InvalidImageAttributionUrl);
         }
 
         if (scope == RecipeImageScope.Cover && command.StepNumber is not null)
