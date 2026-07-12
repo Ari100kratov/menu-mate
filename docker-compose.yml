@@ -29,7 +29,7 @@ services:
       Jwt__ExpirationInMinutes: ${JWT_EXPIRATION_IN_MINUTES:-60}
       MENUMATE_DATA_PROTECTION_KEYS_PATH: /var/lib/menumate/data-protection-keys
       Minio__Endpoint: minio:9000
-      Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:-localhost:9000}
+      Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:-localhost}
       Minio__AccessKey: ${MINIO_ROOT_USER:-admin}
       Minio__SecretKey: ${MINIO_ROOT_PASSWORD:-password123}
       Minio__ImagesBucketName: ${MINIO_IMAGES_BUCKET:-images}
@@ -56,6 +56,9 @@ services:
     build:
       context: .
       dockerfile: src/MenuMate.Web/Dockerfile
+    environment:
+      MINIO_IMAGES_BUCKET: ${MINIO_IMAGES_BUCKET:-images}
+      MINIO_IMPORTS_BUCKET: ${MINIO_IMPORTS_BUCKET:-imports}
     ports:
       - "${WEB_PORT:-80}:80"
     depends_on:
@@ -82,8 +85,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
       MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_API_CORS_ALLOW_ORIGIN:-http://localhost,http://localhost:5173}
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
     healthcheck:
