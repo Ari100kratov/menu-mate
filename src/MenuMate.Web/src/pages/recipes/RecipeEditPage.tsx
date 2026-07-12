@@ -1,6 +1,7 @@
 import { Navigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { generateRecipeCoverImage } from "@/features/imports/api/imports.api"
 import {
   useRecipeQuery,
   useUpdateRecipeMutation,
@@ -66,6 +67,7 @@ export default function RecipeEditPage() {
           submitLabel="Сохранить"
           isSubmitting={updateRecipeMutation.isPending || uploadImageMutation.isPending}
           error={updateRecipeMutation.error ?? uploadImageMutation.error}
+          generateCover={(values) => generateRecipeCoverImage(toRecipeRequest(values))}
           onSubmit={handleSubmit}
         />
       ) : null}

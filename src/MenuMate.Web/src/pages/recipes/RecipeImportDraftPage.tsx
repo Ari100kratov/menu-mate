@@ -2,20 +2,24 @@ import { CheckCircle2, ExternalLink, Info, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
+import { generateRecipeCoverImage } from "@/features/imports/api/imports.api"
 import {
   useConfirmRecipeImportDraftMutation,
   useDeleteRecipeImportDraftMutation,
   useRecipeImportDraftQuery,
   useUpdateRecipeImportDraftMutation,
 } from "@/features/imports/api/imports.queries"
-import { uploadRecipeImage } from "@/features/recipes/api/recipes.api"
+import { type Recipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
+import { recipeQueryKeys } from "@/features/recipes/api/recipes.queries"
 import {
   recipeRequestToFormValues,
   toRecipeRequest,
   type RecipeFormValues,
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
+import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
@@ -24,6 +28,7 @@ import { PageSection } from "@/shared/ui/page"
 export default function RecipeImportDraftPage() {
   const { draftId } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const draftQuery = useRecipeImportDraftQuery(draftId)
   const updateMutation = useUpdateRecipeImportDraftMutation(draftId ?? "")
   const updateDraft = updateMutation.mutate
@@ -74,11 +79,17 @@ export default function RecipeImportDraftPage() {
   async function uploadCoverAndNavigate(recipeId: string, title: string, coverFile: File | null) {
     try {
       if (coverFile) {
-        await uploadRecipeImage(recipeId, {
+        const image = await uploadRecipeImage(recipeId, {
           file: coverFile,
           scope: "Cover",
           altText: title,
         })
+        queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
+          recipe
+            ? { ...recipe, images: [...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"), image] }
+            : recipe,
+        )
+        void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
       }
       toast.success("Рецепт создан")
       void navigate(`/recipes/${recipeId}`, { replace: true })
@@ -131,12 +142,19 @@ export default function RecipeImportDraftPage() {
         <div className="grid gap-3 md:grid-cols-2">
           {draft.sourceImages.map((image, index) =>
             image.readUrl ? (
-              <img
+              <RecipeImageLightbox
                 key={`${image.fileName}-${String(index)}`}
-                src={image.readUrl}
-                alt={`Исходное изображение рецепта ${String(index + 1)}`}
-                className="max-h-[32rem] w-full rounded-lg border object-contain"
-              />
+                imageUrl={image.readUrl}
+                imageAlt={`Исходное изображение рецепта ${String(index + 1)}`}
+              >
+                <button type="button" className="focus-visible:ring-ring rounded-lg focus-visible:ring-2 focus-visible:outline-none">
+                  <img
+                    src={image.readUrl}
+                    alt={`Исходное изображение рецепта ${String(index + 1)}`}
+                    className="max-h-[32rem] w-full rounded-lg border object-contain"
+                  />
+                </button>
+              </RecipeImageLightbox>
             ) : null,
           )}
         </div>
@@ -182,6 +200,7 @@ export default function RecipeImportDraftPage() {
             isSubmitting={confirmMutation.isPending}
             error={confirmMutation.error ?? coverError}
             onValuesChange={handleValuesChange}
+            generateCover={(values) => generateRecipeCoverImage(toRecipeRequest(values))}
             onSubmit={handleConfirm}
           />
         </>

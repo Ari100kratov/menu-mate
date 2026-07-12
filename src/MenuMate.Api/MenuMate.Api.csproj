@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>MenuMate.Api</RootNamespace>
+    <UserSecretsId>4ee50c0c-b746-45cb-a3ff-8792faff92ef</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

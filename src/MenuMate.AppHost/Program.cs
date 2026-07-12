@@ -50,6 +50,7 @@ IResourceBuilder<ProjectResource> api = builder.AddProject<Projects.MenuMate_Api
     .WithEnvironment("Minio__ImportsBucketName", "imports")
     .WithEnvironment("Minio__UseSsl", "false")
     .WithEnvironment("OpenAI__ApiKey", ResolveOpenAiApiKey(builder.Configuration))
+    .WithEnvironment("OpenAI__BaseUrl", ResolveOpenAiBaseUrl(builder.Configuration))
     .WithEnvironment("OpenAI__Model", builder.Configuration["OpenAI:Model"] ?? "gpt-5.4-mini")
     .WithEnvironment("OpenAI__ImageModel", builder.Configuration["OpenAI:ImageModel"] ?? "gpt-image-1-mini")
     .WithEnvironment("RecipeImports__DraftRetentionDays", builder.Configuration["RecipeImports:DraftRetentionDays"] ?? "7")
@@ -76,4 +77,12 @@ static string ResolveOpenAiApiKey(IConfiguration configuration)
     return !string.IsNullOrWhiteSpace(configuredApiKey)
         ? configuredApiKey
         : configuration["OPENAI_API_KEY"] ?? string.Empty;
+}
+
+static string ResolveOpenAiBaseUrl(IConfiguration configuration)
+{
+    string? configuredBaseUrl = configuration["OpenAI:BaseUrl"];
+    return !string.IsNullOrWhiteSpace(configuredBaseUrl)
+        ? configuredBaseUrl
+        : configuration["OPENAI_BASE_URL"] ?? string.Empty;
 }

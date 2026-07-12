@@ -1,5 +1,4 @@
-#pragma warning disable OPENAI001 // Responses API помечен experimental в официальном SDK OpenAI 2.11.0.
-
+using System.ClientModel;
 using MenuMate.Modules.RecipeImports.Application;
 using MenuMate.Modules.RecipeImports.Application.Abstractions;
 using MenuMate.Modules.RecipeImports.Application.Extraction;
@@ -11,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OpenAI.Responses;
+using OpenAI;
+using OpenAI.Chat;
 using OpenAI.Images;
 
 namespace MenuMate.Modules.RecipeImports.Infrastructure;
@@ -44,10 +44,10 @@ public static class RecipeImportsInfrastructureDependencyInjection
 
         OpenAiRecipeImageExtractorOptions openAiOptions = CreateOpenAiOptions(configuration);
         services.AddSingleton(openAiOptions);
-        services.AddSingleton(new ResponsesClient(openAiOptions.ApiKey));
+        services.AddSingleton(CreateChatClient(openAiOptions));
         OpenAiRecipeCoverImageGeneratorOptions imageOptions = CreateImageOptions(configuration);
         services.AddSingleton(imageOptions);
-        services.AddSingleton(new ImageClient(imageOptions.Model, imageOptions.ApiKey));
+        services.AddSingleton(CreateImageClient(imageOptions));
         services.AddSingleton(CreateStorageOptions(configuration));
         services.AddHostedService<RecipeImportDraftCleanupService>();
         services.AddScoped<IRecipeImageExtractor, OpenAiRecipeImageExtractor>();
@@ -62,6 +62,7 @@ public static class RecipeImportsInfrastructureDependencyInjection
         new()
         {
             ApiKey = ResolveApiKey(configuration),
+            BaseUrl = ResolveBaseUrl(configuration),
             Model = configuration["OpenAI:Model"] ?? "gpt-5.4-mini"
         };
 
@@ -69,6 +70,7 @@ public static class RecipeImportsInfrastructureDependencyInjection
         new()
         {
             ApiKey = ResolveApiKey(configuration),
+            BaseUrl = ResolveBaseUrl(configuration),
             Model = configuration["OpenAI:ImageModel"] ?? "gpt-image-1-mini"
         };
 
@@ -82,6 +84,55 @@ public static class RecipeImportsInfrastructureDependencyInjection
 
         string? environmentApiKey = configuration["OPENAI_API_KEY"];
         return string.IsNullOrWhiteSpace(environmentApiKey) ? "not-configured" : environmentApiKey;
+    }
+
+    private static string? ResolveBaseUrl(IConfiguration configuration)
+    {
+        string? configuredBaseUrl = configuration["OpenAI:BaseUrl"];
+        if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
+        {
+            return configuredBaseUrl;
+        }
+
+        return configuration["OPENAI_BASE_URL"];
+    }
+
+    private static ChatClient CreateChatClient(OpenAiRecipeImageExtractorOptions options)
+    {
+        ApiKeyCredential credential = new(options.ApiKey);
+        if (string.IsNullOrWhiteSpace(options.BaseUrl))
+        {
+            return new ChatClient(options.Model, credential);
+        }
+
+        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out Uri? baseUrl))
+        {
+            throw new InvalidOperationException("OpenAI:BaseUrl must be an absolute URI.");
+        }
+
+        return new ChatClient(
+            options.Model,
+            credential,
+            new OpenAIClientOptions { Endpoint = baseUrl });
+    }
+
+    private static ImageClient CreateImageClient(OpenAiRecipeCoverImageGeneratorOptions options)
+    {
+        ApiKeyCredential credential = new(options.ApiKey);
+        if (string.IsNullOrWhiteSpace(options.BaseUrl))
+        {
+            return new ImageClient(options.Model, credential);
+        }
+
+        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out Uri? baseUrl))
+        {
+            throw new InvalidOperationException("OpenAI:BaseUrl must be an absolute URI.");
+        }
+
+        return new ImageClient(
+            options.Model,
+            credential,
+            new OpenAIClientOptions { Endpoint = baseUrl });
     }
 
     private static RecipeImportStorageOptions CreateStorageOptions(IConfiguration configuration) =>

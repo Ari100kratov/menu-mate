@@ -1,14 +1,12 @@
-#pragma warning disable OPENAI001 // Responses API помечен experimental в официальном SDK OpenAI 2.11.0.
-
 using System.Text.Json;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.RecipeImports.Application.Extraction;
-using OpenAI.Responses;
+using OpenAI.Chat;
 
 namespace MenuMate.Modules.RecipeImports.Infrastructure.OpenAI;
 
 internal sealed class OpenAiRecipeImageExtractor(
-    ResponsesClient client,
+    ChatClient client,
     OpenAiRecipeImageExtractorOptions options)
     : IRecipeImageExtractor
 {
@@ -81,42 +79,42 @@ internal sealed class OpenAiRecipeImageExtractor(
 
         try
         {
-            List<ResponseContentPart> contentParts =
+            List<ChatMessageContentPart> contentParts =
             [
-                ResponseContentPart.CreateInputTextPart(
+                ChatMessageContentPart.CreateTextPart(
                     "Извлеки один рецепт из всех приложенных изображений. Изображения идут в порядке загрузки и могут быть частями одного рецепта. " +
                     "Сохрани язык исходного рецепта. Не выдумывай отсутствующие данные. Не включай порядковые номера, слово «Шаг» или «Step» в text шагов приготовления. " +
                     "Неизвестные единицы указывай как Unknown, неизвестные категории как Other. Количество порций используй 1, только если оно не указано. " +
+                    "В tags добавляй от 1 до 5 кратких концептуальных тегов для поиска: кухня, способ приготовления, тип питания, повод или практическая потребность. Не добавляй название блюда, отдельные простые ингредиенты, слова «еда» и «рецепт», повторы и слишком общие теги. Если полезных тегов нет, верни пустой список. " +
                     "Верни весь читаемый текст изображений в extractedText. В warnings добавляй только действительно спорные места, которые пользователь может проверить или исправить. " +
                     "Каждое замечание должно быть коротким, понятным пользователю и написанным по-русски: укажи, что именно проверить и почему. " +
                     "Не упоминай JSON, схему, названия полей, enum, null, Unknown, Other, confidence, модель, технические ограничения и внутренние решения.")
             ];
             contentParts.AddRange(images.Select(image =>
-                ResponseContentPart.CreateInputImagePart(
-                    new BinaryData(image.Content, image.ContentType),
-                    ResponseImageDetailLevel.High)));
+                ChatMessageContentPart.CreateImagePart(
+                    BinaryData.FromBytes(image.Content),
+                    image.ContentType,
+                    ChatImageDetailLevel.High)));
 
-            CreateResponseOptions request = new(
-                options.Model,
-                [
-                    ResponseItem.CreateUserMessageItem(contentParts)
-                ])
+            ChatCompletionOptions request = new()
             {
-                Instructions =
-                    "Ты извлекаешь структурированные данные рецепта из пользовательских изображений.",
-                StoredOutputEnabled = false,
-                TextOptions = new ResponseTextOptions
-                {
-                    TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
-                        "menu_mate_recipe_import",
-                        RecipeSchema,
-                        "Черновик рецепта и понятные пользователю замечания для проверки.",
-                        jsonSchemaIsStrict: true)
-                }
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                    "menu_mate_recipe_import",
+                    RecipeSchema,
+                    "Черновик рецепта и понятные пользователю замечания для проверки.",
+                    jsonSchemaIsStrict: true),
+                StoredOutputEnabled = false
             };
 
-            ResponseResult response = await client.CreateResponseAsync(request, cancellationToken);
-            string json = response.GetOutputText();
+            List<ChatMessage> messages =
+            [
+                new SystemChatMessage(
+                    "Ты извлекаешь структурированные данные рецепта из пользовательских изображений."),
+                new UserChatMessage(contentParts)
+            ];
+
+            ChatCompletion response = await client.CompleteChatAsync(messages, request, cancellationToken);
+            string json = response.Content[0].Text;
             OpenAiExtractionPayload? payload = JsonSerializer.Deserialize<OpenAiExtractionPayload>(
                 json,
                 JsonOptions);

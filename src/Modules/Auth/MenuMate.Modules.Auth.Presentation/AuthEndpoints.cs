@@ -148,24 +148,22 @@ public static class AuthEndpoints
         httpContext.Response.Cookies.Append(
             RefreshTokenCookieName,
             refreshToken.Value,
-            CreateRefreshTokenCookieOptions(httpContext, refreshToken.ExpiresAt));
+            CreateRefreshTokenCookieOptions(refreshToken.ExpiresAt));
     }
 
     private static void ClearRefreshTokenCookie(HttpContext httpContext)
     {
         httpContext.Response.Cookies.Delete(
             RefreshTokenCookieName,
-            CreateRefreshTokenCookieOptions(httpContext, expiresAt: null));
+            CreateRefreshTokenCookieOptions(expiresAt: null));
     }
 
-    private static CookieOptions CreateRefreshTokenCookieOptions(
-        HttpContext httpContext,
-        DateTimeOffset? expiresAt)
+    private static CookieOptions CreateRefreshTokenCookieOptions(DateTimeOffset? expiresAt)
     {
         return new CookieOptions
         {
             HttpOnly = true,
-            Secure = httpContext.Request.IsHttps,
+            Secure = true,
             SameSite = SameSiteMode.Lax,
             Expires = expiresAt,
             Path = "/api/auth"

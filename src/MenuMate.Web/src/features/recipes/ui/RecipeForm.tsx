@@ -35,6 +35,7 @@ export function RecipeForm({
   onSubmit,
 }: RecipeFormProps) {
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const coverFileRef = useRef<File | null>(null)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
   const [isGeneratingCover, setIsGeneratingCover] = useState(false)
   const [generateCoverError, setGenerateCoverError] = useState<unknown>()
@@ -42,9 +43,14 @@ export function RecipeForm({
   const form = useRecipeForm({
     initialValues,
     onSubmit: (values) => {
-      onSubmit(values, coverFile)
+      onSubmit(values, coverFileRef.current)
     },
   })
+
+  function handleCoverFileChange(file: File | null) {
+    coverFileRef.current = file
+    setCoverFile(file)
+  }
 
   useEffect(() => {
     if (!error) {
@@ -88,7 +94,7 @@ export function RecipeForm({
     setGenerateCoverError(undefined)
     setIsGeneratingCover(true)
     try {
-      setCoverFile(await generateCover(form.state.values))
+      handleCoverFileChange(await generateCover(form.state.values))
       toast.success("Обложка сгенерирована")
     } catch (generationError) {
       setGenerateCoverError(generationError)
@@ -129,7 +135,7 @@ export function RecipeForm({
         <RecipeCoverPicker
           existingImageUrl={coverImageUrl}
           file={coverFile}
-          onFileChange={setCoverFile}
+          onFileChange={handleCoverFileChange}
           onGenerate={generateCover ? () => void handleGenerateCover() : undefined}
           isGenerating={isGeneratingCover}
         />

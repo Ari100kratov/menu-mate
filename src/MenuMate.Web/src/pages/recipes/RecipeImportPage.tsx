@@ -7,6 +7,7 @@ import {
   useDeleteRecipeImportDraftMutation,
   useRecipeImportDraftsQuery,
 } from "@/features/imports/api/imports.queries"
+import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { cn } from "@/shared/lib/utils"
 import {
   AlertDialog,
@@ -108,12 +109,19 @@ export default function RecipeImportPage() {
             {previewUrls.length > 0 ? (
               <div className="grid w-full grid-cols-2 gap-2">
                 {previewUrls.map((previewUrl, index) => (
-                  <img
+                  <RecipeImageLightbox
                     key={previewUrl}
-                    src={previewUrl}
-                    alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
-                    className="max-h-64 w-full rounded-md object-contain"
-                  />
+                    imageUrl={previewUrl}
+                    imageAlt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
+                  >
+                    <button type="button" className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none">
+                      <img
+                        src={previewUrl}
+                        alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
+                        className="max-h-64 w-full rounded-md object-contain"
+                      />
+                    </button>
+                  </RecipeImageLightbox>
                 ))}
               </div>
             ) : (

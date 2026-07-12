@@ -4,6 +4,7 @@ import type { Recipe } from "@/features/recipes/api/recipes.api"
 import { formatRecipeIngredientQuantity } from "@/features/recipes/model/recipe-ingredient-format"
 import { getProductCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { findStepImage } from "@/features/recipes/model/recipe-images"
+import { RecipeImagePreview } from "@/features/recipes/ui/RecipeImagePreview"
 
 interface RecipeDetailsSectionsProps {
   recipe: Recipe
@@ -86,12 +87,10 @@ export function RecipeSteps({ recipe }: RecipeDetailsSectionsProps) {
               </div>
               <div className="space-y-3">
                 <p className="type-body">{step.text}</p>
-                {image?.readUrl ? (
-                  <img
-                    className="bg-muted aspect-[4/3] w-full max-w-md rounded-md border object-cover"
-                    src={image.readUrl}
-                    alt={image.altText ?? `Шаг ${String(step.number)}`}
-                  />
+                {image ? (
+                  <div className="max-w-md">
+                    <RecipeImagePreview image={image} fallbackTitle={`Шаг ${String(step.number)}`} />
+                  </div>
                 ) : null}
               </div>
             </article>
