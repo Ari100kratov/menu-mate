@@ -36,6 +36,22 @@ public static class CommonInfrastructureDependencyInjection
                 .Build();
         });
 
+        services.AddSingleton(serviceProvider =>
+        {
+            MinioOptions options = serviceProvider.GetRequiredService<MinioOptions>();
+            string publicEndpoint = string.IsNullOrWhiteSpace(options.PublicEndpoint)
+                ? options.Endpoint
+                : options.PublicEndpoint;
+            bool publicUseSsl = options.PublicUseSsl ?? options.UseSsl;
+
+            return new PublicMinioClient(
+                new MinioClient()
+                    .WithEndpoint(publicEndpoint)
+                    .WithCredentials(options.AccessKey, options.SecretKey)
+                    .WithSSL(publicUseSsl)
+                    .Build());
+        });
+
         services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
 
         return services;
@@ -51,7 +67,12 @@ public static class CommonInfrastructureDependencyInjection
             AccessKey = section["AccessKey"] ?? string.Empty,
             SecretKey = section["SecretKey"] ?? string.Empty,
             ImagesBucketName = section["ImagesBucketName"] ?? "images",
-            UseSsl = bool.TryParse(section["UseSsl"], out bool useSsl) && useSsl
+            UseSsl = bool.TryParse(section["UseSsl"], out bool useSsl) && useSsl,
+            PublicEndpoint = section["PublicEndpoint"],
+            PublicUseSsl = bool.TryParse(section["PublicUseSsl"], out bool publicUseSsl)
+                ? publicUseSsl
+                : null
         };
     }
+
 }

@@ -8,7 +8,9 @@ namespace MenuMate.Common.Infrastructure.Storage;
 /// <summary>
 /// Реализация объектного хранилища поверх MinIO.
 /// </summary>
-public sealed class MinioObjectStorageService(IMinioClient minioClient) : IObjectStorageService
+public sealed class MinioObjectStorageService(
+    IMinioClient minioClient,
+    PublicMinioClient publicMinioClient) : IObjectStorageService
 {
     /// <inheritdoc />
     public async Task EnsureBucketExistsAsync(string bucket, CancellationToken cancellationToken)
@@ -165,7 +167,7 @@ public sealed class MinioObjectStorageService(IMinioClient minioClient) : IObjec
     {
         TimeSpan effectiveLifetime = lifetime ?? TimeSpan.FromHours(1);
 
-        return minioClient.PresignedGetObjectAsync(
+        return publicMinioClient.Client.PresignedGetObjectAsync(
             new PresignedGetObjectArgs()
                 .WithBucket(bucket)
                 .WithObject(key)

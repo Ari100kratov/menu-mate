@@ -11,6 +11,12 @@ public sealed class MinioOptions
     public string Endpoint { get; set; } = string.Empty;
 
     /// <summary>
+    /// Публичный адрес MinIO API, используемый в ссылках для браузера.
+    /// Если не задан, используется <see cref="Endpoint"/>.
+    /// </summary>
+    public string? PublicEndpoint { get; set; }
+
+    /// <summary>
     /// Ключ доступа.
     /// </summary>
     public string AccessKey { get; set; } = string.Empty;
@@ -29,4 +35,9 @@ public sealed class MinioOptions
     /// Использовать TLS при подключении.
     /// </summary>
     public bool UseSsl { get; set; }
+
+    /// <summary>
+    /// Использовать TLS для публичного адреса. Если не задано, используется <see cref="UseSsl"/>.
+    /// </summary>
+    public bool? PublicUseSsl { get; set; }
 }

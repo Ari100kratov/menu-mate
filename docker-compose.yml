@@ -29,11 +29,13 @@ services:
       Jwt__ExpirationInMinutes: ${JWT_EXPIRATION_IN_MINUTES:-60}
       MENUMATE_DATA_PROTECTION_KEYS_PATH: /var/lib/menumate/data-protection-keys
       Minio__Endpoint: minio:9000
+      Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:-localhost:9000}
       Minio__AccessKey: ${MINIO_ROOT_USER:-admin}
       Minio__SecretKey: ${MINIO_ROOT_PASSWORD:-password123}
       Minio__ImagesBucketName: ${MINIO_IMAGES_BUCKET:-images}
       Minio__ImportsBucketName: ${MINIO_IMPORTS_BUCKET:-imports}
       Minio__UseSsl: false
+      Minio__PublicUseSsl: ${MINIO_PUBLIC_USE_SSL:-false}
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-5.4-mini}
@@ -49,6 +51,16 @@ services:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: src/MenuMate.Web/Dockerfile
+    ports:
+      - "${WEB_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_started
 
   migrator:
     build:
@@ -74,6 +86,12 @@ services:
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
 
   minio-init:
     image: minio/mc:latest
@@ -92,7 +110,8 @@ services:
       MINIO_IMAGES_BUCKET: ${MINIO_IMAGES_BUCKET:-images}
       MINIO_IMPORTS_BUCKET: ${MINIO_IMPORTS_BUCKET:-imports}
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
 
 volumes:
   postgres-data:
