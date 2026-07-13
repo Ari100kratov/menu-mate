@@ -4,17 +4,13 @@ import { recipeFormSchema, type RecipeFormValues } from "@/features/recipes/mode
 
 interface UseRecipeFormOptions {
   initialValues: RecipeFormValues
-  onSubmit: (values: RecipeFormValues) => void
 }
 
-export function useRecipeForm({ initialValues, onSubmit }: UseRecipeFormOptions) {
+export function useRecipeForm({ initialValues }: UseRecipeFormOptions) {
   return useForm({
     defaultValues: initialValues,
     validators: {
       onSubmit: recipeFormSchema,
-    },
-    onSubmit: ({ value }) => {
-      onSubmit(value)
     },
   })
 }

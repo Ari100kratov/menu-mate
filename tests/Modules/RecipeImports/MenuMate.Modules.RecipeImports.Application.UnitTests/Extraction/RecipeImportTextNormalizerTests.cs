@@ -35,6 +35,61 @@ public sealed class RecipeImportTextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeShouldSetToTasteWhenIngredientAmountIsMissing()
+    {
+        var recipe = new CreateRecipeRequest(
+            "Суп",
+            null,
+            2,
+            "Soup",
+            "Public",
+            null,
+            null,
+            null,
+            [
+                new(null, "Соль", null, "Unknown", "Spices", null, false),
+                new(null, "Масло", 20m, "Milliliter", "OilsAndSauces", null, false)
+            ],
+            [],
+            []);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe);
+
+        Assert.Collection(
+            normalized.Ingredients,
+            ingredient =>
+            {
+                Assert.Null(ingredient.Amount);
+                Assert.Equal("ToTaste", ingredient.Unit);
+            },
+            ingredient => Assert.Equal("Milliliter", ingredient.Unit));
+    }
+
+    [Fact]
+    public void NormalizeShouldUsePinchAsIngredientQuantityWhenItIsTheOnlyComment()
+    {
+        var recipe = new CreateRecipeRequest(
+            "Суп",
+            null,
+            2,
+            "Soup",
+            "Public",
+            null,
+            null,
+            null,
+            [new(null, "Соль", null, "Unknown", "Spices", "щепотка", false)],
+            [],
+            []);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe);
+
+        RecipeIngredientRequest ingredient = Assert.Single(normalized.Ingredients);
+        Assert.Equal(1m, ingredient.Amount);
+        Assert.Equal("Pinch", ingredient.Unit);
+        Assert.Null(ingredient.Comment);
+    }
+
+    [Fact]
     public void NormalizeWarningsShouldReplaceTechnicalDetailsAndKeepUserFriendlyWarnings()
     {
         IReadOnlyCollection<string> normalized = RecipeImportWarningNormalizer.Normalize(

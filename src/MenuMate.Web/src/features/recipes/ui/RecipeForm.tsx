@@ -2,7 +2,7 @@ import { Save } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
-import type { RecipeFormValues } from "@/features/recipes/model/recipe-form"
+import { recipeFormSchema, type RecipeFormValues } from "@/features/recipes/model/recipe-form"
 import { RecipeAdditionalFields } from "@/features/recipes/ui/RecipeAdditionalFields"
 import { RecipeCoverPicker } from "@/features/recipes/ui/RecipeCoverPicker"
 import { RecipeIngredientsFields } from "@/features/recipes/ui/RecipeIngredientsFields"
@@ -40,12 +40,7 @@ export function RecipeForm({
   const [isGeneratingCover, setIsGeneratingCover] = useState(false)
   const [generateCoverError, setGenerateCoverError] = useState<unknown>()
   const formElementRef = useRef<HTMLFormElement>(null)
-  const form = useRecipeForm({
-    initialValues,
-    onSubmit: (values) => {
-      onSubmit(values, coverFileRef.current)
-    },
-  })
+  const form = useRecipeForm({ initialValues })
 
   function handleCoverFileChange(file: File | null) {
     coverFileRef.current = file
@@ -61,13 +56,15 @@ export function RecipeForm({
   }, [error])
 
   async function handleSubmit() {
-    await form.handleSubmit()
+    const validationResult = recipeFormSchema.safeParse(form.state.values)
 
-    if (form.state.isValid) {
+    if (validationResult.success) {
       setShowValidationErrors(false)
+      onSubmit(validationResult.data, coverFileRef.current)
       return
     }
 
+    await form.validate("submit")
     setShowValidationErrors(true)
     toast.error("Проверьте корректность заполненных данных.")
 

@@ -164,7 +164,12 @@ export function ProductLineEditorFields({
             className="mt-0.5"
             checked={value.isToTaste}
             onCheckedChange={(checked) => {
-              update({ isToTaste: checked === true })
+              const isToTaste = checked === true
+              update({
+                isToTaste,
+                amount: isToTaste ? "" : value.amount,
+                unit: isToTaste ? "ToTaste" : value.unit === "ToTaste" ? "Unknown" : value.unit,
+              })
             }}
           />
           <span className="min-w-0">
