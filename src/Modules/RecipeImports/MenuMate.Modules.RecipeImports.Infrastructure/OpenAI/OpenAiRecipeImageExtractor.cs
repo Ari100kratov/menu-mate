@@ -22,7 +22,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                 "title": { "type": "string" },
                 "description": { "type": ["string", "null"] },
                 "servings": { "type": "integer", "minimum": 1 },
-                "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Other"] },
+                "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
                 "visibility": { "type": "string", "enum": ["Public"] },
                 "totalTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
                 "activeTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
@@ -96,6 +96,15 @@ internal sealed class OpenAiRecipeImageExtractor(
                     - Если указано «щепотка», в том числе без числа, верни amount=1 и unit=Pinch; не добавляй «щепотка» в comment.
                     - Если для ингредиента не указаны ни количество, ни единица измерения, верни amount=null и unit=ToTaste.
                     - Используй количество порций 1 только если оно не указано.
+                    """),
+                ChatMessageContentPart.CreateTextPart(
+                    """
+                    Категория блюда:
+                    - Выбери одну наиболее точную категорию из допустимых значений схемы; категория описывает роль блюда, а не случайное упоминание в тексте.
+                    - Spread: густая масса для намазывания на хлеб, тосты или крекеры — например, паштет, хумус, творожная или сырная намазка.
+                    - Sauce: жидкий или полужидкий соус, которым дополняют другое блюдо. Appetizer: самостоятельная закуска, а не намазка.
+                    - Baking: выпечка из теста; Dessert: сладкое блюдо, не обязательно выпечка. Breakfast выбирай только для блюда, предназначенного прежде всего для завтрака.
+                    - Other выбирай только если ни одна категория не подходит.
                     """),
                 ChatMessageContentPart.CreateTextPart(
                     """

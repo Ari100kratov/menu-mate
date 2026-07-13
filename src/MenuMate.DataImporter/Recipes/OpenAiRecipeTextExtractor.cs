@@ -19,7 +19,7 @@ internal sealed class OpenAiRecipeTextExtractor(ResponsesClient client, IConfigu
             "title": { "type": "string" },
             "description": { "type": ["string", "null"] },
             "servings": { "type": "integer", "minimum": 1 },
-            "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Other"] },
+            "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
             "visibility": { "type": "string", "enum": ["Public"] },
             "totalTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
             "activeTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },

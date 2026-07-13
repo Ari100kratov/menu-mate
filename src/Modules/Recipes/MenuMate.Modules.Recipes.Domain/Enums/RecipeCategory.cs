@@ -25,6 +25,8 @@ public enum RecipeCategory
     Drink = 8,
     /// <summary>Соус.</summary>
     Sauce = 9,
+    /// <summary>Намазка.</summary>
+    Spread = 10,
     /// <summary>Другое.</summary>
-    Other = 10
+    Other = 11
 }

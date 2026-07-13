@@ -15,6 +15,7 @@ export const recipeCategoryOptions = [
   { value: "Baking", label: "Выпечка" },
   { value: "Drink", label: "Напиток" },
   { value: "Sauce", label: "Соус" },
+  { value: "Spread", label: "Намазка" },
   { value: "Other", label: "Другое" },
 ] as const
 

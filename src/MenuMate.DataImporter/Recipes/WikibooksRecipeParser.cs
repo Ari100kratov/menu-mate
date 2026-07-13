@@ -372,6 +372,13 @@ internal static partial class WikibooksRecipeParser
             return "Drink";
         }
 
+        if (normalized.Contains("намазк", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Contains("паштет", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Contains("хумус", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Spread";
+        }
+
         if (normalized.Contains("соус", StringComparison.OrdinalIgnoreCase))
         {
             return "Sauce";
