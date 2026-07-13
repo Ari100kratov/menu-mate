@@ -9,9 +9,13 @@ export async function getProducts(search: string) {
     apiClient.GET("/api/products", {
       params: {
         query: {
-          search: search.trim() || undefined,
+          search: normalizeProductSearch(search) || undefined,
         },
       },
     }),
   )
+}
+
+export function normalizeProductSearch(value: string) {
+  return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е").replaceAll(/\s+/g, " ")
 }

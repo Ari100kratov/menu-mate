@@ -11,7 +11,7 @@ public sealed class IngredientNameTests
     {
         IngredientName name = IngredientName.Create("  Рис   басмати ").Value;
 
-        Assert.Equal("Рис   басмати", name.Value);
+        Assert.Equal("рис басмати", name.Value);
         Assert.Equal("РИС БАСМАТИ", name.NormalizedValue);
     }
 

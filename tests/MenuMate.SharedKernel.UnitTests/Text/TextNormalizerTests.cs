@@ -15,4 +15,13 @@ public sealed class TextNormalizerTests
     {
         Assert.Throws<ArgumentNullException>(() => TextNormalizer.NormalizeSearchText(null!));
     }
+
+    [Fact]
+    public void ProductNameNormalizerShouldLowercaseReplaceYoAndCollapseWhitespace()
+    {
+        string result = ProductNameNormalizer.Normalize("  Ёлки\tПАЛКИ \r\n");
+
+        Assert.Equal("елки палки", result);
+        Assert.Equal("ЕЛКИ ПАЛКИ", ProductNameNormalizer.NormalizeForComparison(result));
+    }
 }

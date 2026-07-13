@@ -34,11 +34,11 @@ public sealed record IngredientName
             return Result.Failure<IngredientName>(RecipeErrors.EmptyIngredientName);
         }
 
-        string normalized = TextNormalizer.NormalizeSearchText(value);
-        return new IngredientName(value.Trim(), normalized);
+        string normalizedValue = ProductNameNormalizer.Normalize(value);
+        string normalizedForComparison = ProductNameNormalizer.NormalizeForComparison(value);
+        return new IngredientName(normalizedValue, normalizedForComparison);
     }
 
     /// <inheritdoc />
     public override string ToString() => Value;
 }
-

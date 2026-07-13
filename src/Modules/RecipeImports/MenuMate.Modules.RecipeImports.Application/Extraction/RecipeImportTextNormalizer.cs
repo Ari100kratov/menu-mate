@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using MenuMate.Contracts.Recipes;
+using MenuMate.SharedKernel;
 
 namespace MenuMate.Modules.RecipeImports.Application.Extraction;
 
@@ -20,17 +21,23 @@ public static partial class RecipeImportTextNormalizer
                 .ToArray(),
             Steps = recipe.Steps
                 .Select(step => new PreparationStepRequest(StepPrefixRegex().Replace(step.Text, string.Empty).Trim()))
-                .ToArray()
+                .ToArray(),
+            Tags = NormalizeTags(recipe.Tags, recipe.Title)
         };
     }
 
     private static RecipeIngredientRequest NormalizeIngredientQuantity(RecipeIngredientRequest ingredient)
     {
-        if (ingredient.Amount is null
-            && ingredient.Comment is not null
-            && PinchCommentRegex().IsMatch(ingredient.Comment))
+        RecipeIngredientRequest normalizedIngredient = ingredient with
         {
-            return ingredient with
+            ProductName = ProductNameNormalizer.Normalize(ingredient.ProductName)
+        };
+
+        if (normalizedIngredient.Amount is null
+            && normalizedIngredient.Comment is not null
+            && PinchCommentRegex().IsMatch(normalizedIngredient.Comment))
+        {
+            return normalizedIngredient with
             {
                 Amount = 1m,
                 Unit = "Pinch",
@@ -38,10 +45,34 @@ public static partial class RecipeImportTextNormalizer
             };
         }
 
-        return ingredient.Amount is null
-            ? ingredient with { Unit = "ToTaste" }
-            : ingredient;
+        return normalizedIngredient.Amount is null
+            ? normalizedIngredient with { Unit = "ToTaste" }
+            : normalizedIngredient;
     }
+
+    private static string[] NormalizeTags(
+        IReadOnlyCollection<string> tags,
+        string title)
+    {
+        string normalizedTitle = ProductNameNormalizer.Normalize(title);
+
+        return
+        [.. tags
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(ProductNameNormalizer.Normalize)
+            .Where(tag => tag != normalizedTitle && !RecipeTypeTags.Contains(tag))
+            .Distinct(StringComparer.Ordinal)
+            .Take(6)];
+    }
+
+    private static readonly HashSet<string> RecipeTypeTags =
+    [
+        "завтрак", "обед", "ужин", "перекус", "суп", "основное блюдо", "гарнир",
+        "салат", "закуска", "десерт", "выпечка", "напиток", "соус", "другое",
+        "breakfast", "lunch", "dinner", "snack", "soup", "main course", "main dish",
+        "side dish", "salad", "appetizer", "dessert", "baking", "drink", "sauce", "other",
+        "еда", "рецепт", "food", "recipe"
+    ];
 
     [GeneratedRegex(
         @"^\s*(?:(?:(?:шаг|step)\s*)?\d+\s*[.)\]:\-–—]\s*|(?:шаг|step)\s*\d+\s+)",

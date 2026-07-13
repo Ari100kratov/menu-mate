@@ -36,9 +36,12 @@ public sealed class ProductCatalog : IProductCatalog
             ? await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             : null;
 
-        string normalizedName = TextNormalizer.NormalizeSearchText(name);
+        string normalizedName = ProductNameNormalizer.Normalize(name);
+        string normalizedNameForComparison = ProductNameNormalizer.NormalizeForComparison(name);
         product ??= await _dbContext.Products.FirstOrDefaultAsync(
-            item => item.NormalizedName == normalizedName && item.Category == category,
+            item => item.Category == category &&
+                (item.NormalizedName == normalizedNameForComparison ||
+                 item.NormalizedName.Replace("Ё", "Е") == normalizedNameForComparison),
             cancellationToken);
 
         if (product is null)
@@ -46,8 +49,8 @@ public sealed class ProductCatalog : IProductCatalog
             product = new ProductRecord
             {
                 Id = Guid.CreateVersion7(),
-                Name = name.Trim(),
-                NormalizedName = normalizedName,
+                Name = normalizedName,
+                NormalizedName = normalizedNameForComparison,
                 Category = category,
                 CreatedAt = _timeProvider.GetUtcNow()
             };
@@ -68,8 +71,10 @@ public sealed class ProductCatalog : IProductCatalog
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            string normalized = TextNormalizer.NormalizeSearchText(search);
-            query = query.Where(product => product.NormalizedName.Contains(normalized));
+            string normalized = ProductNameNormalizer.NormalizeForComparison(search);
+            query = query.Where(product => product.NormalizedName
+                .Replace("Ё", "Е")
+                .Contains(normalized));
         }
 
         return await query

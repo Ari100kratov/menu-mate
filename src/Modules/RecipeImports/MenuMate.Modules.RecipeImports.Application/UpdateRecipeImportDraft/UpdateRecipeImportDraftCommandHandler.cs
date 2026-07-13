@@ -1,6 +1,8 @@
 using MenuMate.Common.Application;
 using MenuMate.Contracts.RecipeImports;
+using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.RecipeImports.Application.Abstractions;
+using MenuMate.Modules.RecipeImports.Application.Extraction;
 using MenuMate.Modules.RecipeImports.Domain.Models;
 using MenuMate.SharedKernel;
 using MenuMate.SharedKernel.Identifiers;
@@ -32,9 +34,10 @@ internal sealed class UpdateRecipeImportDraftCommandHandler(
             return Result.Failure<RecipeImportDraftResponse>(ImportApplicationErrors.AccessDenied);
         }
 
+        CreateRecipeRequest normalizedRecipe = RecipeImportTextNormalizer.Normalize(command.Request.Recipe);
         Result update = draft.Update(
-            command.Request.Recipe.Title,
-            RecipeImportJson.SerializeRecipe(command.Request.Recipe),
+            normalizedRecipe.Title,
+            RecipeImportJson.SerializeRecipe(normalizedRecipe),
             timeProvider.GetUtcNow());
         if (update.IsFailure)
         {

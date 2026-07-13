@@ -90,6 +90,33 @@ public sealed class RecipeImportTextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeShouldNormalizeIngredientNamesAndDiscardRecipeTypeTags()
+    {
+        var recipe = new CreateRecipeRequest(
+            "Овощной суп",
+            null,
+            2,
+            "Soup",
+            "Public",
+            null,
+            null,
+            null,
+            [new(null, "  Свёкла  ", 1m, "Piece", "Produce", null, false)],
+            [],
+            [
+                "Суп", "Обед", "Азиатская кухня", "Вегетарианское", "Быстро",
+                "Сезонное", "Домашнее", "Праздничное", "Лёгкое"
+            ]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe);
+
+        Assert.Equal("свекла", Assert.Single(normalized.Ingredients).ProductName);
+        Assert.Equal(
+            ["азиатская кухня", "вегетарианское", "быстро", "сезонное", "домашнее", "праздничное"],
+            normalized.Tags);
+    }
+
+    [Fact]
     public void NormalizeWarningsShouldReplaceTechnicalDetailsAndKeepUserFriendlyWarnings()
     {
         IReadOnlyCollection<string> normalized = RecipeImportWarningNormalizer.Normalize(

@@ -1,5 +1,6 @@
 import { CircleCheck, CopyPlus, Search } from "lucide-react"
 
+import { normalizeProductSearch } from "@/features/products/api/products.api"
 import { useProductsQuery } from "@/features/products/api/products.queries"
 import type {
   ProductLineEditorErrors,
@@ -39,9 +40,9 @@ export function ProductLineEditorFields({
   const productsQuery = useProductsQuery(value.productName)
   const suggestions =
     value.productName.trim() && !value.productId ? (productsQuery.data ?? []).slice(0, 6) : []
-  const normalizedProductName = normalizeProductName(value.productName)
+  const normalizedProductName = normalizeProductSearch(value.productName)
   const exactNameMatches = (productsQuery.data ?? []).filter(
-    (product) => normalizeProductName(product.name) === normalizedProductName,
+    (product) => normalizeProductSearch(product.name) === normalizedProductName,
   )
   const exactCategoryMatch = exactNameMatches.find((product) => product.category === value.category)
 
@@ -243,8 +244,4 @@ export function ProductLineEditorFields({
       </Field>
     </div>
   )
-}
-
-function normalizeProductName(value: string) {
-  return value.trim().toLocaleLowerCase("ru-RU").replaceAll(/\s+/g, " ")
 }
