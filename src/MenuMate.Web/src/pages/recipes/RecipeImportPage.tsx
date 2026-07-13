@@ -41,9 +41,40 @@ export default function RecipeImportPage() {
     [previewUrls],
   )
 
-  function handleFileChange(nextFiles: FileList | null) {
-    setFiles(nextFiles ? Array.from(nextFiles).slice(0, 8) : [])
+  function addFiles(nextFiles: Iterable<File>) {
+    setFiles((currentFiles) => [...currentFiles, ...nextFiles].slice(0, 8))
   }
+
+  function handleFileChange(nextFiles: FileList | null) {
+    if (nextFiles) {
+      addFiles(Array.from(nextFiles))
+    }
+  }
+
+  function removeFile(index: number) {
+    setFiles((currentFiles) => currentFiles.filter((_, fileIndex) => fileIndex !== index))
+  }
+
+  useEffect(() => {
+    function handlePaste(event: ClipboardEvent) {
+      if (!event.clipboardData) {
+        return
+      }
+
+      const pastedFiles = getPastedImageFiles(event.clipboardData)
+      if (pastedFiles.length === 0) {
+        return
+      }
+
+      event.preventDefault()
+      setFiles((currentFiles) => [...currentFiles, ...pastedFiles].slice(0, 8))
+    }
+
+    window.addEventListener("paste", handlePaste)
+    return () => {
+      window.removeEventListener("paste", handlePaste)
+    }
+  }, [])
 
   function handleUpload() {
     if (files.length === 0) {
@@ -71,9 +102,10 @@ export default function RecipeImportPage() {
               type="file"
               multiple
               accept="image/jpeg,image/png,image/webp"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || files.length >= 8}
               onChange={(event) => {
                 handleFileChange(event.target.files)
+                event.target.value = ""
               }}
             />
             <div className="space-y-2">
@@ -83,16 +115,16 @@ export default function RecipeImportPage() {
                 className={cn(
                   buttonVariants({ variant: "outline" }),
                   "h-10 w-full cursor-pointer justify-start sm:w-auto",
-                  createMutation.isPending && "pointer-events-none opacity-50",
+                  (createMutation.isPending || files.length >= 8) && "pointer-events-none opacity-50",
                 )}
               >
                 <FileImage />
-                Выбрать изображения
+                Добавить изображения
               </label>
               <p className="text-muted-foreground text-sm">
                 {files.length > 0
-                  ? `Выбрано файлов: ${String(files.length)}`
-                  : "Можно выбрать одно или несколько изображений."}
+                  ? `Добавлено файлов: ${String(files.length)} из 8. Изображение из буфера можно вставить через Ctrl+V.`
+                  : "Можно добавлять изображения по одному или группой, а также вставить из буфера через Ctrl+V."}
               </p>
             </div>
             {createMutation.error ? <ErrorAlert error={createMutation.error} /> : null}
@@ -109,19 +141,32 @@ export default function RecipeImportPage() {
             {previewUrls.length > 0 ? (
               <div className="grid w-full grid-cols-2 gap-2">
                 {previewUrls.map((previewUrl, index) => (
-                  <RecipeImageLightbox
-                    key={previewUrl}
-                    imageUrl={previewUrl}
-                    imageAlt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
-                  >
-                    <button type="button" className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none">
-                      <img
-                        src={previewUrl}
-                        alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
-                        className="max-h-64 w-full rounded-md object-contain"
-                      />
-                    </button>
-                  </RecipeImageLightbox>
+                  <div key={previewUrl} className="relative">
+                    <RecipeImageLightbox
+                      imageUrl={previewUrl}
+                      imageAlt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
+                    >
+                      <button type="button" className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none">
+                        <img
+                          src={previewUrl}
+                          alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
+                          className="max-h-64 w-full rounded-md object-contain"
+                        />
+                      </button>
+                    </RecipeImageLightbox>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-2 right-2 shadow-sm"
+                      aria-label={`Удалить изображение ${String(index + 1)}`}
+                      onClick={() => {
+                        removeFile(index)
+                      }}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -170,6 +215,15 @@ export default function RecipeImportPage() {
       </PageSection>
     </div>
   )
+}
+
+const supportedImageContentTypes = new Set(["image/jpeg", "image/png", "image/webp"])
+
+function getPastedImageFiles(clipboardData: DataTransfer) {
+  return Array.from(clipboardData.items)
+    .filter((item) => item.kind === "file" && supportedImageContentTypes.has(item.type))
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file !== null)
 }
 
 function DeleteDraftButton({
