@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MenuMate.Common.Infrastructure\MenuMate.Common.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

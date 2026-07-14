@@ -1,5 +1,6 @@
 using MenuMate.Common.Application.Storage;
 using MenuMate.Common.Infrastructure.Storage;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
@@ -24,6 +25,7 @@ public static class CommonInfrastructureDependencyInjection
         IConfiguration configuration)
     {
         services.AddSingleton(CreateMinioOptions(configuration));
+        services.AddMemoryCache();
 
         services.AddSingleton<IMinioClient>(serviceProvider =>
         {
@@ -52,7 +54,11 @@ public static class CommonInfrastructureDependencyInjection
                     .Build());
         });
 
-        services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
+        services.AddSingleton<MinioObjectStorageService>();
+        services.AddSingleton<IObjectStorageService>(serviceProvider =>
+            new CachedObjectStorageService(
+                serviceProvider.GetRequiredService<MinioObjectStorageService>(),
+                serviceProvider.GetRequiredService<IMemoryCache>()));
 
         return services;
     }

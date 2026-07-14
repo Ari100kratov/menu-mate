@@ -98,6 +98,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/MenuMate.DataImporter.UnitTests/MenuMate.DataImporter.UnitTests.csproj" />
     <Project Path="tests/MenuMate.Api.IntegrationTests/MenuMate.Api.IntegrationTests.csproj" />
+    <Project Path="tests/MenuMate.Common.Infrastructure.UnitTests/MenuMate.Common.Infrastructure.UnitTests.csproj" />
     <Project Path="tests/MenuMate.SharedKernel.UnitTests/MenuMate.SharedKernel.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/Auth/">
