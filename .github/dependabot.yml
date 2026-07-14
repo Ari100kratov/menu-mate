@@ -27,6 +27,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: deps(frontend)
+    ignore:
+      # Удалить ignore после появления поддержки нового major в typescript-eslint.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
     groups:
       frontend-minor-and-patch:
         update-types:
