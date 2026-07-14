@@ -1,0 +1,16 @@
+.git
+.github
+.agents
+.codex
+.containers
+.pnpm-store
+.tmp
+.vs
+.env
+.env.*
+!.env.example
+**/bin
+**/obj
+**/node_modules
+**/dist
+tests

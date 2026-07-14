@@ -1,14 +1,22 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:18
+    restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-menumate}
       POSTGRES_USER: ${POSTGRES_USER:-menumate}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Portainer}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -20,30 +28,37 @@ services:
       context: .
       dockerfile: src/MenuMate.Api/Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
-      ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-menumate};Username=${POSTGRES_USER:-menumate};Password=${POSTGRES_PASSWORD:-change-me}
-      Jwt__Secret: ${JWT_SECRET:-local-development-secret-at-least-32-bytes}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-menumate};Username=${POSTGRES_USER:-menumate};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Portainer}
+      Jwt__Secret: ${JWT_SECRET:?Set JWT_SECRET in Portainer}
       Jwt__Issuer: ${JWT_ISSUER:-MenuMate}
       Jwt__Audience: ${JWT_AUDIENCE:-MenuMate}
       Jwt__ExpirationInMinutes: ${JWT_EXPIRATION_IN_MINUTES:-60}
       MENUMATE_DATA_PROTECTION_KEYS_PATH: /var/lib/menumate/data-protection-keys
       Minio__Endpoint: minio:9000
-      Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:-localhost}
-      Minio__AccessKey: ${MINIO_ROOT_USER:-admin}
-      Minio__SecretKey: ${MINIO_ROOT_PASSWORD:-password123}
+      Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:?Set MINIO_PUBLIC_ENDPOINT in Portainer}
+      Minio__AccessKey: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in Portainer}
+      Minio__SecretKey: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in Portainer}
       Minio__ImagesBucketName: ${MINIO_IMAGES_BUCKET:-images}
       Minio__ImportsBucketName: ${MINIO_IMPORTS_BUCKET:-imports}
       Minio__UseSsl: false
-      Minio__PublicUseSsl: ${MINIO_PUBLIC_USE_SSL:-false}
+      Minio__PublicUseSsl: ${MINIO_PUBLIC_USE_SSL:-true}
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-5.4-mini}
       OpenAI__ImageModel: ${OPENAI_IMAGE_MODEL:-gpt-image-1-mini}
       RecipeImports__DraftRetentionDays: ${RECIPE_IMPORT_DRAFT_RETENTION_DAYS:-7}
       RecipeImports__CleanupIntervalMinutes: ${RECIPE_IMPORT_CLEANUP_INTERVAL_MINUTES:-60}
+      Diagnostics__ExposeApiDocs: ${EXPOSE_API_DOCS:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_HEADERS: x-otlp-api-key=${ASPIRE_DASHBOARD_OTLP_API_KEY:?Set ASPIRE_DASHBOARD_OTLP_API_KEY in Portainer}
+      OTEL_SERVICE_NAME: menumate-api
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=${DOTNET_ENVIRONMENT:-Production}
     ports:
-      - "${API_PORT:-5000}:8080"
+      - "127.0.0.1:${API_PORT:-5000}:8080"
     volumes:
       - data-protection-keys:/var/lib/menumate/data-protection-keys
     depends_on:
@@ -51,6 +66,14 @@ services:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
+    restart: unless-stopped
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   web:
     build:
@@ -60,29 +83,46 @@ services:
       MINIO_IMAGES_BUCKET: ${MINIO_IMAGES_BUCKET:-images}
       MINIO_IMPORTS_BUCKET: ${MINIO_IMPORTS_BUCKET:-imports}
     ports:
-      - "${WEB_PORT:-80}:80"
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-80}:80"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   migrator:
     build:
       context: .
       dockerfile: src/MenuMate.Migrator/Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
-      ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-menumate};Username=${POSTGRES_USER:-menumate};Password=${POSTGRES_PASSWORD:-change-me}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=${POSTGRES_DB:-menumate};Username=${POSTGRES_USER:-menumate};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Portainer}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_HEADERS: x-otlp-api-key=${ASPIRE_DASHBOARD_OTLP_API_KEY:?Set ASPIRE_DASHBOARD_OTLP_API_KEY in Portainer}
+      OTEL_SERVICE_NAME: menumate-migrator
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=${DOTNET_ENVIRONMENT:-Production}
     depends_on:
       postgres:
         condition: service_healthy
+    restart: "no"
+    logging: *default-logging
 
   minio:
     image: minio/minio:latest
+    restart: unless-stopped
+    logging: *default-logging
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in Portainer}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in Portainer}
       MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_API_CORS_ALLOW_ORIGIN:-http://localhost,http://localhost:5173}
     ports:
       - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
@@ -108,13 +148,37 @@ services:
         mc mb --ignore-existing "local/$${MINIO_IMPORTS_BUCKET}"
         mc anonymous set download "local/$${MINIO_IMAGES_BUCKET}"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in Portainer}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in Portainer}
       MINIO_IMAGES_BUCKET: ${MINIO_IMAGES_BUCKET:-images}
       MINIO_IMPORTS_BUCKET: ${MINIO_IMPORTS_BUCKET:-imports}
     depends_on:
       minio:
         condition: service_healthy
+    restart: "no"
+    logging: *default-logging
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: ${ASPIRE_DASHBOARD_MEMORY_LIMIT:-512m}
+    environment:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      DASHBOARD__APPLICATIONNAME: MenuMate
+      DASHBOARD__FRONTEND__AUTHMODE: BrowserToken
+      DASHBOARD__FRONTEND__BROWSERTOKEN: ${ASPIRE_DASHBOARD_BROWSER_TOKEN:?Set ASPIRE_DASHBOARD_BROWSER_TOKEN in Portainer}
+      DASHBOARD__FRONTEND__PUBLICURL: ${ASPIRE_DASHBOARD_PUBLIC_URL:?Set ASPIRE_DASHBOARD_PUBLIC_URL in Portainer}
+      DASHBOARD__OTLP__AUTHMODE: ApiKey
+      DASHBOARD__OTLP__PRIMARYAPIKEY: ${ASPIRE_DASHBOARD_OTLP_API_KEY:?Set ASPIRE_DASHBOARD_OTLP_API_KEY in Portainer}
+      DASHBOARD__TELEMETRYLIMITS__MAXLOGCOUNT: ${ASPIRE_DASHBOARD_MAX_LOG_COUNT:-10000}
+      DASHBOARD__TELEMETRYLIMITS__MAXTRACECOUNT: ${ASPIRE_DASHBOARD_MAX_TRACE_COUNT:-10000}
+      DASHBOARD__TELEMETRYLIMITS__MAXMETRICSCOUNT: ${ASPIRE_DASHBOARD_MAX_METRICS_COUNT:-50000}
+      ASPIRE_DASHBOARD_API_DISABLED: "true"
+    ports:
+      - "${ASPIRE_DASHBOARD_BIND_ADDRESS:-0.0.0.0}:${ASPIRE_DASHBOARD_PORT:-18888}:18888"
+    expose:
+      - "18889"
 
 volumes:
   postgres-data:

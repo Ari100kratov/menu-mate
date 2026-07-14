@@ -106,8 +106,11 @@ app.UseExceptionHandler();
 
 app.MapDefaultEndpoints();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
+if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Diagnostics:ExposeApiDocs"))
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.MapGet("/", () => Results.Redirect("/api/system"))
     .WithName("Root");
