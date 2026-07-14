@@ -2,114 +2,93 @@
 
 ## Стек
 
-- .NET 10
-- ASP.NET Core Minimal API
-- Aspire AppHost
-- OpenAPI + Scalar
-- EF Core + PostgreSQL
-- MinIO для изображений
-- JWT bearer-аутентификация
-- xUnit для доменных тестов
+- .NET 10 и ASP.NET Core Minimal API;
+- EF Core и PostgreSQL 18;
+- Aspire AppHost и `MenuMate.ServiceDefaults`;
+- OpenAPI и Scalar;
+- JWT bearer-аутентификация;
+- MinIO для изображений;
+- OpenTelemetry для логов, метрик и трейсов;
+- xUnit и Testcontainers.
 
-## Shared Kernel
+## Shared Kernel и Common
 
-`MenuMate.SharedKernel` содержит только стабильные примитивы:
+`MenuMate.SharedKernel` содержит только стабильные примитивы: `Result<T>`, `AppError`, базовую сущность, marker доменных событий, нормализацию текста и типизированные межмодульные идентификаторы. Feature-specific helpers сюда не добавляются.
 
-- `Result<T>`
-- `AppError`
-- `Entity<TId>`
-- marker доменных событий
-- нормализацию текста
-- явные межмодульные идентификаторы в `Identifiers`
-
-Feature-specific helpers сюда не добавляем.
-
-## Common проекты
-
-- `MenuMate.Common.Application` содержит CQRS-абстракции, `IUserContext` и общие прикладные контракты.
-- `MenuMate.Common.Presentation` содержит преобразование результатов в HTTP и формат проблем RFC 7807.
-- `MenuMate.Common.Infrastructure` содержит интеграции с внешней инфраструктурой, сейчас MinIO.
-- `MenuMate.Common.Domain` зарезервирован для стабильных доменных helper-типов, не привязанных к конкретному модулю.
+- `MenuMate.Common.Application` — CQRS-абстракции, `IUserContext` и общие application-контракты.
+- `MenuMate.Common.Presentation` — преобразование результатов в HTTP и единый RFC 7807 `ProblemDetails`.
+- `MenuMate.Common.Infrastructure` — общие интеграции с инфраструктурой, включая MinIO и кеширование подписанных ссылок.
+- `MenuMate.Common.Domain` — место только для действительно общих доменных типов; сейчас оно намеренно минимально.
 
 ## Правила API
 
-- Конечные точки остаются тонкими.
-- Сценарии использования живут в Application проектах модулей.
-- Доменные правила живут в Domain проектах модулей.
-- Scalar и OpenAPI публикуются во всех окружениях.
-- Публичные XML summary должны быть на русском языке.
+- Endpoint остаётся тонким и передаёт работу application-handler.
+- Доменные инварианты находятся в Domain-проектах.
+- Группы пользовательских endpoint’ов требуют авторизацию по умолчанию.
+- Доменные, validation-, auth- и infrastructure-ошибки возвращаются как `ProblemDetails`.
+- OpenAPI содержит success/error schemas и security metadata, потому что из него генерируются frontend-типы.
+- В Development OpenAPI доступен по `/openapi/v1.json`, Scalar — по `/scalar/v1`.
+- В production документация API отключена; временное включение управляется `Diagnostics:ExposeApiDocs` или `EXPOSE_API_DOCS=true` в Compose.
 
 ## Структура модулей
 
-В Domain проектах используем каталоги:
+Domain-проекты при наличии соответствующего поведения используют каталоги `Models`, `ValueObjects`, `Enums`, `Errors`, `Services`. Persistence-типы находятся в `Database/Entities`, конфигурации EF Core — в `Database/Configurations` и подключаются через `ApplyConfigurationsFromAssembly`.
 
-- `Models`
-- `ValueObjects`
-- `Enums`
-- `Errors`
-- `Services`
+Командный сценарий может использовать Repository и Unit of Work, когда нужно загрузить агрегат и применить инварианты. Запросы чтения предпочитают проекцию через read DbContext-интерфейс и не гидрируют агрегат без необходимости.
 
-В Infrastructure проектах persistence-типы лежат в `Database/Entities`, EF Core конфигурации лежат в `Database/Configurations`, а DbContext подключает их через `ApplyConfigurationsFromAssembly`.
+## Persistence и миграции
 
-## Persistence
+Stateful-компоненты владеют отдельными DbContext и схемами:
 
-Stateful модули владеют своим DbContext и схемой PostgreSQL:
+- Auth — `AuthDbContext`, `auth`;
+- Recipes — `RecipesDbContext`, `recipes`;
+- Products — `ProductsDbContext`, `products`;
+- Tags — `TagsDbContext`, `tags`;
+- MenuPlanning — `MenuPlanningDbContext`, `menu_planning`;
+- ShoppingLists — `ShoppingListsDbContext`, `shopping_lists`;
+- RecipeImports — `RecipeImportsDbContext`, `imports`;
+- DataImporter — `DataImportDbContext`, `data_import`.
 
-- Auth: `AuthDbContext`, схема `auth`
-- Recipes: `RecipesDbContext`, схема `recipes`
-- Products: `ProductsDbContext`, схема `products`
-- Tags: `TagsDbContext`, схема `tags`
-- MenuPlanning: `MenuPlanningDbContext`, схема `menu_planning`
-
-Изменения схемы выражаются миграциями EF Core в инфраструктурном проекте модуля. `MenuMate.Migrator` применяет миграции явно до старта API.
-
-## Доступ к данным
-
-Repository и Unit of Work остаются допустимыми для командных сценариев, где нужно загрузить агрегат и выполнить доменные операции.
-
-Для запросов чтения предпочтительны проекции через DbContext-интерфейс/read model или спецификации. Нельзя по умолчанию загружать полный агрегат, если конечная точка возвращает только список или небольшой DTO.
+`MenuMate.Migrator` применяет миграции всех этих контекстов. Aspire и Docker Compose ждут успешного завершения мигратора до старта API.
 
 ## Владение рецептами и ревизии
 
-- У рецепта ровно один владелец. Только владелец редактирует, удаляет рецепт и управляет изображениями.
-- Запись рецепта является текущей редактируемой проекцией; каждое сохранение содержимого добавляет неизменяемую ревизию.
-- Приватные рецепты доступны только владельцу, публичные можно читать и сохранять.
-- Состояния сохранения и избранного принадлежат пользовательской записи библиотеки, а не агрегату рецепта.
-- Изменение чужого рецепта создает новую приватную копию со ссылкой на исходный рецепт и ревизию.
-- Позиция меню фиксирует ревизию рецепта, а список покупок читает неизменяемый снимок ингредиентов этой ревизии.
+- У рецепта один владелец; только он редактирует, удаляет рецепт и управляет изображениями.
+- Запись рецепта является текущей проекцией, а каждое сохранение содержимого добавляет неизменяемую ревизию.
+- Приватный рецепт доступен владельцу, публичный можно читать и сохранять в библиотеку.
+- Изменение чужого рецепта создаёт новую приватную копию со ссылкой на источник.
+- Позиция меню фиксирует ревизию, а список покупок читает ингредиенты именно этой ревизии.
 
-## Auth
+## Авторизация
 
-Auth реализован как модуль внутри монолита:
+Пароли хешируются PBKDF2. API выпускает короткоживущий JWT access token и ротируемый opaque refresh token. Refresh token хранится в PostgreSQL и передаётся только через cookie `MenuMate.RefreshToken` с `HttpOnly`, `Secure` и `SameSite=Lax`.
 
-- PBKDF2 password hashing
-- JWT access tokens
-- opaque refresh tokens в PostgreSQL
-- роли `admin` и `user`, сидируемые миграцией
-- `IUserContext` для текущего пользователя
+Текущий пользователь доступен application-коду через `IUserContext`. Модули фильтруют чтение по владельцу и проверяют владение до мутации.
 
 ## Файлы и изображения
 
-Все изображения должны храниться в MinIO. Бакет по умолчанию — `images`. API принимает новые изображения, проверяет владельца сущности, валидирует файл, сохраняет объект в MinIO и пишет metadata-запись в БД модуля-владельца.
+Backend является единственной точкой добавления и удаления изображений: он проверяет владельца, MIME/signature и размер, сохраняет объект в MinIO и метаданные в БД.
 
-Для рецептов metadata хранится в `recipes.recipe_images`. Сущность хранит `BucketName`, `ObjectKey`, область привязки (`Cover` или `Step`), номер шага для step-изображений и технические атрибуты файла. Ключи объектов строятся по схеме:
+Бакеты:
+
+- `images` — обложки и изображения шагов рецептов;
+- `imports` — закрытые исходники черновиков RecipeImports.
+
+Ключи рецептов имеют форму:
 
 ```text
 users/{ownerUserId:N}/recipes/{recipeId:N}/images/cover/{imageId:N}.{extension}
 users/{ownerUserId:N}/recipes/{recipeId:N}/images/steps/{stepNumber}/{imageId:N}.{extension}
 ```
 
-Фронт читает изображения напрямую из MinIO по ссылке `readUrl`, которую возвращает API. API не проксирует обычную выдачу изображений. `SourceUrl` рецепта не является изображением: это внешняя ссылка на страницу-источник рецепта.
+Клиент читает объект по `readUrl`, который возвращает API. Обычная выдача бинарных данных через API не проксируется. В БД нельзя сохранять произвольный URL как изображение сущности: сохраняются `BucketName`, `ObjectKey`, scope и технические метаданные.
 
-Для рецепта поддерживается одна активная обложка. Загрузка новой обложки через `POST /api/recipes/{recipeId}/images` помечает старую cover-metadata удаленной и после сохранения пытается удалить старый объект из MinIO. Удаление изображения идет через `DELETE /api/recipes/{recipeId}/images/{imageId}`: backend проверяет владельца рецепта, меняет metadata и затем очищает объектное хранилище.
+Для рецепта поддерживается одна активная обложка и одно активное изображение на шаг. Metadata изменяется транзакционно, а удаление старого объекта выполняется после сохранения; сбой очистки логируется и не откатывает уже завершённую пользовательскую операцию.
 
-## Тестирование
+## Наблюдаемость
 
-Обязательные проверки:
+`MenuMate.ServiceDefaults` подключает health checks, service discovery и OpenTelemetry. API и мигратор отправляют OTLP-телеметрию в Aspire Dashboard. Прикладной код зависит от стандартного `ILogger`, без обязательной привязки к Serilog.
 
-- масштабирование ингредиентов по порциям;
-- нормализация и дедупликация тегов;
-- инварианты пунктов меню;
-- нормализация единиц измерения;
-- агрегация и группировка списка покупок;
-- сохранение неопределенных количеств.
+## Проверки
+
+Сборка выполняется с `TreatWarningsAsErrors`, последним analysis level и code style в build. Структура unit- и интеграционных тестов, а также отличие локального полного запуска от CI описаны в [стратегии тестирования](../engineering/testing.md).

@@ -38,7 +38,13 @@ export default function RecipeCreatePage() {
         })
         queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
           recipe
-            ? { ...recipe, images: [...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"), image] }
+            ? {
+                ...recipe,
+                images: [
+                  ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+                  image,
+                ],
+              }
             : recipe,
         )
         void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })

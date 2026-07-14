@@ -1,157 +1,101 @@
 # MenuMate
 
-MenuMate — персональный помощник для рецептов, планирования меню и списков покупок.
+MenuMate — mobile-first приложение для личной библиотеки рецептов, календаря питания и единого списка покупок.
 
-## Текущий срез
+Проект построен как модульный монолит: ASP.NET Core API и React SPA развиваются в одном репозитории, а бизнес-модули разделены проектами, PostgreSQL-схемами и явными контрактами.
 
-Реализованы:
+## Что уже работает
 
-- решение .NET 10 в `MenuMate.slnx`;
-- модульный монолит с явными границами модулей;
-- Aspire AppHost для локального запуска;
-- PostgreSQL, MinIO, мигратор и API в локальной оркестрации;
-- Scalar UI и OpenAPI, доступные во всех окружениях;
-- фронтенд `src/MenuMate.Web` на Vite, React, TypeScript и Tailwind;
-- mobile-first shell: нижняя навигация на телефоне и sidebar на desktop;
-- TanStack Query для серверного состояния, Zustand для состояния auth-сессии;
-- shadcn/ui-подход: компоненты добавляются локально в `shared/ui`;
-- auth-flow с access-token в памяти и refresh-token в `HttpOnly` cookie;
-- модули Auth, Recipes, Tags, MenuPlanning и ShoppingLists;
-- изображения рецептов через MinIO: фронт читает `readUrl`, загрузка и удаление идут через backend;
-- теги как inline-сценарий рецептов, без отдельного раздела в основной навигации MVP;
-- недельный план меню и генерация списка покупок из плана;
-- список покупок с прогрессом, фильтрами, inline-редактированием позиций через `PUT`, массовыми действиями по категориям и текущей выборке, а также sticky-действием в режиме похода в магазин;
-- профиль с темой интерфейса, данными пользователя, выходом и локальными предпочтениями для ручных покупок;
-- PostgreSQL-схемы и EF Core миграции для Auth, Recipes, Tags, MenuPlanning и ShoppingLists;
-- доменные тесты для рецептов, меню и списков покупок;
-- архитектурная документация и ADR.
+- регистрация, вход, обновление и отзыв сессии;
+- личные и публичные рецепты, неизменяемые ревизии, библиотека, избранное и копирование;
+- общий каталог продуктов, категории блюд и теги;
+- обложки и изображения шагов в MinIO;
+- импорт рецепта из нескольких изображений через OpenAI-совместимый API с обязательной проверкой черновика;
+- единый календарь питания с настраиваемыми приёмами пищи;
+- предпросмотр покупок по диапазону меню и единый редактируемый список;
+- mobile-first SPA с нижней навигацией на телефоне и боковой панелью на широком экране;
+- отдельный мигратор БД, OpenTelemetry и Aspire Dashboard.
 
-## Mobile-first правило
+## Стек
 
-Каждый новый пользовательский сценарий проектируется сначала для телефона:
+- .NET 10, ASP.NET Core Minimal API, EF Core, PostgreSQL 18;
+- .NET Aspire для локальной оркестрации;
+- React 19, TypeScript 5, Vite 8, Tailwind CSS 4, shadcn/ui;
+- TanStack Query и Form, Zustand, Zod;
+- MinIO для изображений;
+- xUnit, Testcontainers и GitHub Actions.
 
-- основные разделы доступны через нижнюю навигацию;
-- рабочие экраны состоят из коротких блоков, пригодных для одной руки;
-- таблицы и широкие сетки не используются как обязательный мобильный интерфейс;
-- desktop получает расширенный layout поверх той же логики, а не отдельный продуктовый поток;
-- теги, админские справочники и вторичные настройки не попадают в основную мобильную навигацию без отдельного продуктового основания.
+## Быстрый старт
 
-## Локальные проверки
+Понадобятся .NET SDK 10, Node.js 22, pnpm 11 через Corepack и Docker-совместимый container runtime.
 
-Backend:
+Сначала установите зависимости фронтенда:
 
 ```powershell
-dotnet restore MenuMate.slnx
-dotnet build MenuMate.slnx --no-restore
-dotnet test MenuMate.slnx --no-build
-```
-
-Frontend:
-
-```powershell
+corepack enable
 cd src/MenuMate.Web
-pnpm install
-pnpm api:generate
-pnpm lint
-pnpm typecheck
-pnpm build
-pnpm format
+pnpm install --frozen-lockfile
+cd ../..
 ```
 
-Сборка настроена строго: предупреждения анализаторов, code style, TypeScript и ESLint должны проходить без ошибок. Новые подавления правил не добавляются без отдельного решения.
-
-## Локальный запуск через Aspire
-
-Aspire — основной способ локального запуска.
+Затем запустите Aspire AppHost:
 
 ```powershell
 dotnet run --project src/MenuMate.AppHost/MenuMate.AppHost.csproj
 ```
 
-AppHost поднимает PostgreSQL, MinIO, создает бакет `images`, запускает `MenuMate.Migrator`, ждет успешного применения миграций и только после этого запускает API и фронтенд.
+AppHost поднимает PostgreSQL, MinIO, инициализацию бакетов, мигратор, API и Vite. Адреса приложения, API и инфраструктуры отображаются в Aspire Dashboard. OpenAI нужен только для распознавания рецептов и генерации обложек; без ключа остальные сценарии доступны.
 
-## API
+API публикует:
 
-- OpenAPI: `/openapi/v1.json`
-- Scalar: `/scalar/v1`
-- Health: `/health`
+- OpenAPI: `/openapi/v1.json`;
+- Scalar: `/scalar/v1`;
+- health check: `/health`.
 
-Основные текущие endpoint-ы:
+OpenAPI и Scalar включены в Development. В production они по умолчанию отключены и временно включаются через `EXPOSE_API_DOCS=true`.
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/refresh`
-- `GET /api/auth/me`
-- `POST /api/auth/logout`
-- `GET /api/recipes`
-- `GET /api/recipes/{id}`
-- `POST /api/recipes`
-- `PUT /api/recipes/{id}`
-- `DELETE /api/recipes/{id}`
-- `POST /api/recipes/{id}/favorite`
-- `DELETE /api/recipes/{id}/favorite`
-- `POST /api/recipes/{id}/images`
-- `DELETE /api/recipes/{id}/images/{imageId}`
-- `GET /api/tags`
-- `POST /api/tags`
-- `POST /api/tags/{id}/confirm`
-- `DELETE /api/tags/{id}`
-- `GET /api/menu-plans`
-- `GET /api/menu-plans/{id}`
-- `POST /api/menu-plans`
-- `PUT /api/menu-plans/{id}`
-- `DELETE /api/menu-plans/{id}`
-- `POST /api/menu-plans/{id}/items`
-- `PUT /api/menu-plans/{id}/items/{itemId}`
-- `DELETE /api/menu-plans/{id}/items/{itemId}`
-- `GET /api/shopping-lists`
-- `GET /api/shopping-lists/{id}`
-- `POST /api/shopping-lists`
-- `DELETE /api/shopping-lists/{id}`
-- `POST /api/shopping-lists/{id}/items`
-- `PUT /api/shopping-lists/{id}/items/{itemId}`
-- `PATCH /api/shopping-lists/{id}/items/{itemId}/state`
-- `DELETE /api/shopping-lists/{id}/items/{itemId}`
+## Проверки
 
-Frontend API-типы генерируются из backend OpenAPI через `pnpm api:generate`. Файлы в `src/MenuMate.Web/src/shared/api/generated` вручную не редактируются.
+Backend:
+
+```powershell
+dotnet restore MenuMate.slnx
+dotnet build MenuMate.slnx --configuration Release --no-restore
+dotnet test MenuMate.slnx --configuration Release --no-build
+```
+
+Последняя команда запускает и unit-, и интеграционные тесты; для интеграционных тестов нужен Docker. Команды только для unit-тестов и правила CI описаны в [стратегии тестирования](docs/engineering/testing.md).
+
+Frontend:
+
+```powershell
+cd src/MenuMate.Web
+pnpm lint
+pnpm format
+pnpm build
+```
+
+При изменении API-контрактов дополнительно выполните `pnpm api:generate` и закоммитьте обновлённый `src/shared/api/generated/schema.d.ts`.
 
 ## Структура
 
 ```text
 src/
-  MenuMate.Api/
-  MenuMate.AppHost/
-  MenuMate.Migrator/
-  MenuMate.Web/
-  MenuMate.Contracts/
-  MenuMate.SharedKernel/
-  MenuMate.Common.Application/
-  MenuMate.Common.Domain/
-  MenuMate.Common.Infrastructure/
-  MenuMate.Common.Presentation/
-  Modules/
-    Auth/
-    Recipes/
-    Tags/
-    MenuPlanning/
-    ShoppingLists/
-tests/
-docs/
+  MenuMate.Api/             composition root и HTTP API
+  MenuMate.AppHost/         локальная Aspire-оркестрация
+  MenuMate.Migrator/        применение всех EF Core миграций
+  MenuMate.DataImporter/    административный импорт из Wikibooks
+  MenuMate.Web/             React SPA
+  MenuMate.Contracts/       публичные DTO
+  MenuMate.SharedKernel/    общие доменные примитивы
+  MenuMate.Common.*/        общие application/infrastructure/presentation типы
+  Modules/                  бизнес-модули
+tests/                      unit- и API-интеграционные тесты
+docs/                       архитектура, инженерные правила и ADR
 ```
 
-Доменные проекты дополнительно делятся на `Models`, `ValueObjects`, `Enums`, `Errors`, `Services`, где это имеет смысл. Persistence-типы инфраструктуры лежат в `Database/Entities`, EF Core конфигурации сущностей лежат в `Database/Configurations`.
+## Развёртывание и документация
 
-Фронтенд делится на `app`, `pages`, `features`, `shared/api`, `shared/ui`, `shared/lib` и `shared/config`. Feature-слой пишет query/mutation hooks вручную поверх типизированного API-клиента. Page-компоненты должны оставаться тонким orchestration-слоем; формы, карточки, рабочие области, form hooks, Zod-валидация и form-to-DTO маппинг выносятся в `features/*/ui` и `features/*/model`.
+Production-стек на Docker Compose описан в [руководстве по развёртыванию](docs/architecture/deployment.md); пример обязательных переменных находится в [.env.example](.env.example).
 
-## Дальнейший план
-
-1. Mobile UX hardening: проверить основные экраны на узких viewport, вынести повторяющиеся mobile-first паттерны, улучшить плотность форм, sticky actions и пустые состояния.
-2. Рецепты: довести карточки, фильтры, избранное, изображения и детальную страницу до ежедневного сценария; добавить загрузку изображений шагов через существующий `scope=Step`.
-3. Меню: улучшить недельную сетку для телефона, добавить быстрые действия по дню и приему пищи, копирование пункта, перенос на другой день и быстрый выбор рецепта.
-4. Покупки: MVP-сценарий усилен inline-редактированием, массовыми действиями по категории/текущей выборке и sticky-действием для мобильного режима магазина. Следующий шаг — улучшать UX реального похода в магазин: порядок категорий, скрытие завершенных групп и более явные состояния синхронизации.
-5. Профиль и настройки: MVP-сценарий получил явный выбор темы и локальные дефолты единицы/категории для ручных покупок. Следующий шаг — backend-контракт пользовательских настроек, если появится необходимость синхронизации между устройствами.
-6. Качество фронтенда: frontend-тесты пока не добавляются; текущий фокус — компактные файлы, тонкие `pages`, feature-компоненты вместо больших экранов, TypeScript/ESLint/format без warnings и ошибок. Крупные recipe/tag/menu компоненты раздроблены; следующий практический шаг — продолжать выносить повторяющиеся field/layout-паттерны по мере появления новых экранов.
-
-## Документация
-
-Начинать лучше с [docs/README.md](docs/README.md), затем читать ADR в [docs/adr](docs/adr).
+Начальная точка документации — [docs/README.md](docs/README.md). Там собраны архитектура, UX-решения, тестирование, правила GitHub и индекс ADR.

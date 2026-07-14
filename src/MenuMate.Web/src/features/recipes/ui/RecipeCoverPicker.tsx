@@ -79,12 +79,12 @@ export function RecipeCoverPicker({
           }}
         >
           <span>
-          <span className="type-subsection-title block">
-            {imageUrl ? "Обложка рецепта" : "Добавить обложку"}
-          </span>
-          <span className="type-supporting text-muted-foreground mt-1 block">
-            {imageUrl ? "Нажмите, чтобы заменить изображение" : "JPEG, PNG, WebP или AVIF"}
-          </span>
+            <span className="type-subsection-title block">
+              {imageUrl ? "Обложка рецепта" : "Добавить обложку"}
+            </span>
+            <span className="type-supporting text-muted-foreground mt-1 block">
+              {imageUrl ? "Нажмите, чтобы заменить изображение" : "JPEG, PNG, WebP или AVIF"}
+            </span>
           </span>
         </button>
       </div>

@@ -13,7 +13,7 @@ export function RecipeImageLightbox({ imageUrl, imageAlt, children }: RecipeImag
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
-        className="text-white h-fit w-fit max-h-[calc(100svh-1rem)] max-w-[calc(100vw-1rem)] rounded-none border-0 bg-transparent p-0 shadow-none sm:w-fit sm:max-w-[calc(100vw-1rem)] sm:rounded-none"
+        className="h-fit max-h-[calc(100svh-1rem)] w-fit max-w-[calc(100vw-1rem)] rounded-none border-0 bg-transparent p-0 text-white shadow-none sm:w-fit sm:max-w-[calc(100vw-1rem)] sm:rounded-none"
         style={{
           top: "50%",
           right: "auto",
@@ -24,7 +24,7 @@ export function RecipeImageLightbox({ imageUrl, imageAlt, children }: RecipeImag
       >
         <DialogTitle className="sr-only">{imageAlt}</DialogTitle>
         <img
-          className="h-auto w-auto max-h-[calc(100svh-1rem)] max-w-[calc(100vw-1rem)] object-contain"
+          className="h-auto max-h-[calc(100svh-1rem)] w-auto max-w-[calc(100vw-1rem)] object-contain"
           src={imageUrl}
           alt={imageAlt}
         />

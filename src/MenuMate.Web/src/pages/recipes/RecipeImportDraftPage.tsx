@@ -86,7 +86,13 @@ export default function RecipeImportDraftPage() {
         })
         queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
           recipe
-            ? { ...recipe, images: [...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"), image] }
+            ? {
+                ...recipe,
+                images: [
+                  ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+                  image,
+                ],
+              }
             : recipe,
         )
         void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
@@ -147,7 +153,10 @@ export default function RecipeImportDraftPage() {
                 imageUrl={image.readUrl}
                 imageAlt={`Исходное изображение рецепта ${String(index + 1)}`}
               >
-                <button type="button" className="focus-visible:ring-ring rounded-lg focus-visible:ring-2 focus-visible:outline-none">
+                <button
+                  type="button"
+                  className="focus-visible:ring-ring rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+                >
                   <img
                     src={image.readUrl}
                     alt={`Исходное изображение рецепта ${String(index + 1)}`}

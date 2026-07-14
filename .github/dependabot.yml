@@ -1,0 +1,64 @@
+version: 2
+
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps(dotnet)
+    groups:
+      dotnet-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /src/MenuMate.Web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:15"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps(frontend)
+    groups:
+      frontend-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: docker
+    directories:
+      - /
+      - /src/MenuMate.Api
+      - /src/MenuMate.Migrator
+      - /src/MenuMate.Web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps(docker)
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:45"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps(actions)
+    groups:
+      github-actions:
+        patterns:
+          - "*"

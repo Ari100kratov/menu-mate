@@ -2,57 +2,81 @@
 
 ## Структура
 
-Структура тестов повторяет структуру production-проектов:
+Тестовые проекты находятся в `tests` и повторяют область production-кода:
 
-- корневой проект `src/MenuMate.SharedKernel` проверяется в `tests/MenuMate.SharedKernel.UnitTests`;
-- доменный проект `src/Modules/<Module>/MenuMate.Modules.<Module>.Domain` проверяется в `tests/Modules/<Module>/MenuMate.Modules.<Module>.Domain.UnitTests`;
-- внутри unit-test проекта каталоги `Models`, `ValueObjects`, `Services` и другие повторяют каталоги тестируемого проекта;
-- API-интеграционные тесты находятся в `tests/MenuMate.Api.IntegrationTests/Modules/<Module>`;
-- общая инфраструктура интеграционных тестов находится в `tests/MenuMate.Api.IntegrationTests/Infrastructure`.
+- `MenuMate.SharedKernel.UnitTests` — общие доменные примитивы;
+- `MenuMate.Common.Infrastructure.UnitTests` — изолируемое поведение общей инфраструктуры;
+- `MenuMate.DataImporter.UnitTests` — парсинг, настройки и политики административного импортера;
+- `Modules/<Module>/*.UnitTests` — Domain- и Application-поведение конкретного модуля;
+- `MenuMate.Api.IntegrationTests` — сквозные HTTP-сценарии модулей.
 
-Не следует создавать пустой test-проект только ради симметрии. Отдельный проект создается, когда в production-проекте появляется поведение, которое имеет смысл проверять изолированно.
+Пустой test-проект ради симметрии не создаётся. Новый проект появляется, когда у production-проекта есть поведение, которое имеет смысл проверять изолированно.
 
-## Доменные unit-тесты
+## Unit-тесты
 
 Unit-тестами покрываются:
 
-- инварианты создания доменных моделей и value objects;
+- инварианты моделей и value objects;
 - допустимые и недопустимые переходы состояния;
-- нормализация и дедупликация пользовательских значений;
-- масштабирование, группировка, преобразование единиц и другие чистые доменные расчеты;
+- нормализация и дедупликация;
+- масштабирование, группировка и преобразование единиц;
+- чистые application-сервисы, парсеры и политики;
 - поведение базовых типов SharedKernel.
 
-Простые DTO, перечисления без поведения и persistence-конфигурации не требуют unit-тестов.
+Простые DTO, перечисления без поведения и декларативная EF Core конфигурация отдельного unit-теста не требуют.
 
 ## API-интеграционные тесты
 
-Интеграционные тесты поднимают API через `WebApplicationFactory`, используют настоящие обработчики, PostgreSQL в Testcontainers и применяют EF-миграции.
+`MenuMate.Api.IntegrationTests` поднимает API через `WebApplicationFactory`, запускает PostgreSQL в Testcontainers и применяет настоящие EF Core миграции. Набор проверяет auth, Recipes, Products, Tags, MenuPlanning, ShoppingLists и изоляцию данных пользователей.
 
-Основные сценарии:
+Для этих тестов нужен работающий Docker daemon. Они запускаются локально перед изменениями API, persistence, авторизации и межмодульных сценариев, но намеренно исключены из обычного GitHub Actions CI по требованию проекта.
 
-- Auth: регистрация, вход, профиль, refresh/logout, ошибки учетных данных и уникальности email;
-- Recipes: жизненный цикл собственного рецепта, фильтры, избранное, права доступа, библиотека и копирование;
-- Products: создание продуктов через пользовательские сценарии, поиск и варианты одинакового названия в разных категориях;
-- Tags: создание, поиск, подтверждение, скрытие и уникальность;
-- MenuPlanning: приемы пищи, позиции календаря, очистка диапазона и изоляция пользователей;
-- ShoppingLists: предпросмотр меню, генерация единственного списка, ручные позиции, отметки и замена списка.
+## Frontend
 
-## Запуск
+Отдельного frontend test runner сейчас нет. Обязательный quality gate состоит из:
 
-Полный набор:
-
-```bash
-dotnet test MenuMate.slnx --no-restore
+```powershell
+cd src/MenuMate.Web
+pnpm lint
+pnpm format
+pnpm build
 ```
 
-Только доменные unit-тесты конкретного модуля:
+`pnpm build` включает TypeScript typecheck. При изменении backend-контрактов также выполняется `pnpm api:generate`; сгенерированный diff проверяется вместе с ручными frontend-изменениями.
 
-```bash
+## Локальный запуск
+
+Сначала соберите решение:
+
+```powershell
+dotnet restore MenuMate.slnx
+dotnet build MenuMate.slnx --configuration Release --no-restore
+```
+
+Все тесты, включая интеграционные:
+
+```powershell
+dotnet test MenuMate.slnx --configuration Release --no-build
+```
+
+Только unit-тесты — тот же отбор проектов, который использует CI:
+
+```powershell
+$unitTestProjects = Get-ChildItem tests -Recurse -Filter *.UnitTests.csproj
+foreach ($project in $unitTestProjects) {
+  dotnet test $project.FullName --configuration Release --no-build --no-restore
+}
+```
+
+Один проект или сценарий:
+
+```powershell
 dotnet test tests/Modules/Recipes/MenuMate.Modules.Recipes.Domain.UnitTests/MenuMate.Modules.Recipes.Domain.UnitTests.csproj
-```
-
-Только интеграционный сценарий:
-
-```bash
 dotnet test tests/MenuMate.Api.IntegrationTests/MenuMate.Api.IntegrationTests.csproj --filter FullyQualifiedName~RecipeWorkflowTests
 ```
+
+## GitHub Actions
+
+Workflow `.github/workflows/ci.yml` запускается для pull request, push в `main` и вручную. Job `Backend` восстанавливает и собирает всё решение, но выполняет только проекты `*.UnitTests.csproj`; `MenuMate.Api.IntegrationTests` не запускается. Job `Frontend` проверяет lockfile, ESLint, Prettier, TypeScript и production build.
+
+Локальный полный прогон остаётся обязательным для изменений, риск которых не покрывает сокращённый CI.

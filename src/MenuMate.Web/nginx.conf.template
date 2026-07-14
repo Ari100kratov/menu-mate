@@ -19,7 +19,8 @@ server {
 
     root /usr/share/nginx/html;
     index index.html;
-    client_max_body_size 12m;
+    # Backend accepts up to 40 MiB of recipe-import images in one multipart request.
+    client_max_body_size 48m;
 
     location /api/ {
         proxy_pass http://api:8080;

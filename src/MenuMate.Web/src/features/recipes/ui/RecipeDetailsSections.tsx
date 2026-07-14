@@ -89,7 +89,10 @@ export function RecipeSteps({ recipe }: RecipeDetailsSectionsProps) {
                 <p className="type-body">{step.text}</p>
                 {image ? (
                   <div className="max-w-md">
-                    <RecipeImagePreview image={image} fallbackTitle={`Шаг ${String(step.number)}`} />
+                    <RecipeImagePreview
+                      image={image}
+                      fallbackTitle={`Шаг ${String(step.number)}`}
+                    />
                   </div>
                 ) : null}
               </div>

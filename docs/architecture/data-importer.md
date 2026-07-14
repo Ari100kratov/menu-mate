@@ -23,14 +23,16 @@
 
 ## Запуск
 
-Перед импортом нужно применить миграции. Миграция Auth создает тестового
-администратора `ari100kratov@yandex.ru` с паролем `admin123` и назначает ему все
-роли. Перед использованием в production пароль необходимо изменить.
+Перед импортом нужно применить миграции. Текущая Auth-миграция создаёт bootstrap-администратора для первоначального наполнения. Его известные credentials предназначены только для локальной разработки: перед production-развёртыванием seed нужно заменить или удалить отдельной миграцией. Строка подключения, email администратора и ключ OpenAI не хранятся в tracked `appsettings.json` и передаются аргументами, user secrets или переменными окружения.
+
+При запуске через Aspire миграции применяются автоматически. После старта AppHost скопируйте строку подключения ресурса `menumate` из Dashboard и передайте её импортеру сначала в dry-run:
 
 ```powershell
-dotnet run --project src/MenuMate.Migrator
-dotnet run --project src/MenuMate.DataImporter -- --admin-email admin@example.com --dry-run --max-items 20
-dotnet run --project src/MenuMate.DataImporter -- --admin-email admin@example.com --resume
+dotnet run --project src/MenuMate.DataImporter -- `
+  --connection-string "Host=localhost;Port=<порт>;Database=menumate;Username=<пользователь>;Password=<пароль>" `
+  --admin-email <email-bootstrap-администратора> `
+  --dry-run `
+  --max-items 20
 ```
 
 При работе с базой данных, созданной Aspire, стандартный ресурс `migrator`
@@ -39,31 +41,13 @@ dotnet run --project src/MenuMate.DataImporter -- --admin-email admin@example.co
 При обычном запуске импортер также самостоятельно применяет миграции принадлежащей
 ему служебной схемы `data_import`. Режим `--dry-run` эту схему не читает и не изменяет.
 
-`MenuMate.DataImporter` намеренно не входит в AppHost и поэтому не получает динамическую
-строку подключения автоматически. Ее нужно скопировать для ресурса базы данных
-`menumate` из Aspire Dashboard и передать импортеру. Нельзя использовать строку
-серверного ресурса `postgres`: в ней отсутствует `Database=menumate`, поэтому Npgsql
-подключится к другой базе и будет считать миграции непримененными.
-
-Для локальной разработки Postgres из Aspire опубликован на постоянном адресе
-`localhost:5432`. Импортер можно запускать отдельно от AppHost, пока контейнер Postgres
-продолжает работать. Если Aspire остановил контейнер, сначала нужно запустить AppHost
-или сам существующий контейнер Postgres. Закрепленный порт не запускает базу данных
-автоматически и должен быть свободен на машине.
-
-```powershell
-dotnet run --project src/MenuMate.DataImporter -- `
-  --connection-string "Host=localhost;Port=<порт>;Database=menumate;Username=<пользователь>;Password=<пароль>" `
-  --admin-email admin@example.com `
-  --dry-run `
-  --max-items 20
-```
+`MenuMate.DataImporter` намеренно не входит в AppHost и не получает строку подключения автоматически. Aspire назначает host-port PostgreSQL динамически, поэтому адрес ресурса базы `menumate` нужно брать из текущего запуска Dashboard. Не используйте строку серверного ресурса `postgres`: в ней может отсутствовать `Database=menumate`, и Npgsql подключится к другой базе.
 
 Вместо параметра можно задать переменную окружения:
 
 ```powershell
 $env:ConnectionStrings__Database = "Host=localhost;Port=<порт>;Database=menumate;Username=<пользователь>;Password=<пароль>"
-dotnet run --project src/MenuMate.DataImporter -- --admin-email admin@example.com --dry-run --max-items 20
+dotnet run --project src/MenuMate.DataImporter -- --admin-email <email-bootstrap-администратора> --dry-run --max-items 20
 ```
 
 Поддерживаемые параметры:

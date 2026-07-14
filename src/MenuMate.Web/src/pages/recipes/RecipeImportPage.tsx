@@ -115,7 +115,8 @@ export default function RecipeImportPage() {
                 className={cn(
                   buttonVariants({ variant: "outline" }),
                   "h-10 w-full cursor-pointer justify-start sm:w-auto",
-                  (createMutation.isPending || files.length >= 8) && "pointer-events-none opacity-50",
+                  (createMutation.isPending || files.length >= 8) &&
+                    "pointer-events-none opacity-50",
                 )}
               >
                 <FileImage />
@@ -146,7 +147,10 @@ export default function RecipeImportPage() {
                       imageUrl={previewUrl}
                       imageAlt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
                     >
-                      <button type="button" className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none">
+                      <button
+                        type="button"
+                        className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                      >
                         <img
                           src={previewUrl}
                           alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}

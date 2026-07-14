@@ -1,33 +1,32 @@
 # Документация MenuMate
 
-- [Первоначальный импорт рецептов](architecture/data-importer.md)
+Документация описывает текущее устройство проекта. Исторические причины решений сохраняются отдельно в ADR; планы и backlog здесь намеренно не дублируются.
 
-Документация нужна, чтобы разработчик или AI-агент мог продолжить работу без восстановления архитектуры из переписки.
-
-## Читать сначала
+## Начать отсюда
 
 1. [Обзор архитектуры](architecture/overview.md)
-2. [Модули](architecture/modules.md)
-3. [Бэкенд](architecture/backend.md)
-4. [Фронтенд](architecture/frontend.md)
-5. [Развертывание](architecture/deployment.md)
-6. [ADR](adr/README.md)
-7. [Правила backend-разработки](engineering/backend-guardrails.md)
+2. [Модули и владение данными](architecture/modules.md)
+3. [Архитектура бэкенда](architecture/backend.md)
+4. [Архитектура фронтенда](architecture/frontend.md)
+5. [UX-решения фронтенда](architecture/frontend-ux.md)
+6. [Развёртывание](architecture/deployment.md)
 
-## Текущий срез
+## Сценарии и интеграции
 
-- Бэкенд собирается на .NET 10.
-- Реализованы доменные правила Recipes, Tags, MenuPlanning и ShoppingLists.
-- API публикует конечные точки Auth, Recipes, Tags, MenuPlanning и ShoppingLists.
-- Auth, Recipes, Tags, MenuPlanning и ShoppingLists используют отдельные схемы PostgreSQL и собственные DbContext.
-- `MenuMate.Migrator` применяет миграции до старта API в Aspire и Docker Compose.
-- MinIO подключен как общее объектное хранилище для изображений.
-- Scalar доступен во всех окружениях.
-- Фронтенд пока описан, но не создан.
+- [Создание рецепта из изображения](architecture/recipe-import-from-image.md)
+- [Просмотр изображений рецепта](architecture/recipe-image-viewing.md)
+- [Первоначальный импорт рецептов из Wikibooks](architecture/data-importer.md)
 
-## Следующий рекомендуемый срез
+## Инженерные правила
 
-1. Добавить интеграционные тесты auth-required workflow.
-2. Спроектировать семейные пространства как расширение модели владения.
-3. Расширять модуль RecipeImports новыми источниками импорта, сохраняя обязательную проверку черновика.
-4. Добавить модуль Files для загрузки и проверки изображений через MinIO.
+- [Стратегия тестирования](engineering/testing.md)
+- [Правила backend-разработки](engineering/backend-guardrails.md)
+- [GitHub Actions и Dependabot](engineering/github.md)
+
+## Архитектурные решения
+
+[Индекс ADR](adr/README.md) содержит принятые и заменённые решения. ADR фиксируют контекст на момент принятия; актуальные правила разработки находятся в документах `architecture/**` и `engineering/**`.
+
+## Правило обновления
+
+Изменение модульных границ, потоков авторизации, хранения данных, навигации, mobile layout или form flow сопровождается обновлением соответствующего документа. Новое существенное и труднообратимое решение оформляется отдельным ADR.

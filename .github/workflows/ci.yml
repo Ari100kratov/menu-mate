@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore MenuMate.slnx
+
+      - name: Build
+        run: dotnet build MenuMate.slnx --configuration Release --no-restore
+
+      - name: Unit tests
+        shell: pwsh
+        run: |
+          $unitTestProjects = @(
+            Get-ChildItem tests -Recurse -Filter *.UnitTests.csproj |
+              Sort-Object FullName
+          )
+
+          if ($unitTestProjects.Count -eq 0) {
+            throw "Unit test projects were not found."
+          }
+
+          foreach ($project in $unitTestProjects) {
+            dotnet test $project.FullName `
+              --configuration Release `
+              --no-build `
+              --no-restore `
+              --logger "console;verbosity=normal"
+
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+          }
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: src/MenuMate.Web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format
+
+      - name: Build
+        run: pnpm build

@@ -15,17 +15,17 @@ export function RecipeImagePreview({ image, fallbackTitle }: RecipeImagePreviewP
     return (
       <figure className="space-y-1.5">
         <RecipeImageLightbox imageUrl={image.readUrl} imageAlt={imageAlt}>
-            <button
-              type="button"
-              className="focus-visible:ring-ring block w-full rounded-md focus-visible:ring-2 focus-visible:outline-none"
-              aria-label={`Открыть изображение: ${imageAlt}`}
-            >
-              <img
-                className="bg-muted aspect-[4/3] w-full rounded-md border object-cover"
-                src={image.readUrl}
-                alt={imageAlt}
-              />
-            </button>
+          <button
+            type="button"
+            className="focus-visible:ring-ring block w-full rounded-md focus-visible:ring-2 focus-visible:outline-none"
+            aria-label={`Открыть изображение: ${imageAlt}`}
+          >
+            <img
+              className="bg-muted aspect-[4/3] w-full rounded-md border object-cover"
+              src={image.readUrl}
+              alt={imageAlt}
+            />
+          </button>
         </RecipeImageLightbox>
         <ImageAttribution image={image} />
       </figure>

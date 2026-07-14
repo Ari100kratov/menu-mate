@@ -129,11 +129,11 @@ app.MapGet("/api/modules", () => new[]
     {
         new ModuleResponse("Auth", "JWT auth, refresh tokens, users and roles."),
         new ModuleResponse("Recipes", "Рецепты, ингредиенты, шаги, избранное и связь с тегами."),
+        new ModuleResponse("Products", "Общий нормализованный каталог продуктов и категории покупок."),
         new ModuleResponse("Tags", "Гибкие системные, пользовательские и предложенные теги."),
         new ModuleResponse("MenuPlanning", "Календарь питания, приемы пищи и запланированные блюда."),
         new ModuleResponse("ShoppingLists", "Расчет, группировка, отметки и текстовый шаринг покупок."),
-        new ModuleResponse("RecipeImports", "Черновики импорта рецептов из изображений."),
-        new ModuleResponse("Files", "Будущий контур загрузки и проверки изображений.")
+        new ModuleResponse("RecipeImports", "Черновики импорта рецептов из изображений.")
     })
     .WithName("GetModules");
 
