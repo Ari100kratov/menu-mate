@@ -21,7 +21,20 @@ public sealed record RecipeImportEvidenceResponse(
     IReadOnlyCollection<string> Warnings,
     string Provider,
     string Model,
-    string? ProviderResponseId);
+    string? ProviderResponseId,
+    RecipeImportSuggestedCoverResponse? SuggestedCover = null);
+
+/// <summary>
+/// Предложенная область исходного изображения с фотографией готового блюда.
+/// Координаты нормализованы относительно сторон изображения в диапазоне от 0 до 1000.
+/// </summary>
+public sealed record RecipeImportSuggestedCoverResponse(
+    int SourceImageIndex,
+    int X,
+    int Y,
+    int Width,
+    int Height,
+    int Confidence);
 
 /// <summary>
 /// Исходное изображение черновика импорта.

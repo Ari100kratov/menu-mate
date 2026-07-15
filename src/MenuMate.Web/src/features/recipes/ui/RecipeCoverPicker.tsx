@@ -1,9 +1,16 @@
 import { ImagePlus, LoaderCircle, Sparkles } from "lucide-react"
-import { useEffect, useMemo, useRef } from "react"
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { Button } from "@/shared/ui/button"
+import { Skeleton } from "@/shared/ui/skeleton"
+import type { RecipeCoverSuggestion } from "./RecipeCoverSuggestion"
 import { RecipeImage } from "./RecipeImage"
 import { RecipeImageLightbox } from "./RecipeImageLightbox"
+
+const RecipeCoverSuggestionCard = lazy(async () => {
+  const module = await import("./RecipeCoverSuggestion")
+  return { default: module.RecipeCoverSuggestionCard }
+})
 
 interface RecipeCoverPickerProps {
   existingImageUrl?: string
@@ -11,6 +18,7 @@ interface RecipeCoverPickerProps {
   onFileChange: (file: File | null) => void
   onGenerate?: () => void
   isGenerating?: boolean
+  suggestedCover?: RecipeCoverSuggestion
 }
 
 export function RecipeCoverPicker({
@@ -19,8 +27,10 @@ export function RecipeCoverPicker({
   onFileChange,
   onGenerate,
   isGenerating = false,
+  suggestedCover,
 }: RecipeCoverPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [dismissedSuggestionId, setDismissedSuggestionId] = useState<string>()
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : undefined), [file])
 
   useEffect(() => {
@@ -92,6 +102,19 @@ export function RecipeCoverPicker({
         </button>
       </div>
 
+      {suggestedCover && dismissedSuggestionId !== suggestedCover.id && !file ? (
+        <Suspense fallback={<Skeleton className="mt-3 h-36 w-full rounded-lg" />}>
+          <RecipeCoverSuggestionCard
+            key={suggestedCover.id}
+            suggestion={suggestedCover}
+            onApply={onFileChange}
+            onDismiss={() => {
+              setDismissedSuggestionId(suggestedCover.id)
+            }}
+          />
+        </Suspense>
+      ) : null}
+
       {onGenerate ? (
         <Button
           type="button"
@@ -126,3 +149,5 @@ export function RecipeCoverPicker({
     </section>
   )
 }
+
+export type { RecipeCoverSuggestion } from "./RecipeCoverSuggestion"

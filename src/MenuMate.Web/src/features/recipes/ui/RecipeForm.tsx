@@ -4,7 +4,10 @@ import { toast } from "sonner"
 
 import { recipeFormSchema, type RecipeFormValues } from "@/features/recipes/model/recipe-form"
 import { RecipeAdditionalFields } from "@/features/recipes/ui/RecipeAdditionalFields"
-import { RecipeCoverPicker } from "@/features/recipes/ui/RecipeCoverPicker"
+import {
+  RecipeCoverPicker,
+  type RecipeCoverSuggestion,
+} from "@/features/recipes/ui/RecipeCoverPicker"
 import { RecipeIngredientsFields } from "@/features/recipes/ui/RecipeIngredientsFields"
 import { RecipeMainFields } from "@/features/recipes/ui/RecipeMainFields"
 import { RecipeStepsFields } from "@/features/recipes/ui/RecipeStepsFields"
@@ -19,6 +22,7 @@ interface RecipeFormProps {
   isSubmitting: boolean
   error?: unknown
   coverImageUrl?: string
+  suggestedCover?: RecipeCoverSuggestion
   onValuesChange?: (values: RecipeFormValues) => void
   generateCover?: (values: RecipeFormValues) => Promise<File>
   onSubmit: (values: RecipeFormValues, coverFile: File | null) => void
@@ -30,6 +34,7 @@ export function RecipeForm({
   isSubmitting,
   error,
   coverImageUrl,
+  suggestedCover,
   onValuesChange,
   generateCover,
   onSubmit,
@@ -135,6 +140,7 @@ export function RecipeForm({
           onFileChange={handleCoverFileChange}
           onGenerate={generateCover ? () => void handleGenerateCover() : undefined}
           isGenerating={isGeneratingCover}
+          suggestedCover={suggestedCover}
         />
         <RecipeMainFields form={form} />
         <RecipeIngredientsFields form={form} showValidationErrors={showValidationErrors} />

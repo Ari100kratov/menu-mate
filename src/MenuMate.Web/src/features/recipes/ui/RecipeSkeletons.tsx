@@ -153,9 +153,9 @@ export function RecipeFormSkeleton() {
 
 function RecipeCardSkeleton() {
   return (
-    <article className="bg-card relative grid min-h-36 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm sm:grid-cols-[9rem_minmax(0,1fr)]">
-      <Skeleton className="h-36 w-full self-center rounded-none" />
-      <div className="flex min-w-0 flex-col justify-center gap-3 p-3 pr-11 sm:p-4 sm:pr-12">
+    <article className="bg-card relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm sm:min-h-32 sm:grid-cols-[8rem_minmax(0,1fr)]">
+      <Skeleton className="h-28 w-full self-center rounded-none sm:h-32" />
+      <div className="flex min-w-0 flex-col justify-center gap-2 p-3 sm:p-4">
         <div className="space-y-2">
           <Skeleton className="h-5 w-4/5" />
           <Skeleton className="h-4 w-24" />

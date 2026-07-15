@@ -24,8 +24,10 @@ export function RecipeImage({
       <span
         aria-hidden="true"
         className={cn(
-          "bg-accent absolute inset-0 animate-pulse transition-opacity",
-          isLoaded && "pointer-events-none opacity-0",
+          "bg-accent absolute inset-0 transition-opacity",
+          isLoaded
+            ? "pointer-events-none opacity-0"
+            : "animate-pulse opacity-100 motion-reduce:animate-none",
         )}
       />
       <img

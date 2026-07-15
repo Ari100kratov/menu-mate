@@ -6,6 +6,7 @@ using MenuMate.Modules.RecipeImports.Application.CreateRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.DeleteRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.GetRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.GetRecipeImportDrafts;
+using MenuMate.Modules.RecipeImports.Application.GetRecipeImportSourceImage;
 using MenuMate.Modules.RecipeImports.Application.GenerateRecipeCoverImage;
 using MenuMate.Modules.RecipeImports.Application.Generation;
 using MenuMate.Modules.RecipeImports.Application.UpdateRecipeImportDraft;
@@ -29,6 +30,7 @@ public static class RecipeImportsApplicationDependencyInjection
         services.AddScoped<ICommandHandler<GenerateRecipeCoverImageCommand, GeneratedRecipeCoverImage>, GenerateRecipeCoverImageCommandHandler>();
         services.AddScoped<IQueryHandler<GetRecipeImportDraftQuery, RecipeImportDraftResponse>, GetRecipeImportDraftQueryHandler>();
         services.AddScoped<IQueryHandler<GetRecipeImportDraftsQuery, IReadOnlyCollection<RecipeImportDraftListItemResponse>>, GetRecipeImportDraftsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetRecipeImportSourceImageQuery, RecipeImportSourceImageContent>, GetRecipeImportSourceImageQueryHandler>();
         return services;
     }
 }

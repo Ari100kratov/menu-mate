@@ -8,6 +8,7 @@ using MenuMate.Modules.RecipeImports.Application.CreateRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.DeleteRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.GetRecipeImportDraft;
 using MenuMate.Modules.RecipeImports.Application.GetRecipeImportDrafts;
+using MenuMate.Modules.RecipeImports.Application.GetRecipeImportSourceImage;
 using MenuMate.Modules.RecipeImports.Application.GenerateRecipeCoverImage;
 using MenuMate.Modules.RecipeImports.Application.Generation;
 using MenuMate.Modules.RecipeImports.Application.UpdateRecipeImportDraft;
@@ -37,6 +38,12 @@ public static class RecipeImportsEndpoints
         group.MapGet("/{draftId:guid}", GetDraftAsync)
             .WithName("GetRecipeImportDraft")
             .Produces<RecipeImportDraftResponse>()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{draftId:guid}/source-images/{sourceImageIndex:int:min(0)}/content", GetSourceImageAsync)
+            .WithName("GetRecipeImportSourceImage")
+            .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -102,6 +109,28 @@ public static class RecipeImportsEndpoints
             new GetRecipeImportDraftQuery(draftId),
             cancellationToken);
         return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> GetSourceImageAsync(
+        Guid draftId,
+        int sourceImageIndex,
+        IQueryHandler<GetRecipeImportSourceImageQuery, RecipeImportSourceImageContent> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<RecipeImportSourceImageContent> result = await handler.Handle(
+            new GetRecipeImportSourceImageQuery(draftId, sourceImageIndex),
+            cancellationToken);
+        if (result.IsFailure)
+        {
+            return result.ToHttpResult(httpContext);
+        }
+
+        httpContext.Response.Headers.CacheControl = "private, no-store";
+        return Results.Stream(
+            result.Value.Content,
+            result.Value.ContentType,
+            enableRangeProcessing: false);
     }
 
     private static async Task<IResult> CreateDraftAsync(

@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recipe-images/generate-cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GenerateRecipeCoverImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products": {
         parameters: {
             query?: never;
@@ -158,6 +174,70 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["LogoutUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/imports/recipe-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetRecipeImportDrafts"];
+        put?: never;
+        post: operations["CreateRecipeImportDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/imports/recipe-drafts/{draftId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetRecipeImportDraft"];
+        put: operations["UpdateRecipeImportDraft"];
+        post?: never;
+        delete: operations["DeleteRecipeImportDraft"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/imports/recipe-drafts/{draftId}/source-images/{sourceImageIndex}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetRecipeImportSourceImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/imports/recipe-drafts/{draftId}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ConfirmRecipeImportDraft"];
         delete?: never;
         options?: never;
         head?: never;
@@ -324,39 +404,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/menu-plans": {
+    "/api/menu-calendar": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["GetMenuPlans"];
+        get: operations["GetMenuCalendar"];
         put?: never;
-        post: operations["CreateMenuPlan"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/menu-plans/{menuPlanId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["GetMenuPlanById"];
-        put: operations["UpdateMenuPlan"];
         post?: never;
-        delete: operations["DeleteMenuPlan"];
+        delete: operations["ClearMenuCalendar"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/menu-plans/{menuPlanId}/items": {
+    "/api/menu-calendar/items": {
         parameters: {
             query?: never;
             header?: never;
@@ -365,14 +429,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AddMenuPlanItem"];
+        post: operations["AddMenuCalendarItem"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/menu-plans/{menuPlanId}/items/{itemId}": {
+    "/api/menu-calendar/items/{itemId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -380,47 +444,111 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["UpdateMenuPlanItem"];
+        put: operations["UpdateMenuCalendarItem"];
         post?: never;
-        delete: operations["RemoveMenuPlanItem"];
+        delete: operations["RemoveMenuCalendarItem"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/shopping-lists": {
+    "/api/menu-calendar/meal-slots": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["GetShoppingLists"];
+        get: operations["GetMealSlots"];
         put?: never;
-        post: operations["GenerateShoppingList"];
+        post: operations["CreateMealSlot"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/shopping-lists/{shoppingListId}": {
+    "/api/menu-calendar/meal-slots/{mealSlotId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["GetShoppingListById"];
-        put?: never;
+        get?: never;
+        put: operations["UpdateMealSlot"];
         post?: never;
-        delete: operations["DeleteShoppingList"];
+        delete: operations["DeleteMealSlot"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/shopping-lists/{shoppingListId}/items": {
+    "/api/menu-calendar/meal-slots/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ReorderMealSlots"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCurrentShoppingList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list/menu-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMenuShoppingPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list/from-menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ReplaceShoppingListFromMenu"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list/items": {
         parameters: {
             query?: never;
             header?: never;
@@ -436,7 +564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/shopping-lists/{shoppingListId}/items/{itemId}": {
+    "/api/shopping-list/items/{itemId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -452,7 +580,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/shopping-lists/{shoppingListId}/items/{itemId}/state": {
+    "/api/shopping-list/items/{itemId}/checked": {
         parameters: {
             query?: never;
             header?: never;
@@ -465,32 +593,43 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["SetShoppingListItemState"];
+        patch: operations["SetShoppingListItemChecked"];
         trace?: never;
     };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description Запрос на добавление пункта меню. */
-        CreateMenuPlanItemRequest: {
+        /** @description Запрос на создание приема пищи. */
+        CreateMealSlotRequest: {
+            /** @description Название приема пищи. */
+            name: string;
+        };
+        /** @description Запрос на добавление позиции меню. */
+        CreateMenuCalendarItemRequest: {
             /**
              * Format: date
              * @description Дата приема пищи.
              */
             date: string;
-            /** @description Тип приема пищи. */
-            mealType: string;
             /**
              * Format: uuid
-             * @description Идентификатор рецепта для пункта на основе рецепта.
+             * @description Идентификатор приема пищи.
+             */
+            mealSlotId: string;
+            /**
+             * Format: uuid
+             * @description Идентификатор рецепта для позиции на основе рецепта.
              */
             recipeId: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор immutable revision рецепта.
+             */
             recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
-            /** @description Свободный текст для пункта без рецепта. */
+            /** @description Свободный текст для позиции без рецепта. */
             text: null | string;
             /**
              * Format: int32
@@ -499,21 +638,6 @@ export interface components {
             servings: number | string;
             /** @description Необязательный комментарий. */
             comment: null | string;
-        };
-        /** @description Запрос на создание плана меню. */
-        CreateMenuPlanRequest: {
-            /** @description Название плана меню. */
-            name: string;
-            /**
-             * Format: date
-             * @description Дата начала.
-             */
-            startDate: string;
-            /**
-             * Format: date
-             * @description Дата окончания.
-             */
-            endDate: string;
         };
         /** @description Запрос на создание рецепта. */
         CreateRecipeRequest: {
@@ -528,6 +652,7 @@ export interface components {
             servings: number | string;
             /** @description Основная категория блюда. */
             category: string;
+            /** @description Видимость рецепта. */
             visibility: string;
             /**
              * Format: int32
@@ -558,18 +683,24 @@ export interface components {
             /** @description Необязательный источник тега. */
             kind: null | string;
         };
-        /** @description Запрос на генерацию списка покупок из плана меню. */
+        /** @description Запрос на генерацию списка покупок из диапазона меню. */
         GenerateShoppingListRequest: {
             /**
-             * Format: uuid
-             * @description Идентификатор плана меню.
+             * Format: date
+             * @description Дата начала диапазона меню.
              */
-            menuPlanId: string;
-            /** @description Дополнительные ручные позиции. */
-            manualItems: components["schemas"]["ShoppingListItemRequest"][];
+            startDate: string;
+            /**
+             * Format: date
+             * @description Дата окончания диапазона меню.
+             */
+            endDate: string;
+            /** @description Выбранные блюда и ингредиенты из меню. */
+            recipes: components["schemas"]["MenuShoppingSelectionRequest"][];
         };
         /** Format: binary */
         IFormFile: string;
+        IFormFileCollection: components["schemas"]["IFormFile"][];
         /** @description Ингредиент рецепта во внешнем контракте. */
         IngredientResponse: {
             /**
@@ -600,11 +731,26 @@ export interface components {
             /** @description Пароль в открытом виде. */
             password: string;
         };
-        /** @description Пункт плана меню, возвращаемый MenuPlanning API. */
-        MenuPlanItemResponse: {
+        /** @description Настраиваемый прием пищи пользователя. */
+        MealSlotResponse: {
             /**
              * Format: uuid
-             * @description Идентификатор пункта меню.
+             * @description Идентификатор приема пищи.
+             */
+            id: string;
+            /** @description Название, видимое пользователю. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Порядок отображения.
+             */
+            sortOrder: number | string;
+        };
+        /** @description Позиция календаря меню. */
+        MenuCalendarItemResponse: {
+            /**
+             * Format: uuid
+             * @description Идентификатор позиции меню.
              */
             id: string;
             /**
@@ -612,18 +758,29 @@ export interface components {
              * @description Дата приема пищи.
              */
             date: string;
-            /** @description Тип приема пищи. */
-            mealType: string;
             /**
              * Format: uuid
-             * @description Идентификатор рецепта для пункта на основе рецепта.
+             * @description Идентификатор приема пищи.
+             */
+            mealSlotId: string;
+            /**
+             * Format: int32
+             * @description Порядок внутри приема пищи.
+             */
+            position: number | string;
+            /**
+             * Format: uuid
+             * @description Идентификатор рецепта для позиции на основе рецепта.
              */
             recipeId: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор immutable revision рецепта.
+             */
             recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
-            /** @description Свободный текст для пункта без рецепта. */
+            /** @description Свободный текст для позиции без рецепта. */
             text: null | string;
             /**
              * Format: int32
@@ -632,28 +789,70 @@ export interface components {
             servings: number | string;
             /** @description Необязательный комментарий. */
             comment: null | string;
-        };
-        /** @description План меню, возвращаемый MenuPlanning API. */
-        MenuPlanResponse: {
             /**
-             * Format: uuid
-             * @description Идентификатор плана меню.
+             * Format: uri
+             * @description Ссылка на изображение рецепта.
              */
-            id: string;
-            /** @description Название плана меню. */
-            name: string;
+            imageUrl: null | string;
+        };
+        /** @description Календарь меню за выбранный диапазон дат. */
+        MenuCalendarResponse: {
             /**
              * Format: date
-             * @description Дата начала.
+             * @description Дата начала выбранного диапазона.
              */
             startDate: string;
             /**
              * Format: date
-             * @description Дата окончания.
+             * @description Дата окончания выбранного диапазона.
              */
             endDate: string;
-            /** @description Пункты плана меню. */
-            items: components["schemas"]["MenuPlanItemResponse"][];
+            /** @description Приемы пищи пользователя. */
+            mealSlots: components["schemas"]["MealSlotResponse"][];
+            /** @description Позиции меню в выбранном диапазоне. */
+            items: components["schemas"]["MenuCalendarItemResponse"][];
+        };
+        /** @description Ингредиент блюда в предпросмотре списка покупок. */
+        MenuShoppingPreviewIngredientResponse: {
+            /** Format: uuid */
+            ingredientId: string;
+            /** Format: uuid */
+            productId: string;
+            name: string;
+            /** Format: double */
+            amount: null | number | string;
+            unit: string;
+            category: string;
+            amountText: string;
+            comment: null | string;
+            isOptional: boolean;
+        };
+        /** @description Блюдо меню в предпросмотре списка покупок. */
+        MenuShoppingPreviewRecipeResponse: {
+            /** Format: uuid */
+            menuItemId: string;
+            title: string;
+            /** Format: int32 */
+            baseServings: number | string;
+            /** Format: int32 */
+            servings: number | string;
+            ingredients: components["schemas"]["MenuShoppingPreviewIngredientResponse"][];
+        };
+        /** @description Предпросмотр списка покупок по выбранному диапазону меню. */
+        MenuShoppingPreviewResponse: {
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            recipes: components["schemas"]["MenuShoppingPreviewRecipeResponse"][];
+        };
+        /** @description Выбор ингредиентов одного блюда меню для нового списка покупок. */
+        MenuShoppingSelectionRequest: {
+            /** Format: uuid */
+            menuItemId: string;
+            /** Format: int32 */
+            servings: number | string;
+            ingredientIds: string[];
         };
         ModuleResponse: {
             name: string;
@@ -721,12 +920,84 @@ export interface components {
              * @description Временная или публичная ссылка для прямого чтения из MinIO.
              */
             readUrl: null | string;
-            /** Format: uri */
+            /**
+             * Format: uri
+             * @description Страница исходного изображения.
+             */
             sourceUrl: null | string;
+            /** @description Имя автора исходного изображения. */
             authorName: null | string;
+            /** @description Название лицензии исходного изображения. */
             licenseName: null | string;
-            /** Format: uri */
+            /**
+             * Format: uri
+             * @description Ссылка на текст лицензии исходного изображения.
+             */
             licenseUrl: null | string;
+        };
+        /** @description Краткая карточка черновика импорта рецепта. */
+        RecipeImportDraftListItemResponse: {
+            /** Format: uuid */
+            id: string;
+            status: string;
+            title: string;
+            /** Format: uuid */
+            createdRecipeId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description Полный черновик импорта рецепта. */
+        RecipeImportDraftResponse: {
+            /** Format: uuid */
+            id: string;
+            status: string;
+            recipe: components["schemas"]["CreateRecipeRequest"];
+            evidence: components["schemas"]["RecipeImportEvidenceResponse"];
+            sourceImages: components["schemas"]["RecipeImportSourceImageResponse"][];
+            /** Format: uuid */
+            createdRecipeId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description Доказательства и служебные сведения распознавания рецепта. */
+        RecipeImportEvidenceResponse: {
+            extractedText: string;
+            warnings: string[];
+            provider: string;
+            model: string;
+            providerResponseId: null | string;
+            suggestedCover?: null | components["schemas"]["RecipeImportSuggestedCoverResponse"];
+        };
+        /** @description Исходное изображение черновика импорта. */
+        RecipeImportSourceImageResponse: {
+            /** Format: uri */
+            readUrl: null | string;
+            contentType: string;
+            /** Format: int64 */
+            sizeBytes: number | string;
+            fileName: string;
+        };
+        /**
+         * @description Предложенная область исходного изображения с фотографией готового блюда.
+         *     Координаты нормализованы относительно сторон изображения в диапазоне от 0 до 1000.
+         */
+        RecipeImportSuggestedCoverResponse: {
+            /** Format: int32 */
+            sourceImageIndex: number | string;
+            /** Format: int32 */
+            x: number | string;
+            /** Format: int32 */
+            y: number | string;
+            /** Format: int32 */
+            width: number | string;
+            /** Format: int32 */
+            height: number | string;
+            /** Format: int32 */
+            confidence: number | string;
         };
         /** @description Ингредиент рецепта во входящем API-запросе. */
         RecipeIngredientRequest: {
@@ -758,11 +1029,19 @@ export interface components {
              * @description Идентификатор рецепта.
              */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор текущей ревизии рецепта.
+             */
             currentRevisionId: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Номер текущей ревизии рецепта.
+             */
             revisionNumber: number | string;
+            /** @description Признак принадлежности рецепта текущему пользователю. */
             isOwnedByCurrentUser: boolean;
+            /** @description Признак сохранения рецепта текущим пользователем. */
             isSaved: boolean;
             /** @description Название блюда. */
             title: string;
@@ -775,12 +1054,18 @@ export interface components {
             servings: number | string;
             /** @description Основная категория блюда. */
             category: string;
+            /** @description Видимость рецепта. */
             visibility: string;
             /**
              * Format: int32
              * @description Общее время приготовления в минутах.
              */
             totalTimeMinutes: null | number | string;
+            /**
+             * Format: int32
+             * @description Активное время приготовления в минутах.
+             */
+            activeTimeMinutes: null | number | string;
             /** @description Признак избранного рецепта. */
             isFavorite: boolean;
             /** @description Теги рецепта. */
@@ -794,15 +1079,29 @@ export interface components {
              * @description Идентификатор рецепта.
              */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор текущей ревизии рецепта.
+             */
             currentRevisionId: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Номер текущей ревизии рецепта.
+             */
             revisionNumber: number | string;
+            /** @description Признак принадлежности рецепта текущему пользователю. */
             isOwnedByCurrentUser: boolean;
+            /** @description Признак сохранения рецепта текущим пользователем. */
             isSaved: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор исходного рецепта, если рецепт создан как копия.
+             */
             sourceRecipeId: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор исходной ревизии, если рецепт создан как копия.
+             */
             sourceRevisionId: null | string;
             /** @description Название блюда. */
             title: string;
@@ -815,6 +1114,7 @@ export interface components {
             servings: number | string;
             /** @description Основная категория блюда. */
             category: string;
+            /** @description Видимость рецепта. */
             visibility: string;
             /**
              * Format: int32
@@ -857,6 +1157,11 @@ export interface components {
             user: components["schemas"]["UserProfileResponse"];
             /** @description Выпущенная пара токенов. */
             tokens: components["schemas"]["TokenResponse"];
+        };
+        /** @description Запрос на изменение порядка приемов пищи. */
+        ReorderMealSlotsRequest: {
+            /** @description Идентификаторы приемов пищи в новом порядке. */
+            mealSlotIds: string[];
         };
         /** @description Категория списка покупок. */
         ShoppingListCategoryResponse: {
@@ -929,10 +1234,15 @@ export interface components {
              */
             id: string;
             /**
-             * Format: uuid
-             * @description Идентификатор плана меню, по которому создан список.
+             * Format: date
+             * @description Дата начала диапазона меню, по которому создан список.
              */
-            sourceMenuPlanId: string;
+            sourceStartDate: string;
+            /**
+             * Format: date
+             * @description Дата окончания диапазона меню, по которому создан список.
+             */
+            sourceEndDate: string;
             /**
              * Format: date-time
              * @description Момент создания списка.
@@ -947,39 +1257,6 @@ export interface components {
             categories: components["schemas"]["ShoppingListCategoryResponse"][];
             /** @description Текстовая версия для копирования. */
             text: string;
-        };
-        /** @description Краткая карточка сохраненного списка покупок. */
-        ShoppingListSummaryResponse: {
-            /**
-             * Format: uuid
-             * @description Идентификатор списка покупок.
-             */
-            id: string;
-            /**
-             * Format: uuid
-             * @description Идентификатор плана меню, по которому создан список.
-             */
-            sourceMenuPlanId: string;
-            /**
-             * Format: date-time
-             * @description Момент создания списка.
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @description Момент последнего изменения списка.
-             */
-            updatedAt: string;
-            /**
-             * Format: int32
-             * @description Количество позиций.
-             */
-            itemsCount: number | string;
-            /**
-             * Format: int32
-             * @description Количество купленных позиций.
-             */
-            purchasedItemsCount: number | string;
         };
         SystemResponse: {
             name: string;
@@ -1022,25 +1299,36 @@ export interface components {
              */
             expiresAt: string;
         };
-        /** @description Запрос на обновление пункта меню. */
-        UpdateMenuPlanItemRequest: {
+        /** @description Запрос на переименование приема пищи. */
+        UpdateMealSlotRequest: {
+            /** @description Название приема пищи. */
+            name: string;
+        };
+        /** @description Запрос на обновление позиции меню. */
+        UpdateMenuCalendarItemRequest: {
             /**
              * Format: date
              * @description Дата приема пищи.
              */
             date: string;
-            /** @description Тип приема пищи. */
-            mealType: string;
             /**
              * Format: uuid
-             * @description Идентификатор рецепта для пункта на основе рецепта.
+             * @description Идентификатор приема пищи.
+             */
+            mealSlotId: string;
+            /**
+             * Format: uuid
+             * @description Идентификатор рецепта для позиции на основе рецепта.
              */
             recipeId: null | string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Идентификатор immutable revision рецепта.
+             */
             recipeRevisionId: null | string;
             /** @description Снимок названия рецепта. */
             recipeTitle: null | string;
-            /** @description Свободный текст для пункта без рецепта. */
+            /** @description Свободный текст для позиции без рецепта. */
             text: null | string;
             /**
              * Format: int32
@@ -1050,20 +1338,9 @@ export interface components {
             /** @description Необязательный комментарий. */
             comment: null | string;
         };
-        /** @description Запрос на обновление основных параметров плана меню. */
-        UpdateMenuPlanRequest: {
-            /** @description Название плана меню. */
-            name: string;
-            /**
-             * Format: date
-             * @description Дата начала.
-             */
-            startDate: string;
-            /**
-             * Format: date
-             * @description Дата окончания.
-             */
-            endDate: string;
+        /** @description Запрос на замену редактируемого содержимого черновика. */
+        UpdateRecipeImportDraftRequest: {
+            recipe: components["schemas"]["CreateRecipeRequest"];
         };
         /** @description Запрос на обновление рецепта. */
         UpdateRecipeRequest: {
@@ -1078,6 +1355,7 @@ export interface components {
             servings: number | string;
             /** @description Основная категория блюда. */
             category: string;
+            /** @description Видимость рецепта. */
             visibility: string;
             /**
              * Format: int32
@@ -1196,6 +1474,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleResponse"][];
+                };
+            };
+        };
+    };
+    GenerateRecipeCoverImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRecipeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -1405,13 +1728,361 @@ export interface operations {
             };
         };
     };
+    GetRecipeImportDrafts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeImportDraftListItemResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateRecipeImportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["IFormFileCollection"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeImportDraftResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetRecipeImportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeImportDraftResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateRecipeImportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRecipeImportDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeImportDraftResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteRecipeImportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetRecipeImportSourceImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+                sourceImageIndex: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ConfirmRecipeImportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draftId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRecipeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetRecipes: {
         parameters: {
-            query: {
+            query?: {
                 scope?: string;
                 search?: string;
                 tag?: string;
-                favoritesOnly: boolean;
+                favoritesOnly?: boolean;
             };
             header?: never;
             path?: never;
@@ -1992,9 +2663,9 @@ export interface operations {
     };
     GetTags: {
         parameters: {
-            query: {
+            query?: {
                 search?: string;
-                includeHidden: boolean;
+                includeHidden?: boolean;
             };
             header?: never;
             path?: never;
@@ -2160,9 +2831,12 @@ export interface operations {
             };
         };
     };
-    GetMenuPlans: {
+    GetMenuCalendar: {
         parameters: {
-            query?: never;
+            query: {
+                startDate: string;
+                endDate: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2175,7 +2849,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"][];
+                    "application/json": components["schemas"]["MenuCalendarResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -2194,7 +2877,51 @@ export interface operations {
             };
         };
     };
-    CreateMenuPlan: {
+    ClearMenuCalendar: {
+        parameters: {
+            query: {
+                startDate: string;
+                endDate: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddMenuCalendarItem: {
         parameters: {
             query?: never;
             header?: never;
@@ -2203,7 +2930,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateMenuPlanRequest"];
+                "application/json": components["schemas"]["CreateMenuCalendarItemRequest"];
             };
         };
         responses: {
@@ -2213,101 +2940,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetMenuPlanById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                menuPlanId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    UpdateMenuPlan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                menuPlanId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMenuPlanRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"];
+                    "application/json": components["schemas"]["MenuCalendarItemResponse"];
                 };
             };
             /** @description Bad Request */
@@ -2346,124 +2979,18 @@ export interface operations {
             };
         };
     };
-    DeleteMenuPlan: {
+    UpdateMenuCalendarItem: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                menuPlanId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    AddMenuPlanItem: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                menuPlanId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMenuPlanItemRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    UpdateMenuPlanItem: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                menuPlanId: string;
                 itemId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateMenuPlanItemRequest"];
+                "application/json": components["schemas"]["UpdateMenuCalendarItemRequest"];
             };
         };
         responses: {
@@ -2473,7 +3000,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MenuPlanResponse"];
+                    "application/json": components["schemas"]["MenuCalendarItemResponse"];
                 };
             };
             /** @description Bad Request */
@@ -2512,12 +3039,11 @@ export interface operations {
             };
         };
     };
-    RemoveMenuPlanItem: {
+    RemoveMenuCalendarItem: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                menuPlanId: string;
                 itemId: string;
             };
             cookie?: never;
@@ -2558,7 +3084,7 @@ export interface operations {
             };
         };
     };
-    GetShoppingLists: {
+    GetMealSlots: {
         parameters: {
             query?: never;
             header?: never;
@@ -2573,7 +3099,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ShoppingListSummaryResponse"][];
+                    "application/json": components["schemas"]["MealSlotResponse"][];
                 };
             };
             /** @description Unauthorized */
@@ -2592,7 +3118,315 @@ export interface operations {
             };
         };
     };
-    GenerateShoppingList: {
+    CreateMealSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMealSlotRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealSlotResponse"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateMealSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mealSlotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMealSlotRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealSlotResponse"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteMealSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mealSlotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealSlotResponse"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ReorderMealSlots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderMealSlotsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealSlotResponse"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCurrentShoppingList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMenuShoppingPreview: {
+        parameters: {
+            query: {
+                startDate: string;
+                endDate: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuShoppingPreviewResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReplaceShoppingListFromMenu: {
         parameters: {
             query?: never;
             header?: never;
@@ -2605,8 +3439,8 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
-            201: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2637,114 +3471,13 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    GetShoppingListById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shoppingListId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShoppingListResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    DeleteShoppingList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shoppingListId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
         };
     };
     AddShoppingListItem: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                shoppingListId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -2783,18 +3516,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
+                content?: never;
             };
         };
     };
@@ -2803,7 +3525,6 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                shoppingListId: string;
                 itemId: string;
             };
             cookie?: never;
@@ -2844,9 +3565,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -2864,7 +3583,6 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                shoppingListId: string;
                 itemId: string;
             };
             cookie?: never;
@@ -2890,9 +3608,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -2905,12 +3621,11 @@ export interface operations {
             };
         };
     };
-    SetShoppingListItemState: {
+    SetShoppingListItemChecked: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                shoppingListId: string;
                 itemId: string;
             };
             cookie?: never;
@@ -2942,9 +3657,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

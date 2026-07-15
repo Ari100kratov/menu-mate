@@ -4,7 +4,10 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { generateRecipeCoverImage } from "@/features/imports/api/imports.api"
+import {
+  generateRecipeCoverImage,
+  getRecipeImportSourceImage,
+} from "@/features/imports/api/imports.api"
 import {
   useConfirmRecipeImportDraftMutation,
   useDeleteRecipeImportDraftMutation,
@@ -128,6 +131,23 @@ export default function RecipeImportDraftPage() {
   }
 
   const draft = draftQuery.data
+  const suggestedCoverData = draft.evidence.suggestedCover
+  const suggestedCoverSource = suggestedCoverData
+    ? draft.sourceImages[suggestedCoverData.sourceImageIndex]
+    : undefined
+  const suggestedCover =
+    suggestedCoverData && suggestedCoverSource
+      ? {
+          id: `${draft.id}:${String(suggestedCoverData.sourceImageIndex)}`,
+          previewUrl: suggestedCoverSource.readUrl ?? undefined,
+          loadSourceImage: (signal?: AbortSignal) =>
+            getRecipeImportSourceImage(draft.id, suggestedCoverData.sourceImageIndex, signal),
+          x: suggestedCoverData.x,
+          y: suggestedCoverData.y,
+          width: suggestedCoverData.width,
+          height: suggestedCoverData.height,
+        }
+      : undefined
 
   return (
     <div className="space-y-5">
@@ -210,6 +230,7 @@ export default function RecipeImportDraftPage() {
             isSubmitting={confirmMutation.isPending}
             error={confirmMutation.error ?? coverError}
             onValuesChange={handleValuesChange}
+            suggestedCover={suggestedCover}
             generateCover={(values) => generateRecipeCoverImage(toRecipeRequest(values))}
             onSubmit={handleConfirm}
           />

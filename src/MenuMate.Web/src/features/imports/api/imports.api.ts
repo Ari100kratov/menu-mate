@@ -16,6 +16,16 @@ export interface RecipeImportEvidence {
   provider: string
   model: string
   providerResponseId: string | null
+  suggestedCover: RecipeImportSuggestedCover | null
+}
+
+export interface RecipeImportSuggestedCover {
+  sourceImageIndex: number
+  x: number
+  y: number
+  width: number
+  height: number
+  confidence: number
 }
 
 export interface RecipeImportSourceImage {
@@ -42,6 +52,17 @@ export function getRecipeImportDrafts() {
 
 export function getRecipeImportDraft(draftId: string) {
   return apiFetchJson<RecipeImportDraft>(`/api/imports/recipe-drafts/${draftId}`)
+}
+
+export function getRecipeImportSourceImage(
+  draftId: string,
+  sourceImageIndex: number,
+  signal?: AbortSignal,
+) {
+  return apiFetchBlob(
+    `/api/imports/recipe-drafts/${draftId}/source-images/${String(sourceImageIndex)}/content`,
+    { signal },
+  )
 }
 
 export function createRecipeImportDraft(files: File[]) {

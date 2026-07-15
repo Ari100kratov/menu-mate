@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MenuMate.Contracts.RecipeImports;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.RecipeImports.Application.Extraction;
 using OpenAI.Chat;
@@ -36,6 +37,16 @@ internal sealed class OpenAiRecipeImageExtractor(
                     - Сохрани язык исходного рецепта и не выдумывай отсутствующие данные.
                     - В тексте шагов не оставляй порядковые номера, слова «Шаг» или «Step».
                     - Для каждого элемента recipe.ingredients верни в ingredientSourceTexts точную исходную строку ингредиента. Порядок и количество строк должны совпадать с recipe.ingredients. Если одна строка разделена на два продукта, повтори исходную строку для обоих.
+                    """),
+                ChatMessageContentPart.CreateTextPart(
+                    """
+                    Предложенная обложка:
+                    - Каждое исходное изображение ниже помечено индексом. Верни в suggestedCover не более одной лучшей фотографии именно готового блюда.
+                    - Подходящая фотография должна показывать итоговое сервированное блюдо. Не выбирай фотографии ингредиентов, посуды, процесса или отдельных шагов приготовления.
+                    - Не выбирай рекламные блоки, логотипы, текст, элементы интерфейса сайта или приложения, а также коллаж целиком. Если фотография блюда находится внутри скриншота или коллажа, укажи границы только самой фотографии без окружающего интерфейса и соседних кадров.
+                    - Если подходящих фотографий несколько, выбери наиболее крупную, резкую, не перекрытую текстом и лучше всего соответствующую распознанному рецепту.
+                    - Координаты x, y, width и height задавай целыми числами от 0 до 1000 относительно полной ширины и высоты исходного изображения. x и y — левый верхний угол области.
+                    - confidence — целая уверенность от 0 до 100. Если готовое блюдо нельзя уверенно отличить от шага приготовления либо подходящего фото нет, верни suggestedCover=null.
                     """),
                 ChatMessageContentPart.CreateTextPart(
                     """
@@ -80,18 +91,24 @@ internal sealed class OpenAiRecipeImageExtractor(
                     - Не упоминай JSON, схему, названия полей, enum, null, Unknown, Other, confidence, модель, технические ограничения и внутренние решения.
                     """)
             ];
-            contentParts.AddRange(images.Select(image =>
-                ChatMessageContentPart.CreateImagePart(
+            int sourceImageIndex = 0;
+            foreach (RecipeImageInput image in images)
+            {
+                contentParts.Add(ChatMessageContentPart.CreateTextPart(
+                    $"Исходное изображение с индексом {sourceImageIndex}:"));
+                contentParts.Add(ChatMessageContentPart.CreateImagePart(
                     BinaryData.FromBytes(image.Content),
                     image.ContentType,
-                    ChatImageDetailLevel.High)));
+                    ChatImageDetailLevel.High));
+                sourceImageIndex++;
+            }
 
             ChatCompletionOptions request = new()
             {
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                     "menu_mate_recipe_import",
                     RecipeSchema,
-                    "Черновик рецепта, исходные строки ингредиентов и понятные пользователю замечания для проверки.",
+                    "Черновик рецепта, исходные строки ингредиентов, предложенная обложка и понятные пользователю замечания для проверки.",
                     jsonSchemaIsStrict: true),
                 StoredOutputEnabled = false
             };
@@ -120,7 +137,8 @@ internal sealed class OpenAiRecipeImageExtractor(
                 payload.Warnings ?? [],
                 "OpenAI",
                 options.Model,
-                response.Id);
+                response.Id,
+                payload.SuggestedCover);
         }
         catch (RecipeImageExtractionException)
         {
@@ -190,10 +208,23 @@ internal sealed class OpenAiRecipeImageExtractor(
                   "items": { "type": "string" },
                   "description": "Точная исходная строка для каждого ингредиента в том же порядке."
                 },
+                "suggestedCover": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "sourceImageIndex": { "type": "integer", "minimum": 0 },
+                    "x": { "type": "integer", "minimum": 0, "maximum": 1000 },
+                    "y": { "type": "integer", "minimum": 0, "maximum": 1000 },
+                    "width": { "type": "integer", "minimum": 1, "maximum": 1000 },
+                    "height": { "type": "integer", "minimum": 1, "maximum": 1000 },
+                    "confidence": { "type": "integer", "minimum": 0, "maximum": 100 }
+                  },
+                  "required": ["sourceImageIndex","x","y","width","height","confidence"],
+                  "additionalProperties": false
+                },
                 "extractedText": { "type": "string" },
                 "warnings": { "type": "array", "items": { "type": "string" } }
               },
-              "required": ["recipe","ingredientSourceTexts","extractedText","warnings"],
+              "required": ["recipe","ingredientSourceTexts","suggestedCover","extractedText","warnings"],
               "additionalProperties": false
             }
             """
@@ -205,6 +236,7 @@ internal sealed class OpenAiRecipeImageExtractor(
     private sealed record OpenAiExtractionPayload(
         CreateRecipeRequest? Recipe,
         IReadOnlyList<string>? IngredientSourceTexts,
+        RecipeImportSuggestedCoverResponse? SuggestedCover,
         string? ExtractedText,
         IReadOnlyCollection<string>? Warnings);
 }

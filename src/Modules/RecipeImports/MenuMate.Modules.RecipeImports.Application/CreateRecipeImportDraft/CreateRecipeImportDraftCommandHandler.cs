@@ -84,7 +84,10 @@ internal sealed class CreateRecipeImportDraftCommandHandler(
             RecipeImportWarningNormalizer.Normalize(extraction.Warnings),
             extraction.Provider,
             extraction.Model,
-            extraction.ProviderResponseId);
+            extraction.ProviderResponseId,
+            RecipeImportSuggestedCoverNormalizer.Normalize(
+                extraction.SuggestedCover,
+                sourceImages.Length));
         var draft = RecipeImportDraft.Create(
             draftId,
             userContext.UserId,

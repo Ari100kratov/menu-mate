@@ -17,6 +17,11 @@ public static class ImportApplicationErrors
         "Imports.AccessDenied",
         "Текущий пользователь не может получить доступ к этому черновику импорта.");
 
+    /// <summary>Исходное изображение черновика не найдено.</summary>
+    public static AppError SourceImageNotFound(Guid draftId, int sourceImageIndex) => AppError.NotFound(
+        "Imports.SourceImageNotFound",
+        $"Исходное изображение с индексом '{sourceImageIndex}' для черновика '{draftId}' не найдено.");
+
     /// <summary>Файл пуст.</summary>
     public static readonly AppError EmptyImageFile = AppError.Validation(
         "Imports.EmptyImageFile",
@@ -66,4 +71,9 @@ public static class ImportApplicationErrors
     public static AppError StorageFailed(string reason) => AppError.Problem(
         "Imports.StorageFailed",
         $"Не удалось сохранить исходное изображение: {reason}");
+
+    /// <summary>Не удалось прочитать исходное изображение.</summary>
+    public static AppError SourceImageReadFailed(string reason) => AppError.Problem(
+        "Imports.SourceImageReadFailed",
+        $"Не удалось получить исходное изображение: {reason}");
 }

@@ -14,10 +14,10 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
   return (
-    <article className="bg-card group hover:border-primary/30 relative grid min-h-36 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
+    <article className="bg-card group hover:border-primary/30 relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:min-h-32 sm:grid-cols-[8rem_minmax(0,1fr)]">
       <Link
         to={`/recipes/${recipe.id}`}
-        className="bg-muted block h-36 self-center overflow-hidden outline-none"
+        className="bg-muted block h-28 self-center overflow-hidden outline-none sm:h-32"
       >
         {recipe.coverImage?.readUrl ? (
           <RecipeImage
@@ -35,10 +35,10 @@ export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: Reci
 
       <Link
         to={`/recipes/${recipe.id}`}
-        className="flex min-w-0 flex-col justify-center gap-2 p-3 pr-11 outline-none sm:p-4 sm:pr-12"
+        className="flex min-w-0 flex-col justify-center gap-2 p-3 outline-none sm:p-4"
       >
         <div className="space-y-0.5">
-          <h2 className="type-subsection-title line-clamp-2">{recipe.title}</h2>
+          <h2 className="type-subsection-title line-clamp-2 pr-8">{recipe.title}</h2>
           <div className="flex flex-wrap items-center gap-2">
             <span className="type-label text-primary">
               {getRecipeCategoryLabel(recipe.category)}

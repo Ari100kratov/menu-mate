@@ -1,3 +1,4 @@
+using MenuMate.Contracts.RecipeImports;
 using MenuMate.Contracts.Recipes;
 
 namespace MenuMate.Modules.RecipeImports.Application.Extraction;
@@ -25,4 +26,5 @@ public sealed record RecipeImageExtractionResult(
     IReadOnlyCollection<string> Warnings,
     string Provider,
     string Model,
-    string? ProviderResponseId);
+    string? ProviderResponseId,
+    RecipeImportSuggestedCoverResponse? SuggestedCover);
