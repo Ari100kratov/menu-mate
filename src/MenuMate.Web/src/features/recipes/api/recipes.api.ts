@@ -1,6 +1,7 @@
 import { apiClient } from "@/shared/api/client"
 import { unwrapApiResponse, unwrapEmptyApiResponse } from "@/shared/api/unwrap"
 import type { components, paths } from "@/shared/api/generated/schema"
+import { optimizeRecipeImageForUpload } from "@/features/recipes/model/recipe-image-optimization"
 
 export type RecipeListItem = components["schemas"]["RecipeListItemResponse"] & {
   activeTimeMinutes?: null | number | string
@@ -145,8 +146,9 @@ export async function copyRecipe(recipeId: string) {
 }
 
 export async function uploadRecipeImage(recipeId: string, request: UploadRecipeImageRequest) {
+  const file = await optimizeRecipeImageForUpload(request.file)
   const formData = new FormData()
-  formData.append("file", request.file)
+  formData.append("file", file)
   formData.append("scope", request.scope)
 
   if (request.stepNumber !== undefined) {

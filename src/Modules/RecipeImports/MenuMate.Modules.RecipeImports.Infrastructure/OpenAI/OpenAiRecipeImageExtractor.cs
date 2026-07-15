@@ -11,60 +11,7 @@ internal sealed class OpenAiRecipeImageExtractor(
     : IRecipeImageExtractor
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private static readonly BinaryData RecipeSchema = BinaryData.FromString(
-        """
-        {
-          "type": "object",
-          "properties": {
-            "recipe": {
-              "type": "object",
-              "properties": {
-                "title": { "type": "string" },
-                "description": { "type": ["string", "null"] },
-                "servings": { "type": "integer", "minimum": 1 },
-                "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
-                "visibility": { "type": "string", "enum": ["Public"] },
-                "totalTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
-                "activeTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
-                "sourceUrl": { "type": ["string", "null"] },
-                "ingredients": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "ingredientId": { "type": "null" },
-                      "productName": { "type": "string" },
-                      "amount": { "type": ["number", "null"] },
-                      "unit": { "type": "string", "enum": ["Gram","Kilogram","Milliliter","Liter","Piece","Teaspoon","Tablespoon","Pinch","Pack","ToTaste","Unknown","Glass","Cup","Dessertspoon","Clove","Bunch","Sprig","Head","Stalk","Slice","Sheet","Handful","Drop","Can","Jar","Bottle","Sachet","Cube"] },
-                      "category": { "type": "string", "enum": ["Produce","Dairy","MeatAndPoultry","FishAndSeafood","Grocery","GrainsAndPasta","Spices","Bakery","Drinks","Frozen","Other","Eggs","OilsAndSauces","Legumes","NutsAndSeeds","CannedAndPreserved","SweetsAndConfectionery","HerbsAndGreens"] },
-                      "comment": { "type": ["string", "null"] },
-                      "isOptional": { "type": "boolean" }
-                    },
-                    "required": ["ingredientId","productName","amount","unit","category","comment","isOptional"],
-                    "additionalProperties": false
-                  }
-                },
-                "steps": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": { "text": { "type": "string" } },
-                    "required": ["text"],
-                    "additionalProperties": false
-                  }
-                },
-                "tags": { "type": "array", "items": { "type": "string" } }
-              },
-              "required": ["title","description","servings","category","visibility","totalTimeMinutes","activeTimeMinutes","sourceUrl","ingredients","steps","tags"],
-              "additionalProperties": false
-            },
-            "extractedText": { "type": "string" },
-            "warnings": { "type": "array", "items": { "type": "string" } }
-          },
-          "required": ["recipe","extractedText","warnings"],
-          "additionalProperties": false
-        }
-        """);
+    private static readonly BinaryData RecipeSchema = CreateRecipeSchema();
 
     public async Task<RecipeImageExtractionResult> ExtractAsync(
         IReadOnlyCollection<RecipeImageInput> images,
@@ -84,44 +31,52 @@ internal sealed class OpenAiRecipeImageExtractor(
                 ChatMessageContentPart.CreateTextPart(
                     """
                     Задача:
-                    - Извлеки один рецепт из всех приложенных изображений. Они могут быть частями одного рецепта, загруженными в произвольном порядке.
-                    - Распознавай дубли и перекрывающиеся фрагменты страниц: используй их для сверки, но не повторяй ингредиенты, шаги или текст в результате.
+                    - Извлеки один рецепт из всех приложенных изображений. Изображения могут быть частями одного рецепта и идти в произвольном порядке.
+                    - Распознавай дубли и перекрывающиеся фрагменты страниц: используй их для сверки, но не повторяй ингредиенты, шаги или текст.
                     - Сохрани язык исходного рецепта и не выдумывай отсутствующие данные.
-                    - В text шагов приготовления не включай порядковые номера, слово «Шаг» или «Step».
+                    - В тексте шагов не оставляй порядковые номера, слова «Шаг» или «Step».
+                    - Для каждого элемента recipe.ingredients верни в ingredientSourceTexts точную исходную строку ингредиента. Порядок и количество строк должны совпадать с recipe.ingredients. Если одна строка разделена на два продукта, повтори исходную строку для обоих.
                     """),
                 ChatMessageContentPart.CreateTextPart(
                     """
-                    Ингредиенты и порции:
-                    - В productName указывай название продукта в словарной форме: в именительном падеже, без склонения из исходного текста, количества и единицы измерения. Например: «лук», а не «лука»; «куриное яйцо», а не «яиц».
+                    Ингредиенты — обязательные правила:
+                    - Один самостоятельный продукт = один элемент. «Соль и перец» всегда разделяй на «соль» и «перец», даже если они написаны в одной строке.
+                    - Диапазон количества относится к одному элементу: «1–2 болгарских перца» — это один продукт с диапазоном, а не два одинаковых продукта по одной штуке. Никогда не создавай отдельные элементы для нижней и верхней границ диапазона.
+                    - В productName указывай словарное название продукта в именительном падеже, без количества и единицы. Например: «лук», а не «лука»; «куриное яйцо», а не «яйца».
+                    - Значимая характеристика продукта остаётся частью productName. Процент жирности или концентрации нельзя превращать в количество или комментарий: «сливки 33% — 80 г» => productName="сливки 33%", amount=80, unit="Gram". Так же обрабатывай молоко, сметану, кефир, йогурт, творог, сыр, уксус, шоколад и подобные продукты.
+                    - Сначала найди все числа и подпиши их смысл: процент относится к продукту; число перед единицей — к количеству; число порций — только к servings. Не подменяй одно другим.
+                    - Если дана точная масса или объём вместе со штуками/упаковкой, масса или объём приоритетнее: «2–3 кабачка (380 г)» => amount=380, unit="Gram", comment="2–3 шт.".
+                    - Если дан диапазон без более точной массы/объёма, в amount верни нижнюю границу, сохрани правильную unit, а полный диапазон продублируй в comment: «2–3 персика» => amount=2, unit="Piece", comment="2–3 шт.". Никогда не превращай диапазон в ToTaste.
+                    - Если единица указана без числа, считай количество равным 1: «пучок петрушки» => amount=1, unit="Bunch"; «щепотка соли» => amount=1, unit="Pinch".
+                    - Различай Glass и Cup буквально: «стакан» = Glass, «чашка» = Cup. Не заменяй стакан чашкой.
+                    - «зуб.», «зуб» и «зубчик» = Clove.
+                    - ToTaste допустим только когда в исходной строке прямо написано «по вкусу» либо нет ни количества, ни единицы. Если есть число, диапазон или единица, ToTaste запрещён.
                     - Неизвестную единицу указывай как Unknown, неизвестную категорию — как Other.
-                    - Если указано «щепотка», в том числе без числа, верни amount=1 и unit=Pinch; не добавляй «щепотка» в comment.
-                    - Если для ингредиента не указаны ни количество, ни единица измерения, верни amount=null и unit=ToTaste.
-                    - Используй количество порций 1 только если оно не указано.
+                    - servings=1 используй только если число порций отсутствует.
+                    """),
+                ChatMessageContentPart.CreateTextPart(
+                    $"""
+                    Допустимые единицы и распознаваемые русские формы:
+                    {RecipeMeasurementUnitVocabulary.CreatePromptReference()}
                     """),
                 ChatMessageContentPart.CreateTextPart(
                     """
                     Категория блюда:
                     - Выбери одну наиболее точную категорию из допустимых значений схемы; категория описывает роль блюда, а не случайное упоминание в тексте.
-                    - Spread: густая масса для намазывания на хлеб, тосты или крекеры — например, паштет, хумус, творожная или сырная намазка.
-                    - Sauce: жидкий или полужидкий соус, которым дополняют другое блюдо. Appetizer: самостоятельная закуска, а не намазка.
-                    - Baking: выпечка из теста; Dessert: сладкое блюдо, не обязательно выпечка. Breakfast выбирай только для блюда, предназначенного прежде всего для завтрака.
-                    - Other выбирай только если ни одна категория не подходит.
-                    """),
-                ChatMessageContentPart.CreateTextPart(
-                    """
+                    - Spread — густая масса для намазывания на хлеб, тосты или крекеры: паштет, хумус, творожная или сырная намазка.
+                    - Sauce — жидкий или полужидкий соус, которым дополняют другое блюдо. Appetizer — самостоятельная закуска, а не намазка.
+                    - Baking — выпечка из теста; Dessert — сладкое блюдо, не обязательно выпечка. Breakfast выбирай только для блюда, предназначенного прежде всего для завтрака.
+                    - Other выбирай только если ни одна другая категория не подходит.
+
                     Теги:
                     - Верни от 0 до 6 коротких тегов, только если они полезны для поиска.
-                    - Подходят кухня (например, «азиатская кухня»), способ приготовления, тип питания («вегетарианское», «без мяса»), повод или практическая потребность.
-                    - Основной ингредиент допустим, только если его нет в названии блюда.
-                    - Не используй тип блюда и приём пищи: «завтрак», «обед», «ужин», «суп», «выпечка», «салат», «десерт» и их английские аналоги.
-                    - Не добавляй название блюда, слова «еда» и «рецепт», повторы и слишком общие теги. Если полезных тегов нет, верни пустой список.
-                    """),
-                ChatMessageContentPart.CreateTextPart(
-                    """
+                    - Подходят кухня, способ приготовления, тип питания, повод или практическая потребность. Основной ингредиент допустим, только если его нет в названии блюда.
+                    - Не используй тип блюда и приём пищи («завтрак», «обед», «ужин», «суп», «выпечка», «салат», «десерт» и аналоги), название блюда, слова «еда» и «рецепт», повторы и слишком общие теги.
+
                     Результат и предупреждения:
                     - Верни весь читаемый текст изображений в extractedText.
                     - В warnings добавляй только действительно спорные места, которые пользователь может проверить или исправить.
-                    - Каждое замечание должно быть коротким, понятным пользователю и написанным по-русски: укажи, что именно проверить и почему.
+                    - Каждое замечание должно быть коротким, понятным и написанным по-русски: укажи, что проверить и почему.
                     - Не упоминай JSON, схему, названия полей, enum, null, Unknown, Other, confidence, модель, технические ограничения и внутренние решения.
                     """)
             ];
@@ -136,7 +91,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                     "menu_mate_recipe_import",
                     RecipeSchema,
-                    "Черновик рецепта и понятные пользователю замечания для проверки.",
+                    "Черновик рецепта, исходные строки ингредиентов и понятные пользователю замечания для проверки.",
                     jsonSchemaIsStrict: true),
                 StoredOutputEnabled = false
             };
@@ -144,7 +99,7 @@ internal sealed class OpenAiRecipeImageExtractor(
             List<ChatMessage> messages =
             [
                 new SystemChatMessage(
-                    "Ты извлекаешь структурированные данные рецепта из пользовательских изображений."),
+                    "Ты точно извлекаешь структурированные данные рецепта из пользовательских изображений и сохраняешь смысл каждого числа и единицы измерения."),
                 new UserChatMessage(contentParts)
             ];
 
@@ -160,7 +115,7 @@ internal sealed class OpenAiRecipeImageExtractor(
             }
 
             return new RecipeImageExtractionResult(
-                RecipeImportTextNormalizer.Normalize(payload.Recipe),
+                RecipeImportTextNormalizer.Normalize(payload.Recipe, payload.IngredientSourceTexts),
                 payload.ExtractedText ?? string.Empty,
                 payload.Warnings ?? [],
                 "OpenAI",
@@ -179,8 +134,77 @@ internal sealed class OpenAiRecipeImageExtractor(
         }
     }
 
+    private static BinaryData CreateRecipeSchema()
+    {
+        string measurementUnits = JsonSerializer.Serialize(
+            RecipeMeasurementUnitVocabulary.All.Select(unit => unit.Value));
+        string schema =
+            """
+            {
+              "type": "object",
+              "properties": {
+                "recipe": {
+                  "type": "object",
+                  "properties": {
+                    "title": { "type": "string" },
+                    "description": { "type": ["string", "null"] },
+                    "servings": { "type": "integer", "minimum": 1 },
+                    "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
+                    "visibility": { "type": "string", "enum": ["Public"] },
+                    "totalTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
+                    "activeTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
+                    "sourceUrl": { "type": ["string", "null"] },
+                    "ingredients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ingredientId": { "type": "null" },
+                          "productName": { "type": "string" },
+                          "amount": { "type": ["number", "null"] },
+                          "unit": { "type": "string", "enum": __MEASUREMENT_UNITS__ },
+                          "category": { "type": "string", "enum": ["Produce","Dairy","MeatAndPoultry","FishAndSeafood","Grocery","GrainsAndPasta","Spices","Bakery","Drinks","Frozen","Other","Eggs","OilsAndSauces","Legumes","NutsAndSeeds","CannedAndPreserved","SweetsAndConfectionery","HerbsAndGreens"] },
+                          "comment": { "type": ["string", "null"] },
+                          "isOptional": { "type": "boolean" }
+                        },
+                        "required": ["ingredientId","productName","amount","unit","category","comment","isOptional"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": { "text": { "type": "string" } },
+                        "required": ["text"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "tags": { "type": "array", "items": { "type": "string" } }
+                  },
+                  "required": ["title","description","servings","category","visibility","totalTimeMinutes","activeTimeMinutes","sourceUrl","ingredients","steps","tags"],
+                  "additionalProperties": false
+                },
+                "ingredientSourceTexts": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Точная исходная строка для каждого ингредиента в том же порядке."
+                },
+                "extractedText": { "type": "string" },
+                "warnings": { "type": "array", "items": { "type": "string" } }
+              },
+              "required": ["recipe","ingredientSourceTexts","extractedText","warnings"],
+              "additionalProperties": false
+            }
+            """
+            .Replace("__MEASUREMENT_UNITS__", measurementUnits, StringComparison.Ordinal);
+
+        return BinaryData.FromString(schema);
+    }
+
     private sealed record OpenAiExtractionPayload(
         CreateRecipeRequest? Recipe,
+        IReadOnlyList<string>? IngredientSourceTexts,
         string? ExtractedText,
         IReadOnlyCollection<string>? Warnings);
 }

@@ -8,6 +8,7 @@ import {
   useReplaceShoppingListFromMenuMutation,
   useShoppingListQuery,
 } from "@/features/shopping-lists/api/shopping-lists.queries"
+import { ShoppingPreviewSkeleton } from "@/features/shopping-lists/ui/ShoppingSkeletons"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +21,7 @@ import {
 } from "@/shared/ui/alert-dialog"
 import { Button } from "@/shared/ui/button"
 import { Checkbox } from "@/shared/ui/checkbox"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ErrorAlert } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
 
 export default function ShoppingPreviewPage() {
@@ -75,7 +76,7 @@ export default function ShoppingPreviewPage() {
     )
   }
 
-  if (previewQuery.isPending) return <PageSkeleton />
+  if (previewQuery.isPending) return <ShoppingPreviewSkeleton />
 
   const preview = previewQuery.data
   if (!preview) return <ErrorAlert error={previewQuery.error} />

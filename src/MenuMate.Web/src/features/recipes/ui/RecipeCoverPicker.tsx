@@ -2,6 +2,7 @@ import { ImagePlus, LoaderCircle, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
 
 import { Button } from "@/shared/ui/button"
+import { RecipeImage } from "./RecipeImage"
 import { RecipeImageLightbox } from "./RecipeImageLightbox"
 
 interface RecipeCoverPickerProps {
@@ -52,10 +53,12 @@ export function RecipeCoverPicker({
               className="focus-visible:ring-ring rounded-lg focus-visible:ring-2 focus-visible:outline-none"
               aria-label="Открыть обложку на весь экран"
             >
-              <img
-                className="bg-muted aspect-square size-[5.5rem] rounded-lg object-cover"
+              <RecipeImage
+                frameClassName="aspect-square size-[5.5rem] rounded-lg"
+                imageClassName="object-cover"
                 src={imageUrl}
                 alt=""
+                loading="eager"
               />
             </button>
           </RecipeImageLightbox>

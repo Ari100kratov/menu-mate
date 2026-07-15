@@ -8,7 +8,8 @@ import {
   useSetRecipeSavedMutation,
 } from "@/features/recipes/api/recipes.queries"
 import { RecipeDetailsContent } from "@/features/recipes/ui/RecipeDetailsContent"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { RecipeDetailsSkeleton } from "@/features/recipes/ui/RecipeSkeletons"
+import { ErrorAlert } from "@/shared/ui/feedback"
 
 export default function RecipeDetailsPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
@@ -73,7 +74,7 @@ export default function RecipeDetailsPage() {
 
   return (
     <div className="space-y-5">
-      {recipeQuery.isPending ? <PageSkeleton /> : null}
+      {recipeQuery.isPending ? <RecipeDetailsSkeleton /> : null}
       {recipeQuery.error ? <ErrorAlert error={recipeQuery.error} /> : null}
       {deleteRecipeMutation.error ? <ErrorAlert error={deleteRecipeMutation.error} /> : null}
       {favoriteMutation.error ? <ErrorAlert error={favoriteMutation.error} /> : null}

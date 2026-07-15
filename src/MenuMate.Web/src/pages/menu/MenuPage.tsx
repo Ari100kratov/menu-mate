@@ -26,6 +26,7 @@ import {
 import { MealSlotSettings } from "@/features/menu-planning/ui/MealSlotSettings"
 import { MenuCalendarView } from "@/features/menu-planning/ui/MenuCalendarView"
 import { MenuRangeToolbar } from "@/features/menu-planning/ui/MenuRangeToolbar"
+import { MenuCalendarSkeleton } from "@/features/menu-planning/ui/MenuSkeletons"
 import { RecipePickerPanel } from "@/features/menu-planning/ui/RecipePickerPanel"
 import {
   AlertDialog,
@@ -224,28 +225,32 @@ export default function MenuPage() {
         <ErrorAlert error={reorderMealSlotsMutation.error} />
       ) : null}
 
-      <MenuCalendarView
-        range={range}
-        mealSlots={mealSlots}
-        items={calendar?.items ?? []}
-        isPlacementMode={Boolean(placementRecipe)}
-        isPending={isCalendarMutationPending}
-        isItemsLoading={calendarQuery.isFetching}
-        onAdd={(date, mealSlotId) => {
-          const target = { date, mealSlotId }
-          if (placementRecipe) {
-            addRecipe(target, placementRecipe, true)
-          } else {
-            setPickerTarget(target)
-          }
-        }}
-        onUpdate={(itemId, request) => {
-          updateItemMutation.mutate({ itemId, request })
-        }}
-        onRemove={(itemId) => {
-          removeItemMutation.mutate(itemId)
-        }}
-      />
+      {calendarQuery.isPending ? (
+        <MenuCalendarSkeleton />
+      ) : (
+        <MenuCalendarView
+          range={range}
+          mealSlots={mealSlots}
+          items={calendar?.items ?? []}
+          isPlacementMode={Boolean(placementRecipe)}
+          isPending={isCalendarMutationPending}
+          isItemsLoading={calendarQuery.isFetching}
+          onAdd={(date, mealSlotId) => {
+            const target = { date, mealSlotId }
+            if (placementRecipe) {
+              addRecipe(target, placementRecipe, true)
+            } else {
+              setPickerTarget(target)
+            }
+          }}
+          onUpdate={(itemId, request) => {
+            updateItemMutation.mutate({ itemId, request })
+          }}
+          onRemove={(itemId) => {
+            removeItemMutation.mutate(itemId)
+          }}
+        />
+      )}
 
       <Button
         type="button"

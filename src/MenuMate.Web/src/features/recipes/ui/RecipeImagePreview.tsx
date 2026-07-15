@@ -1,6 +1,7 @@
 import { ImageIcon } from "lucide-react"
 
 import type { RecipeImage } from "@/features/recipes/api/recipes.api"
+import { RecipeImage as ProgressiveRecipeImage } from "./RecipeImage"
 import { RecipeImageLightbox } from "./RecipeImageLightbox"
 
 interface RecipeImagePreviewProps {
@@ -20,10 +21,13 @@ export function RecipeImagePreview({ image, fallbackTitle }: RecipeImagePreviewP
             className="focus-visible:ring-ring block w-full rounded-md focus-visible:ring-2 focus-visible:outline-none"
             aria-label={`Открыть изображение: ${imageAlt}`}
           >
-            <img
-              className="bg-muted aspect-[4/3] w-full rounded-md border object-cover"
+            <ProgressiveRecipeImage
+              frameClassName="aspect-[4/3] w-full rounded-md border"
+              imageClassName="object-cover"
               src={image.readUrl}
               alt={imageAlt}
+              loading="eager"
+              fetchPriority="high"
             />
           </button>
         </RecipeImageLightbox>

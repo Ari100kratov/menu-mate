@@ -11,6 +11,7 @@ import {
   useRecipeImportDraftQuery,
   useUpdateRecipeImportDraftMutation,
 } from "@/features/imports/api/imports.queries"
+import { RecipeImportDraftPageSkeleton } from "@/features/imports/ui/RecipeImportSkeletons"
 import { type Recipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
 import { recipeQueryKeys } from "@/features/recipes/api/recipes.queries"
 import {
@@ -22,7 +23,7 @@ import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ErrorAlert } from "@/shared/ui/feedback"
 import { PageSection } from "@/shared/ui/page"
 
 export default function RecipeImportDraftPage() {
@@ -119,7 +120,7 @@ export default function RecipeImportDraftPage() {
   }
 
   if (draftQuery.isPending) {
-    return <PageSkeleton />
+    return <RecipeImportDraftPageSkeleton />
   }
 
   if (!draftQuery.data) {

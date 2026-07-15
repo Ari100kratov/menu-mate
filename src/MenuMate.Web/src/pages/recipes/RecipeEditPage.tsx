@@ -14,7 +14,8 @@ import {
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
 import { findCoverImage } from "@/features/recipes/model/recipe-images"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { RecipeFormSkeleton } from "@/features/recipes/ui/RecipeSkeletons"
+import { ErrorAlert } from "@/shared/ui/feedback"
 
 export default function RecipeEditPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
@@ -57,7 +58,7 @@ export default function RecipeEditPage() {
 
   return (
     <div className="space-y-5">
-      {recipeQuery.isPending ? <PageSkeleton /> : null}
+      {recipeQuery.isPending ? <RecipeFormSkeleton /> : null}
       {recipeQuery.error ? <ErrorAlert error={recipeQuery.error} /> : null}
       {recipeQuery.data ? (
         <RecipeForm

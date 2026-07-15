@@ -2,11 +2,12 @@ import { ArrowLeft, ImageIcon, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import type { PlacementRecipe } from "@/features/menu-planning/model/menu-calendar"
+import { RecipePickerListSkeleton } from "@/features/menu-planning/ui/MenuSkeletons"
 import { useRecipesQuery } from "@/features/recipes/api/recipes.queries"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
 import { Button } from "@/shared/ui/button"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ErrorAlert } from "@/shared/ui/feedback"
 import { Input } from "@/shared/ui/input"
 
 interface RecipePickerPanelProps {
@@ -87,7 +88,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
       </form>
 
       {recipesQuery.error ? <ErrorAlert error={recipesQuery.error} /> : null}
-      {recipesQuery.isPending ? <PageSkeleton /> : null}
+      {recipesQuery.isPending ? <RecipePickerListSkeleton /> : null}
 
       <div className="space-y-2">
         {recipes.map((recipe) => (

@@ -2,10 +2,11 @@ import { LogOut } from "lucide-react"
 
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
 import { ProfileOverview } from "@/features/profile/ui/ProfileOverview"
+import { ProfileSkeleton } from "@/features/profile/ui/ProfileSkeleton"
 import { ProfileSettings } from "@/features/profile/ui/ProfileSettings"
 import { useSessionStore } from "@/shared/auth/session.store"
 import { Button } from "@/shared/ui/button"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ErrorAlert } from "@/shared/ui/feedback"
 
 export default function ProfilePage() {
   const currentUserQuery = useCurrentUserQuery()
@@ -13,7 +14,7 @@ export default function ProfilePage() {
   const accessTokenExpiresAt = useSessionStore((state) => state.accessTokenExpiresAt)
 
   if (currentUserQuery.isPending) {
-    return <PageSkeleton />
+    return <ProfileSkeleton />
   }
 
   if (currentUserQuery.error) {

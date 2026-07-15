@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
 
+import { AppShellSkeleton } from "@/app/AppShellSkeleton"
 import { useRefreshSessionQuery } from "@/features/auth/api/auth.queries"
 import { useSessionStore } from "@/shared/auth/session.store"
-import { PageSkeleton } from "@/shared/ui/feedback"
 
 export function ProtectedRoute() {
   const location = useLocation()
@@ -16,11 +16,7 @@ export function ProtectedRoute() {
   }
 
   if (shouldRefreshSession && refreshQuery.isPending) {
-    return (
-      <main className="mx-auto flex min-h-svh w-full max-w-5xl items-center px-4">
-        <PageSkeleton />
-      </main>
-    )
+    return <AppShellSkeleton />
   }
 
   return <Navigate to="/login" replace state={{ from: location }} />

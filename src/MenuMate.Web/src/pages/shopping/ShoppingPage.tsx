@@ -1,12 +1,13 @@
 import { useShoppingListQuery } from "@/features/shopping-lists/api/shopping-lists.queries"
 import { ShoppingListWorkspace } from "@/features/shopping-lists/ui/ShoppingListWorkspace"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ShoppingListSkeleton } from "@/features/shopping-lists/ui/ShoppingSkeletons"
+import { ErrorAlert } from "@/shared/ui/feedback"
 
 export default function ShoppingPage() {
   const shoppingListQuery = useShoppingListQuery()
 
   if (shoppingListQuery.isPending) {
-    return <PageSkeleton />
+    return <ShoppingListSkeleton />
   }
 
   return (

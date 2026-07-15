@@ -8,7 +8,8 @@ import {
 } from "@/features/recipes/api/recipes.queries"
 import { RecipeCard } from "@/features/recipes/ui/RecipeCard"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { RecipeListSkeleton } from "@/features/recipes/ui/RecipeSkeletons"
+import { ErrorAlert } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
 
 export default function RecipesPage() {
@@ -55,7 +56,7 @@ export default function RecipesPage() {
       {favoriteMutation.error ? <ErrorAlert error={favoriteMutation.error} /> : null}
 
       {recipesQuery.isPending ? (
-        <PageSkeleton />
+        <RecipeListSkeleton />
       ) : recipes.length > 0 ? (
         <section className="grid gap-3 lg:grid-cols-2">
           {recipes.map((recipe) => (

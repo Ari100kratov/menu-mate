@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { Button } from "@/shared/ui/button"
+import { RecipeImage } from "./RecipeImage"
 
 interface RecipeCardProps {
   recipe: RecipeListItem
@@ -13,16 +14,20 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
   return (
-    <article className="bg-card group hover:border-primary/30 relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
-      <Link to={`/recipes/${recipe.id}`} className="bg-muted block min-h-full outline-none">
+    <article className="bg-card group hover:border-primary/30 relative grid min-h-36 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:grid-cols-[9rem_minmax(0,1fr)]">
+      <Link
+        to={`/recipes/${recipe.id}`}
+        className="bg-muted block h-36 self-center overflow-hidden outline-none"
+      >
         {recipe.coverImage?.readUrl ? (
-          <img
-            className="size-full min-h-28 object-cover transition duration-300 group-hover:scale-[1.03]"
+          <RecipeImage
+            frameClassName="size-full"
+            imageClassName="object-cover transition duration-300 group-hover:scale-[1.03]"
             src={recipe.coverImage.readUrl}
             alt={recipe.coverImage.altText ?? recipe.title}
           />
         ) : (
-          <span className="text-muted-foreground flex size-full min-h-28 items-center justify-center">
+          <span className="text-muted-foreground flex size-full items-center justify-center">
             <ImageIcon className="size-6" />
           </span>
         )}

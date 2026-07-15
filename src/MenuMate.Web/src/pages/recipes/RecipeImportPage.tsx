@@ -7,6 +7,7 @@ import {
   useDeleteRecipeImportDraftMutation,
   useRecipeImportDraftsQuery,
 } from "@/features/imports/api/imports.queries"
+import { RecipeImportDraftListSkeleton } from "@/features/imports/ui/RecipeImportSkeletons"
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -21,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog"
 import { Button, buttonVariants } from "@/shared/ui/button"
-import { ErrorAlert, PageSkeleton } from "@/shared/ui/feedback"
+import { ErrorAlert } from "@/shared/ui/feedback"
 import { PageSection } from "@/shared/ui/page"
 
 export default function RecipeImportPage() {
@@ -190,7 +191,7 @@ export default function RecipeImportPage() {
         {draftsQuery.error ? <ErrorAlert error={draftsQuery.error} /> : null}
         {deleteMutation.error ? <ErrorAlert error={deleteMutation.error} /> : null}
         {draftsQuery.isPending ? (
-          <PageSkeleton />
+          <RecipeImportDraftListSkeleton />
         ) : draftsQuery.data?.length ? (
           <div className="divide-y rounded-lg border">
             {draftsQuery.data.map((draft) => (
