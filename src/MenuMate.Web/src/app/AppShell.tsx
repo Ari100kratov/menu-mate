@@ -1,8 +1,16 @@
 import { ArrowLeft, LogOut } from "lucide-react"
-import { Link, NavLink, Outlet, matchPath, useLocation } from "react-router-dom"
+import { useEffect } from "react"
+import { Link, NavLink, Outlet, ScrollRestoration, matchPath, useLocation } from "react-router-dom"
 
-import { accountNavigationItem, workspaceNavigation } from "@/app/navigation"
+import {
+  accountNavigationItem,
+  getLastWorkspaceSection,
+  getScrollRestorationKey,
+  rememberWorkspaceSection,
+  workspaceNavigation,
+} from "@/app/navigation"
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
+import { createBackNavigationState, getBackNavigationState } from "@/shared/lib/back-navigation"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import { ThemeToggle } from "@/shared/ui/theme-toggle"
@@ -18,22 +26,42 @@ export function AppShell() {
   const currentUserQuery = useCurrentUserQuery()
   const logoutMutation = useLogoutMutation()
   const chrome = getPageChrome(location.pathname)
+  const backNavigation = chrome.backTo ? getBackNavigationState(location.state) : undefined
+  const accountBackState = location.pathname.startsWith(accountNavigationItem.path)
+    ? undefined
+    : createBackNavigationState(location)
+
+  useEffect(() => {
+    rememberWorkspaceSection(location.pathname)
+  }, [location.pathname])
 
   return (
     <div className="bg-background min-h-svh">
       <DesktopSidebar
         displayName={currentUserQuery.data?.displayName ?? "MenuMate"}
+        accountBackState={accountBackState}
         onLogout={() => {
           logoutMutation.mutate()
         }}
       />
       <div className="md:pl-64">
-        <AppTopBar chrome={chrome} pathname={location.pathname} />
+        <AppTopBar
+          chrome={chrome}
+          pathname={location.pathname}
+          backTo={backNavigation?.backTo ?? chrome.backTo}
+          backState={backNavigation?.backState}
+          accountBackState={accountBackState}
+        />
         <main className="mx-auto w-full max-w-6xl px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
           <Outlet />
         </main>
       </div>
       <BottomNavigation />
+      <ScrollRestoration
+        getKey={(scrollLocation) =>
+          getScrollRestorationKey(scrollLocation.pathname, scrollLocation.key)
+        }
+      />
     </div>
   )
 }
@@ -99,6 +127,7 @@ function getPageChrome(pathname: string): PageChrome {
     return {
       title: "Профиль",
       description: "Аккаунт, тема и локальные настройки",
+      backTo: getLastWorkspaceSection(),
     }
   }
 
@@ -108,15 +137,27 @@ function getPageChrome(pathname: string): PageChrome {
   }
 }
 
-function AppTopBar({ chrome, pathname }: { chrome: PageChrome; pathname: string }) {
+function AppTopBar({
+  chrome,
+  pathname,
+  backTo,
+  backState,
+  accountBackState,
+}: {
+  chrome: PageChrome
+  pathname: string
+  backTo?: string
+  backState?: unknown
+  accountBackState?: unknown
+}) {
   const isProfileActive = pathname.startsWith(accountNavigationItem.path)
 
   return (
     <header className="bg-background/95 sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b px-3 py-2 backdrop-blur md:min-h-16 md:px-6">
       <div className="flex min-w-0 items-center gap-2">
-        {chrome.backTo ? (
-          <Button asChild type="button" variant="ghost" size="icon" aria-label="Назад">
-            <Link to={chrome.backTo}>
+        {backTo ? (
+          <Button asChild type="button" variant="ghost" size="icon">
+            <Link to={backTo} state={backState} aria-label="Назад" title="Назад">
               <ArrowLeft />
             </Link>
           </Button>
@@ -145,7 +186,7 @@ function AppTopBar({ chrome, pathname }: { chrome: PageChrome; pathname: string 
           size="icon"
           aria-label={accountNavigationItem.title}
         >
-          <Link to={accountNavigationItem.path}>
+          <Link to={accountNavigationItem.path} state={accountBackState}>
             <accountNavigationItem.icon />
           </Link>
         </Button>
@@ -156,14 +197,16 @@ function AppTopBar({ chrome, pathname }: { chrome: PageChrome; pathname: string 
 
 interface DesktopSidebarProps {
   displayName: string
+  accountBackState?: unknown
   onLogout: () => void
 }
 
-function DesktopSidebar({ displayName, onLogout }: DesktopSidebarProps) {
+function DesktopSidebar({ displayName, accountBackState, onLogout }: DesktopSidebarProps) {
   return (
     <aside className="bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r md:flex">
       <NavLink
         to={accountNavigationItem.path}
+        state={accountBackState}
         className={({ isActive }) =>
           cn(
             "block border-b px-5 py-5 transition-colors",

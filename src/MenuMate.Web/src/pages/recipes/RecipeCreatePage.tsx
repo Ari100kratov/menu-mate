@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -12,49 +11,50 @@ import {
   type RecipeFormValues,
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
+import { getBackNavigationState } from "@/shared/lib/back-navigation"
 
 export default function RecipeCreatePage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const createRecipeMutation = useCreateRecipeMutation()
-  const [coverError, setCoverError] = useState<unknown>()
 
   function handleSubmit(values: RecipeFormValues, coverFile: File | null) {
-    setCoverError(undefined)
     createRecipeMutation.mutate(toRecipeRequest(values), {
       onSuccess: (recipe) => {
-        void uploadCoverAndNavigate(recipe.id, values.title, coverFile)
+        toast.success("Рецепт создан")
+        void navigate(`/recipes/${recipe.id}`, {
+          replace: true,
+          state: getBackNavigationState(location.state),
+        })
+        if (coverFile) {
+          void uploadCover(recipe.id, values.title, coverFile)
+        }
       },
     })
   }
 
-  async function uploadCoverAndNavigate(recipeId: string, title: string, coverFile: File | null) {
+  async function uploadCover(recipeId: string, title: string, coverFile: File) {
     try {
-      if (coverFile) {
-        const image = await uploadRecipeImage(recipeId, {
-          file: coverFile,
-          scope: "Cover",
-          altText: title,
-        })
-        queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
-          recipe
-            ? {
-                ...recipe,
-                images: [
-                  ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
-                  image,
-                ],
-              }
-            : recipe,
-        )
-        void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
-      }
-      toast.success("Рецепт создан")
-      void navigate(`/recipes/${recipeId}`, { replace: true })
-    } catch (error) {
-      setCoverError(error)
+      const image = await uploadRecipeImage(recipeId, {
+        file: coverFile,
+        scope: "Cover",
+        altText: title,
+      })
+      queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
+        recipe
+          ? {
+              ...recipe,
+              images: [
+                ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+                image,
+              ],
+            }
+          : recipe,
+      )
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+    } catch {
       toast.warning("Рецепт создан, но обложку загрузить не удалось")
-      void navigate(`/recipes/${recipeId}/edit`, { replace: true })
     }
   }
 
@@ -63,7 +63,7 @@ export default function RecipeCreatePage() {
       initialValues={createEmptyRecipeFormValues()}
       submitLabel="Создать рецепт"
       isSubmitting={createRecipeMutation.isPending}
-      error={createRecipeMutation.error ?? coverError}
+      error={createRecipeMutation.error}
       generateCover={(values) => generateRecipeCoverImage(toRecipeRequest(values))}
       onSubmit={handleSubmit}
     />

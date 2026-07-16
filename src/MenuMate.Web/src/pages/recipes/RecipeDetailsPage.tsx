@@ -1,4 +1,4 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom"
 
 import {
   useCopyRecipeMutation,
@@ -9,11 +9,13 @@ import {
 } from "@/features/recipes/api/recipes.queries"
 import { RecipeDetailsContent } from "@/features/recipes/ui/RecipeDetailsContent"
 import { RecipeDetailsSkeleton } from "@/features/recipes/ui/RecipeSkeletons"
+import { createBackNavigationState, getBackNavigationState } from "@/shared/lib/back-navigation"
 import { ErrorAlert } from "@/shared/ui/feedback"
 
 export default function RecipeDetailsPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const recipeQuery = useRecipeQuery(recipeId)
   const deleteRecipeMutation = useDeleteRecipeMutation()
   const favoriteMutation = useSetRecipeFavoriteMutation()
@@ -33,7 +35,11 @@ export default function RecipeDetailsPage() {
 
     deleteRecipeMutation.mutate(recipe.id, {
       onSuccess: () => {
-        void navigate("/recipes", { replace: true })
+        const backNavigation = getBackNavigationState(location.state)
+        void navigate(backNavigation?.backTo ?? "/recipes", {
+          replace: true,
+          state: backNavigation?.backState,
+        })
       },
     })
   }
@@ -67,7 +73,9 @@ export default function RecipeDetailsPage() {
 
     copyMutation.mutate(recipe.id, {
       onSuccess: (createdRecipe) => {
-        void navigate(`/recipes/${createdRecipe.id}/edit`)
+        void navigate(`/recipes/${createdRecipe.id}/edit`, {
+          state: createBackNavigationState(location),
+        })
       },
     })
   }

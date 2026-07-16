@@ -119,7 +119,10 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         bool catalog,
         string? search,
         string? normalizedTag,
+        RecipeCategory? category,
         bool favoritesOnly,
+        int skip,
+        int take,
         CancellationToken cancellationToken)
     {
         IQueryable<RecipeRecord> query = Recipes.AsNoTracking().Where(recipe => !recipe.IsDeleted);
@@ -143,6 +146,11 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             query = query.Where(recipe => recipe.Tags.Any(tag => tag.NormalizedValue == normalizedTag));
         }
 
+        if (category.HasValue)
+        {
+            query = query.Where(recipe => recipe.Category == category.Value);
+        }
+
         if (favoritesOnly)
         {
             query = query.Where(recipe =>
@@ -151,6 +159,9 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
 
         RecipeListItemProjection[] recipes = await query
             .OrderBy(recipe => recipe.Title)
+            .ThenBy(recipe => recipe.Id)
+            .Skip(skip)
+            .Take(take)
             .Select(recipe => new RecipeListItemProjection(
                 recipe.Id,
                 recipe.CurrentRevisionId.Value,

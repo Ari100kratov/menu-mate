@@ -4,14 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/shared/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Slider } from "@/shared/ui/slider"
@@ -202,9 +195,6 @@ export function RecipeCoverSuggestionCard({
         <DialogContent className="grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Настройка обложки</DialogTitle>
-            <DialogDescription>
-              Перемещайте изображение и меняйте масштаб. В обложку попадёт область внутри квадрата.
-            </DialogDescription>
           </DialogHeader>
 
           <div className="min-h-0 overflow-y-auto px-5 pb-5">

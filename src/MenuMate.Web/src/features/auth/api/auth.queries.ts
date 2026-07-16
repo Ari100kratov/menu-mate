@@ -47,7 +47,7 @@ export function useLoginMutation() {
     mutationFn: login,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser })
-      void navigate("/recipes", { replace: true })
+      void navigate("/", { replace: true })
     },
   })
 }

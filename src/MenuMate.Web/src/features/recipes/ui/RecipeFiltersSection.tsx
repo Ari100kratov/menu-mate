@@ -1,5 +1,5 @@
-import { Check, Compass, Heart, Library, Search, X } from "lucide-react"
-import type { WheelEvent } from "react"
+import { Check, Compass, Heart, Library, LoaderCircle, Search, X } from "lucide-react"
+import { useEffect, useRef, type WheelEvent } from "react"
 
 import { recipeCategoryOptions } from "@/features/recipes/model/recipe-form-options"
 import { Button } from "@/shared/ui/button"
@@ -11,6 +11,8 @@ interface RecipeFiltersSectionProps {
   category: string
   favoritesOnly: boolean
   recipesCount: number | undefined
+  hasMoreRecipes: boolean
+  isSearchPending: boolean
   onScopeChange: (value: "library" | "catalog") => void
   onSearchChange: (value: string) => void
   onCategoryChange: (value: string) => void
@@ -24,6 +26,8 @@ export function RecipeFiltersSection({
   category,
   favoritesOnly,
   recipesCount,
+  hasMoreRecipes,
+  isSearchPending,
   onScopeChange,
   onSearchChange,
   onCategoryChange,
@@ -31,6 +35,24 @@ export function RecipeFiltersSection({
   onReset,
 }: RecipeFiltersSectionProps) {
   const hasActiveFilters = Boolean(search.trim() || category || favoritesOnly)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = categoriesRef.current
+    const activeChip = container?.querySelector<HTMLElement>("[data-active='true']")
+    if (!container || !activeChip) {
+      return
+    }
+
+    const containerBounds = container.getBoundingClientRect()
+    const activeChipBounds = activeChip.getBoundingClientRect()
+    const centeredScrollLeft =
+      container.scrollLeft +
+      activeChipBounds.left -
+      containerBounds.left -
+      (container.clientWidth - activeChip.clientWidth) / 2
+    container.scrollTo({ left: Math.max(0, centeredScrollLeft), behavior: "auto" })
+  }, [category, scope])
 
   return (
     <section className="space-y-3">
@@ -71,11 +93,19 @@ export function RecipeFiltersSection({
 
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          {isSearchPending ? (
+            <LoaderCircle className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 animate-spin" />
+          ) : (
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          )}
           <Input
+            type="search"
             className="bg-card h-11 rounded-xl pl-9"
             value={search}
             placeholder="Найти рецепт"
+            aria-label="Поиск по названию и описанию рецепта"
+            aria-busy={isSearchPending}
+            autoComplete="off"
             onChange={(event) => {
               onSearchChange(event.target.value)
             }}
@@ -98,6 +128,7 @@ export function RecipeFiltersSection({
       </div>
 
       <div
+        ref={categoriesRef}
         className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
         aria-label="Категории рецептов"
         onWheel={scrollCategoriesWithMouseWheel}
@@ -128,7 +159,9 @@ export function RecipeFiltersSection({
       </div>
 
       {recipesCount === undefined ? null : (
-        <p className="type-supporting text-muted-foreground">Найдено: {recipesCount}</p>
+        <p className="type-supporting text-muted-foreground" aria-live="polite">
+          {hasMoreRecipes ? "Показано" : "Найдено"}: {recipesCount}
+        </p>
       )}
     </section>
   )
@@ -167,6 +200,7 @@ function FilterChip({
       variant={active ? "default" : "outline"}
       size="sm"
       className="shrink-0 rounded-full"
+      data-active={active}
       aria-pressed={active}
       onClick={onClick}
     >

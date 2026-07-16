@@ -1,6 +1,6 @@
 import { CheckCircle2, ExternalLink, Info, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -24,6 +24,7 @@ import {
 } from "@/features/recipes/model/recipe-form"
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
+import { getParentBackState } from "@/shared/lib/back-navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
@@ -32,6 +33,7 @@ import { PageSection } from "@/shared/ui/page"
 export default function RecipeImportDraftPage() {
   const { draftId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const draftQuery = useRecipeImportDraftQuery(draftId)
   const updateMutation = useUpdateRecipeImportDraftMutation(draftId ?? "")
@@ -40,7 +42,6 @@ export default function RecipeImportDraftPage() {
   const deleteMutation = useDeleteRecipeImportDraftMutation()
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const [autosaveError, setAutosaveError] = useState<unknown>()
-  const [coverError, setCoverError] = useState<unknown>()
 
   useEffect(
     () => () => {
@@ -72,41 +73,41 @@ export default function RecipeImportDraftPage() {
   )
 
   function handleConfirm(values: RecipeFormValues, coverFile: File | null) {
-    setCoverError(undefined)
     confirmMutation.mutate(toRecipeRequest(values), {
       onSuccess: (recipe) => {
-        void uploadCoverAndNavigate(recipe.id, values.title, coverFile)
+        toast.success("Рецепт создан")
+        void navigate(`/recipes/${recipe.id}`, {
+          replace: true,
+          state: getParentBackState(location.state),
+        })
+        if (coverFile) {
+          void uploadCover(recipe.id, values.title, coverFile)
+        }
       },
     })
   }
 
-  async function uploadCoverAndNavigate(recipeId: string, title: string, coverFile: File | null) {
+  async function uploadCover(recipeId: string, title: string, coverFile: File) {
     try {
-      if (coverFile) {
-        const image = await uploadRecipeImage(recipeId, {
-          file: coverFile,
-          scope: "Cover",
-          altText: title,
-        })
-        queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
-          recipe
-            ? {
-                ...recipe,
-                images: [
-                  ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
-                  image,
-                ],
-              }
-            : recipe,
-        )
-        void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
-      }
-      toast.success("Рецепт создан")
-      void navigate(`/recipes/${recipeId}`, { replace: true })
-    } catch (error) {
-      setCoverError(error)
+      const image = await uploadRecipeImage(recipeId, {
+        file: coverFile,
+        scope: "Cover",
+        altText: title,
+      })
+      queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
+        recipe
+          ? {
+              ...recipe,
+              images: [
+                ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+                image,
+              ],
+            }
+          : recipe,
+      )
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+    } catch {
       toast.warning("Рецепт создан, но обложку загрузить не удалось")
-      void navigate(`/recipes/${recipeId}/edit`, { replace: true })
     }
   }
 
@@ -117,7 +118,10 @@ export default function RecipeImportDraftPage() {
 
     deleteMutation.mutate(draftId, {
       onSuccess: () => {
-        void navigate("/recipes/import", { replace: true })
+        void navigate("/recipes/import", {
+          replace: true,
+          state: getParentBackState(location.state),
+        })
       },
     })
   }
@@ -209,7 +213,10 @@ export default function RecipeImportDraftPage() {
           <AlertTitle>Рецепт уже создан</AlertTitle>
           <AlertDescription>
             <Button asChild variant="link" className="h-auto p-0">
-              <Link to={`/recipes/${draft.createdRecipeId}`}>
+              <Link
+                to={`/recipes/${draft.createdRecipeId}`}
+                state={getParentBackState(location.state)}
+              >
                 Открыть рецепт
                 <ExternalLink />
               </Link>
@@ -228,7 +235,7 @@ export default function RecipeImportDraftPage() {
             initialValues={recipeRequestToFormValues(draft.recipe)}
             submitLabel="Создать рецепт"
             isSubmitting={confirmMutation.isPending}
-            error={confirmMutation.error ?? coverError}
+            error={confirmMutation.error}
             onValuesChange={handleValuesChange}
             suggestedCover={suggestedCover}
             generateCover={(values) => generateRecipeCoverImage(toRecipeRequest(values))}

@@ -1,6 +1,6 @@
 import { FileImage, ImagePlus, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import {
   useCreateRecipeImportDraftMutation,
@@ -9,6 +9,7 @@ import {
 } from "@/features/imports/api/imports.queries"
 import { RecipeImportDraftListSkeleton } from "@/features/imports/ui/RecipeImportSkeletons"
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { cn } from "@/shared/lib/utils"
 import {
   AlertDialog,
@@ -27,6 +28,8 @@ import { PageSection } from "@/shared/ui/page"
 
 export default function RecipeImportPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const backNavigationState = createBackNavigationState(location)
   const draftsQuery = useRecipeImportDraftsQuery()
   const createMutation = useCreateRecipeImportDraftMutation()
   const deleteMutation = useDeleteRecipeImportDraftMutation()
@@ -84,7 +87,7 @@ export default function RecipeImportPage() {
 
     createMutation.mutate(files, {
       onSuccess: (draft) => {
-        void navigate(`/recipes/import/${draft.id}`)
+        void navigate(`/recipes/import/${draft.id}`, { state: backNavigationState })
       },
     })
   }
@@ -197,7 +200,11 @@ export default function RecipeImportPage() {
             {draftsQuery.data.map((draft) => (
               <div key={draft.id} className="flex items-center gap-3 p-3">
                 <div className="min-w-0 flex-1">
-                  <Link to={`/recipes/import/${draft.id}`} className="font-medium hover:underline">
+                  <Link
+                    to={`/recipes/import/${draft.id}`}
+                    state={backNavigationState}
+                    className="font-medium hover:underline"
+                  >
                     {draft.title}
                   </Link>
                   <p className="text-muted-foreground text-sm">

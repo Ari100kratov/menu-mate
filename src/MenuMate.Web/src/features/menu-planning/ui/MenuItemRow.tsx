@@ -1,12 +1,13 @@
 import { BookOpen, Pencil, Trash2, Users, X } from "lucide-react"
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import type {
   MealSlot,
   MenuCalendarItem,
   MenuCalendarItemRequest,
 } from "@/features/menu-planning/api/menu-calendar.api"
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
@@ -20,6 +21,7 @@ interface MenuItemRowProps {
 }
 
 export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: MenuItemRowProps) {
+  const location = useLocation()
   const [isEditing, setIsEditing] = useState(false)
   const [mealSlotId, setMealSlotId] = useState(item.mealSlotId)
   const [servings, setServings] = useState(String(item.servings))
@@ -125,6 +127,7 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
         {item.recipeId ? (
           <Link
             to={`/recipes/${item.recipeId}`}
+            state={createBackNavigationState(location)}
             className="type-label hover:text-primary block truncate hover:underline"
           >
             {title}

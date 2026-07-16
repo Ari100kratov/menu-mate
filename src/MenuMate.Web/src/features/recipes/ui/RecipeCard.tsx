@@ -1,8 +1,9 @@
 import { Bookmark, Clock3, Heart, ImageIcon, Timer, Users } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { Button } from "@/shared/ui/button"
 import { RecipeImage } from "./RecipeImage"
 
@@ -13,10 +14,14 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
+  const location = useLocation()
+  const backNavigationState = createBackNavigationState(location)
+
   return (
     <article className="bg-card group hover:border-primary/30 relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:min-h-32 sm:grid-cols-[8rem_minmax(0,1fr)]">
       <Link
         to={`/recipes/${recipe.id}`}
+        state={backNavigationState}
         className="bg-muted block h-28 self-center overflow-hidden outline-none sm:h-32"
       >
         {recipe.coverImage?.readUrl ? (
@@ -35,6 +40,7 @@ export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: Reci
 
       <Link
         to={`/recipes/${recipe.id}`}
+        state={backNavigationState}
         className="flex min-w-0 flex-col justify-center gap-2 p-3 outline-none sm:p-4"
       >
         <div className="space-y-0.5">

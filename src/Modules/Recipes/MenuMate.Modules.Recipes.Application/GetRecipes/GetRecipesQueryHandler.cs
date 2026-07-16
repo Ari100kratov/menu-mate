@@ -3,6 +3,7 @@ using MenuMate.Common.Application.Storage;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Application.RecipeImages;
+using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.SharedKernel;
 
 namespace MenuMate.Modules.Recipes.Application.GetRecipes;
@@ -22,13 +23,28 @@ internal sealed class GetRecipesQueryHandler(
             : TextNormalizer.NormalizeSearchText(query.Tag);
 
         bool catalog = string.Equals(query.Scope, "catalog", StringComparison.OrdinalIgnoreCase);
+        bool hasCategory = !string.IsNullOrWhiteSpace(query.Category);
+        bool hasValidCategory =
+            Enum.TryParse(query.Category, ignoreCase: true, out RecipeCategory parsedCategory) &&
+            Enum.IsDefined(parsedCategory);
+        if (hasCategory && !hasValidCategory)
+        {
+            return Result.Success<IReadOnlyCollection<RecipeListItemResponse>>([]);
+        }
+
+        RecipeCategory? category = hasValidCategory ? parsedCategory : null;
+        int page = Math.Clamp(query.Page, 1, 100_000);
+        int pageSize = Math.Clamp(query.PageSize, 1, 50);
 
         IReadOnlyCollection<RecipeListItemResponse> recipes = await dbContext.GetRecipesAsync(
             userContext.UserId,
             catalog,
             query.Search,
             normalizedTag,
+            category,
             query.FavoritesOnly,
+            (page - 1) * pageSize,
+            pageSize,
             cancellationToken);
 
         try

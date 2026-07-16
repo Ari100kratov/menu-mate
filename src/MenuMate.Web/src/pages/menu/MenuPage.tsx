@@ -1,6 +1,6 @@
 import { Check, ShoppingCart } from "lucide-react"
-import { useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useEffect, useRef, useState } from "react"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
@@ -19,15 +19,16 @@ import type { MenuCalendarItemRequest } from "@/features/menu-planning/api/menu-
 import {
   getRange,
   shiftRange,
-  type MenuDateRange,
   type MenuRangeMode,
   type PlacementRecipe,
 } from "@/features/menu-planning/model/menu-calendar"
+import { useMenuViewState } from "@/features/menu-planning/model/menu-view-state"
 import { MealSlotSettings } from "@/features/menu-planning/ui/MealSlotSettings"
 import { MenuCalendarView } from "@/features/menu-planning/ui/MenuCalendarView"
 import { MenuRangeToolbar } from "@/features/menu-planning/ui/MenuRangeToolbar"
 import { MenuCalendarSkeleton } from "@/features/menu-planning/ui/MenuSkeletons"
 import { RecipePickerPanel } from "@/features/menu-planning/ui/RecipePickerPanel"
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,10 +49,12 @@ interface PickerTarget {
 
 export default function MenuPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [rangeMode, setRangeMode] = useState<MenuRangeMode>("week")
-  const [range, setRange] = useState<MenuDateRange>(() => getRange("week"))
+  const [menuView, setMenuView] = useMenuViewState()
+  const { rangeMode, range } = menuView
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null)
+  const pendingCalendarScrollRef = useRef<number | null>(null)
   const [showMealSlotSettings, setShowMealSlotSettings] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const calendarQuery = useMenuCalendarQuery(range.startDate, range.endDate)
@@ -73,17 +76,41 @@ export default function MenuPage() {
     deleteMealSlotMutation.isPending ||
     reorderMealSlotsMutation.isPending
 
-  function changeMode(mode: MenuRangeMode) {
-    setRangeMode(mode)
-    if (mode !== "custom") {
-      setRange(getRange(mode))
+  useEffect(() => {
+    if (pickerTarget !== null || pendingCalendarScrollRef.current === null) {
+      return
     }
+
+    const scrollTop = pendingCalendarScrollRef.current
+    let didRestore = false
+    let innerFrame = 0
+    const outerFrame = window.requestAnimationFrame(() => {
+      innerFrame = window.requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollTop, behavior: "auto" })
+        pendingCalendarScrollRef.current = null
+        didRestore = true
+      })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(outerFrame)
+      window.cancelAnimationFrame(innerFrame)
+      if (!didRestore) {
+        pendingCalendarScrollRef.current = scrollTop
+      }
+    }
+  }, [pickerTarget])
+
+  function changeMode(mode: MenuRangeMode) {
+    setMenuView((current) => ({
+      rangeMode: mode,
+      range: mode === "custom" ? current.range : getRange(mode),
+    }))
   }
 
   function goToToday() {
     const mode = rangeMode === "custom" ? "week" : rangeMode
-    setRangeMode(mode)
-    setRange(getRange(mode))
+    setMenuView({ rangeMode: mode, range: getRange(mode) })
   }
 
   function addRecipe(target: PickerTarget, recipe: PlacementRecipe, keepPlacementMode: boolean) {
@@ -135,14 +162,19 @@ export default function MenuPage() {
         range={range}
         onModeChange={changeMode}
         onRangeChange={(nextRange) => {
-          setRangeMode("custom")
-          setRange(nextRange)
+          setMenuView({ rangeMode: "custom", range: nextRange })
         }}
         onPrevious={() => {
-          setRange((current) => shiftRange(current, rangeMode, -1))
+          setMenuView((current) => ({
+            ...current,
+            range: shiftRange(current.range, current.rangeMode, -1),
+          }))
         }}
         onNext={() => {
-          setRange((current) => shiftRange(current, rangeMode, 1))
+          setMenuView((current) => ({
+            ...current,
+            range: shiftRange(current.range, current.rangeMode, 1),
+          }))
         }}
         onToday={goToToday}
         canClearRange={hasItemsInRange}
@@ -240,6 +272,7 @@ export default function MenuPage() {
             if (placementRecipe) {
               addRecipe(target, placementRecipe, true)
             } else {
+              pendingCalendarScrollRef.current = window.scrollY
               setPickerTarget(target)
             }
           }}
@@ -260,7 +293,9 @@ export default function MenuPage() {
         title="Создать список покупок"
         onClick={() => {
           const query = new URLSearchParams({ startDate: range.startDate, endDate: range.endDate })
-          void navigate(`/shopping/preview?${query.toString()}`)
+          void navigate(`/shopping/preview?${query.toString()}`, {
+            state: createBackNavigationState(location),
+          })
         }}
       >
         <ShoppingCart className="size-5" />

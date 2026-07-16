@@ -1,37 +1,44 @@
-import { Plus } from "lucide-react"
-import { useMemo, useState } from "react"
+import { Plus, Search } from "lucide-react"
 
 import { RecipeCreateMenu } from "@/features/imports/ui/RecipeCreateMenu"
 import {
-  useRecipesQuery,
+  useInfiniteRecipesQuery,
   useSetRecipeFavoriteMutation,
 } from "@/features/recipes/api/recipes.queries"
+import { useRecipeListFilterState } from "@/features/recipes/model/recipe-list-filter-state"
 import { RecipeCard } from "@/features/recipes/ui/RecipeCard"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
+import { RecipeInfiniteScrollStatus } from "@/features/recipes/ui/RecipeInfiniteScrollStatus"
 import { RecipeListSkeleton } from "@/features/recipes/ui/RecipeSkeletons"
+import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
+import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
+import { ScrollToTopButton } from "@/shared/ui/scroll-to-top-button"
 
 export default function RecipesPage() {
-  const [search, setSearch] = useState("")
-  const [scope, setScope] = useState<"library" | "catalog">("library")
-  const [category, setCategory] = useState("")
-  const [favoritesOnly, setFavoritesOnly] = useState(false)
-  const recipesQuery = useRecipesQuery({ scope, search, favoritesOnly })
+  const {
+    scope,
+    search,
+    category,
+    favoritesOnly,
+    setScope,
+    setSearch,
+    setCategory,
+    setFavoritesOnly,
+    resetActiveFilters,
+  } = useRecipeListFilterState("menumate:recipes:filters:v1")
+  const debouncedSearch = useDebouncedValue(search, 350)
+  const recipesQuery = useInfiniteRecipesQuery({
+    scope,
+    search: debouncedSearch,
+    category,
+    favoritesOnly,
+  })
   const favoriteMutation = useSetRecipeFavoriteMutation()
-  const recipes = useMemo(
-    () =>
-      category
-        ? (recipesQuery.data ?? []).filter((recipe) => recipe.category === category)
-        : (recipesQuery.data ?? []),
-    [category, recipesQuery.data],
-  )
-
-  function resetFilters() {
-    setSearch("")
-    setCategory("")
-    setFavoritesOnly(false)
-  }
+  const recipes = recipesQuery.data?.pages.flat() ?? []
+  const hasActiveFilters = Boolean(search.trim() || category || favoritesOnly)
+  const isSearchPending = search.trim() !== debouncedSearch.trim()
 
   return (
     <div className="space-y-5">
@@ -45,11 +52,13 @@ export default function RecipesPage() {
         category={category}
         favoritesOnly={favoritesOnly}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
+        hasMoreRecipes={recipesQuery.hasNextPage}
+        isSearchPending={isSearchPending}
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
         onFavoritesOnlyChange={setFavoritesOnly}
-        onReset={resetFilters}
+        onReset={resetActiveFilters}
       />
 
       {recipesQuery.error ? <ErrorAlert error={recipesQuery.error} /> : null}
@@ -58,21 +67,41 @@ export default function RecipesPage() {
       {recipesQuery.isPending ? (
         <RecipeListSkeleton />
       ) : recipes.length > 0 ? (
-        <section className="grid gap-3 lg:grid-cols-2">
-          {recipes.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              isFavoritePending={favoriteMutation.isPending}
-              onToggleFavorite={() => {
-                favoriteMutation.mutate({
-                  recipeId: recipe.id,
-                  isFavorite: !recipe.isFavorite,
-                })
-              }}
-            />
-          ))}
-        </section>
+        <>
+          <section className="grid gap-3 lg:grid-cols-2">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                isFavoritePending={favoriteMutation.isPending}
+                onToggleFavorite={() => {
+                  favoriteMutation.mutate({
+                    recipeId: recipe.id,
+                    isFavorite: !recipe.isFavorite,
+                  })
+                }}
+              />
+            ))}
+          </section>
+          <RecipeInfiniteScrollStatus
+            hasNextPage={recipesQuery.hasNextPage}
+            isFetchingNextPage={recipesQuery.isFetchingNextPage}
+            hasError={recipesQuery.isFetchNextPageError}
+            loadedCount={recipes.length}
+            onLoadMore={recipesQuery.fetchNextPage}
+          />
+        </>
+      ) : hasActiveFilters ? (
+        <EmptyState
+          icon={Search}
+          title="Ничего не найдено"
+          description="Попробуйте изменить запрос или сбросить фильтры этой вкладки."
+          action={
+            <Button type="button" variant="outline" onClick={resetActiveFilters}>
+              Сбросить фильтры
+            </Button>
+          }
+        />
       ) : (
         <EmptyState
           icon={Plus}
@@ -86,6 +115,7 @@ export default function RecipesPage() {
         iconOnly
         className="fixed right-4 bottom-20 z-30 rounded-full shadow-lg sm:hidden"
       />
+      <ScrollToTopButton className="fixed right-4 bottom-[10rem] z-30 rounded-full shadow-lg sm:right-6 sm:bottom-6" />
     </div>
   )
 }

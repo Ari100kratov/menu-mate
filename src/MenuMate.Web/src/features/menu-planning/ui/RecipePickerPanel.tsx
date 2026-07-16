@@ -1,11 +1,14 @@
 import { ArrowLeft, ImageIcon, Plus } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 import type { PlacementRecipe } from "@/features/menu-planning/model/menu-calendar"
 import { RecipePickerListSkeleton } from "@/features/menu-planning/ui/MenuSkeletons"
-import { useRecipesQuery } from "@/features/recipes/api/recipes.queries"
+import { useInfiniteRecipesQuery } from "@/features/recipes/api/recipes.queries"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
+import { useRecipeListFilterState } from "@/features/recipes/model/recipe-list-filter-state"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
+import { RecipeInfiniteScrollStatus } from "@/features/recipes/ui/RecipeInfiniteScrollStatus"
+import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { Input } from "@/shared/ui/input"
@@ -17,19 +20,26 @@ interface RecipePickerPanelProps {
 }
 
 export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerPanelProps) {
-  const [scope, setScope] = useState<"library" | "catalog">("library")
-  const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("")
-  const [favoritesOnly, setFavoritesOnly] = useState(false)
+  const {
+    scope,
+    search,
+    category,
+    favoritesOnly,
+    setScope,
+    setSearch,
+    setCategory,
+    setFavoritesOnly,
+    resetActiveFilters,
+  } = useRecipeListFilterState("menumate:menu:recipe-picker-filters:v1")
+  const debouncedSearch = useDebouncedValue(search, 350)
   const [text, setText] = useState("")
-  const recipesQuery = useRecipesQuery({ scope, search, favoritesOnly })
-  const recipes = useMemo(
-    () =>
-      category
-        ? (recipesQuery.data ?? []).filter((recipe) => recipe.category === category)
-        : (recipesQuery.data ?? []),
-    [category, recipesQuery.data],
-  )
+  const recipesQuery = useInfiniteRecipesQuery({
+    scope,
+    search: debouncedSearch,
+    category,
+    favoritesOnly,
+  })
+  const recipes = recipesQuery.data?.pages.flat() ?? []
 
   return (
     <section className="mx-auto max-w-3xl space-y-4">
@@ -38,7 +48,8 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Назад к меню"
+          aria-label="Назад"
+          title="Назад"
           onClick={onBack}
         >
           <ArrowLeft />
@@ -54,15 +65,13 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         category={category}
         favoritesOnly={favoritesOnly}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
+        hasMoreRecipes={recipesQuery.hasNextPage}
+        isSearchPending={search.trim() !== debouncedSearch.trim()}
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
         onFavoritesOnlyChange={setFavoritesOnly}
-        onReset={() => {
-          setSearch("")
-          setCategory("")
-          setFavoritesOnly(false)
-        }}
+        onReset={resetActiveFilters}
       />
 
       <form
@@ -125,6 +134,20 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
           </button>
         ))}
       </div>
+
+      {!recipesQuery.isPending && recipes.length === 0 ? (
+        <p className="text-muted-foreground py-6 text-center text-sm">
+          Подходящих рецептов не найдено.
+        </p>
+      ) : null}
+
+      <RecipeInfiniteScrollStatus
+        hasNextPage={recipesQuery.hasNextPage}
+        isFetchingNextPage={recipesQuery.isFetchingNextPage}
+        hasError={recipesQuery.isFetchNextPageError}
+        loadedCount={recipes.length}
+        onLoadMore={recipesQuery.fetchNextPage}
+      />
     </section>
   )
 }

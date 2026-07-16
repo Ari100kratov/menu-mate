@@ -2082,7 +2082,10 @@ export interface operations {
                 scope?: string;
                 search?: string;
                 tag?: string;
+                category?: string;
                 favoritesOnly?: boolean;
+                page?: number;
+                pageSize?: number;
             };
             header?: never;
             path?: never;

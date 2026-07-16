@@ -62,24 +62,37 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
     }
 
     [Fact]
-    public async Task RecipeListShouldFilterBySearchAndTag()
+    public async Task RecipeListShouldFilterAndPaginate()
     {
         using HttpClient httpClient = _factory.CreateClient();
         var client = new ApiTestClient(httpClient);
         await client.RegisterAsync(TestEmail.Create("recipe-filters"));
 
         await CreateRecipeAsync(httpClient, CreateRequest("Быстрая паста", "Private", ["ужин", "быстро"]));
-        await CreateRecipeAsync(httpClient, CreateRequest("Овсянка", "Private", ["завтрак"]));
+        await CreateRecipeAsync(
+            httpClient,
+            CreateRequest("Овсянка", "Private", ["завтрак"], category: "Breakfast"));
 
         RecipeListItemResponse[]? search = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?search=паста");
         RecipeListItemResponse[]? tag = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?tag=БЫСТРО");
+        RecipeListItemResponse[]? category = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+            "/api/recipes?category=Breakfast");
+        RecipeListItemResponse[]? firstPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+            "/api/recipes?page=1&pageSize=1");
+        RecipeListItemResponse[]? secondPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+            "/api/recipes?page=2&pageSize=1");
 
         Assert.NotNull(search);
         Assert.NotNull(tag);
+        Assert.NotNull(category);
+        Assert.NotNull(firstPage);
+        Assert.NotNull(secondPage);
         Assert.Equal("Быстрая паста", Assert.Single(search).Title);
         Assert.Equal("Быстрая паста", Assert.Single(tag).Title);
+        Assert.Equal("Овсянка", Assert.Single(category).Title);
+        Assert.NotEqual(Assert.Single(firstPage).Id, Assert.Single(secondPage).Id);
     }
 
     private static async Task<RecipeResponse> CreateRecipeAsync(HttpClient client, CreateRecipeRequest request)
@@ -94,12 +107,13 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
     private static CreateRecipeRequest CreateRequest(
         string title,
         string visibility,
-        IReadOnlyCollection<string>? tags = null) =>
+        IReadOnlyCollection<string>? tags = null,
+        string category = "MainCourse") =>
         new(
             title,
             "Описание рецепта",
             2,
-            "MainCourse",
+            category,
             visibility,
             30,
             15,

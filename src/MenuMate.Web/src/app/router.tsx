@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from "react-router-dom"
 
 import { AppShell } from "@/app/AppShell"
 import { ProtectedRoute } from "@/app/ProtectedRoute"
+import { getLastWorkspaceSection } from "@/app/navigation"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import MenuPage from "@/pages/menu/MenuPage"
@@ -34,7 +35,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="/recipes" replace />,
+            element: <LastWorkspaceSectionRedirect />,
           },
           {
             path: "recipes",
@@ -85,3 +86,7 @@ export const router = createBrowserRouter([
     element: <NotFoundPage />,
   },
 ])
+
+function LastWorkspaceSectionRedirect() {
+  return <Navigate to={getLastWorkspaceSection()} replace />
+}

@@ -1,4 +1,5 @@
 using MenuMate.Contracts.Recipes;
+using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.SharedKernel.Identifiers;
 
 namespace MenuMate.Modules.Recipes.Application.Abstractions;
@@ -24,6 +25,9 @@ internal interface IRecipesReadDbContext
         bool catalog,
         string? search,
         string? normalizedTag,
+        RecipeCategory? category,
         bool favoritesOnly,
+        int skip,
+        int take,
         CancellationToken cancellationToken);
 }

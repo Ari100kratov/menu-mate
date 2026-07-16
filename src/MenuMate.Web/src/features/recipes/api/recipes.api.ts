@@ -25,7 +25,10 @@ export interface RecipeListFilters {
   scope?: "library" | "catalog"
   search?: string
   tag?: string
+  category?: string
   favoritesOnly?: boolean
+  page?: number
+  pageSize?: number
 }
 
 export async function getRecipes(filters: RecipeListFilters) {
@@ -36,7 +39,10 @@ export async function getRecipes(filters: RecipeListFilters) {
           scope: filters.scope ?? "library",
           search: normalizeQueryValue(filters.search),
           tag: normalizeQueryValue(filters.tag),
+          category: normalizeQueryValue(filters.category),
           favoritesOnly: filters.favoritesOnly ?? false,
+          page: filters.page ?? 1,
+          pageSize: filters.pageSize ?? 20,
         },
       },
     }),

@@ -1,8 +1,9 @@
 import { Bookmark, CalendarPlus, Copy, Heart, Pencil, Trash2 } from "lucide-react"
 import type { ReactNode } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import type { Recipe } from "@/features/recipes/api/recipes.api"
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,8 @@ export function RecipeDetailsActions({
   onCopy,
   onDelete,
 }: RecipeDetailsActionsProps) {
+  const location = useLocation()
+
   return (
     <div className="flex shrink-0 flex-wrap justify-end gap-1">
       <ActionTooltip label="Добавить в меню">
@@ -53,7 +56,11 @@ export function RecipeDetailsActions({
       {recipe.isOwnedByCurrentUser ? (
         <ActionTooltip label="Изменить рецепт">
           <Button asChild variant="ghost" size="icon">
-            <Link to={`/recipes/${recipe.id}/edit`} aria-label="Изменить рецепт">
+            <Link
+              to={`/recipes/${recipe.id}/edit`}
+              state={createBackNavigationState(location)}
+              aria-label="Изменить рецепт"
+            >
               <Pencil className="size-4" />
             </Link>
           </Button>

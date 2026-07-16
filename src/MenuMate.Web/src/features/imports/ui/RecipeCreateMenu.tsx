@@ -1,6 +1,7 @@
 import { FilePenLine, ImagePlus, Plus } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
+import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { Button } from "@/shared/ui/button"
 import {
   DropdownMenu,
@@ -16,6 +17,8 @@ interface RecipeCreateMenuProps {
 
 export function RecipeCreateMenu({ iconOnly = false, className }: RecipeCreateMenuProps) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const backNavigationState = createBackNavigationState(location)
 
   return (
     <DropdownMenu>
@@ -30,11 +33,15 @@ export function RecipeCreateMenu({ iconOnly = false, className }: RecipeCreateMe
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => void navigate("/recipes/new")}>
+        <DropdownMenuItem
+          onSelect={() => void navigate("/recipes/new", { state: backNavigationState })}
+        >
           <FilePenLine />
           Добавить вручную
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => void navigate("/recipes/import")}>
+        <DropdownMenuItem
+          onSelect={() => void navigate("/recipes/import", { state: backNavigationState })}
+        >
           <ImagePlus />
           Создать по изображению
         </DropdownMenuItem>

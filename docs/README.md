@@ -13,6 +13,7 @@
 
 ## Сценарии и интеграции
 
+- [Версионирование, копии и жизненный цикл рецептов](architecture/recipe-versioning.md)
 - [Создание рецепта из изображения](architecture/recipe-import-from-image.md)
 - [Просмотр изображений рецепта](architecture/recipe-image-viewing.md)
 - [Первоначальный импорт рецептов из Wikibooks](architecture/data-importer.md)

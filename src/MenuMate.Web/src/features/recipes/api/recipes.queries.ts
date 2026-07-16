@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import {
   copyRecipe,
@@ -21,8 +21,11 @@ const normalizedEmptyFilters = {
   scope: "library",
   search: "",
   tag: "",
+  category: "",
   favoritesOnly: false,
 } as const
+
+export const recipeListPageSize = 20
 
 export const recipeQueryKeys = {
   all: ["recipes"] as const,
@@ -34,6 +37,7 @@ export const recipeQueryKeys = {
         scope: filters.scope ?? normalizedEmptyFilters.scope,
         search: filters.search?.trim() ?? normalizedEmptyFilters.search,
         tag: filters.tag?.trim() ?? normalizedEmptyFilters.tag,
+        category: filters.category?.trim() ?? normalizedEmptyFilters.category,
         favoritesOnly: filters.favoritesOnly ?? normalizedEmptyFilters.favoritesOnly,
       },
     ] as const,
@@ -41,12 +45,20 @@ export const recipeQueryKeys = {
   detail: (recipeId: string) => [...recipeQueryKeys.details(), recipeId] as const,
 }
 
-export function useRecipesQuery(filters: RecipeListFilters) {
-  return useQuery({
+export function useInfiniteRecipesQuery(filters: RecipeListFilters) {
+  return useInfiniteQuery({
     queryKey: recipeQueryKeys.list(filters),
-    queryFn: () => getRecipes(filters),
-    placeholderData: keepPreviousData,
-    staleTime: 30_000,
+    queryFn: ({ pageParam }) =>
+      getRecipes({
+        ...filters,
+        page: pageParam,
+        pageSize: recipeListPageSize,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === recipeListPageSize ? allPages.length + 1 : undefined,
+    staleTime: 2 * 60_000,
+    gcTime: 30 * 60_000,
   })
 }
 

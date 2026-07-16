@@ -9,9 +9,15 @@ namespace MenuMate.Modules.Recipes.Application.GetRecipes;
 /// <param name="Scope">Область поиска рецептов.</param>
 /// <param name="Search">Строка поиска.</param>
 /// <param name="Tag">Фильтр по тегу.</param>
+/// <param name="Category">Фильтр по категории рецепта.</param>
 /// <param name="FavoritesOnly">Возвращать только избранные рецепты.</param>
+/// <param name="Page">Номер страницы, начиная с единицы.</param>
+/// <param name="PageSize">Количество рецептов на странице.</param>
 public sealed record GetRecipesQuery(
     string Scope,
     string? Search,
     string? Tag,
-    bool FavoritesOnly) : IQuery<IReadOnlyCollection<RecipeListItemResponse>>;
+    string? Category,
+    bool FavoritesOnly,
+    int Page,
+    int PageSize) : IQuery<IReadOnlyCollection<RecipeListItemResponse>>;

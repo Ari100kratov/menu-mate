@@ -44,11 +44,11 @@ export function MenuCalendarView({
           Обновляем блюда
         </div>
       ) : null}
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {getRangeDates(range).map((date) => (
           <article
             key={date}
-            className="bg-secondary/35 border-primary/10 space-y-3 rounded-2xl border p-3"
+            className="bg-secondary/35 border-primary/10 min-w-0 space-y-3 rounded-2xl border p-3"
           >
             <h2 className="type-subsection-title text-secondary-foreground px-1">
               {formatDayHeading(date)}
