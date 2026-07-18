@@ -1,9 +1,6 @@
 import { z } from "zod"
 
-import type {
-  CreateRecipeRequest,
-  Recipe,
-} from "@/features/recipes/api/recipes.api"
+import type { CreateRecipeRequest, Recipe } from "@/features/recipes/api/recipes.api"
 import { parseTagValues } from "@/features/tags/model/tag-values"
 
 const positiveDecimalPattern = /^(?:\d+(?:[,.]\d+)?|[,.]\d+)$/
@@ -210,9 +207,7 @@ export function recipeRequestToFormValues(recipe: CreateRecipeRequest): RecipeFo
   }
 }
 
-export function toRecipeRequest(
-  values: RecipeFormValues,
-): CreateRecipeRequest {
+export function toRecipeRequest(values: RecipeFormValues): CreateRecipeRequest {
   return {
     title: values.title.trim(),
     description: normalizeOptionalString(values.description),

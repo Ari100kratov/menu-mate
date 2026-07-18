@@ -41,14 +41,10 @@ export function TagPicker({
   const draftTagKey = normalizeTagName(draftTagName)
   const hasDraftSearch = draftTagKey.length > 0
   const hasDebouncedSearch = normalizeTagName(debouncedDraft).length > 0
-  const tagsQuery = useTagsQuery(
-    { search: debouncedDraft },
-    hasDraftSearch && hasDebouncedSearch,
-  )
+  const tagsQuery = useTagsQuery({ search: debouncedDraft }, hasDraftSearch && hasDebouncedSearch)
   const createTagMutation = useCreateTagMutation()
   const isSearchPending =
-    hasDraftSearch &&
-    (draftTagKey !== normalizeTagName(debouncedDraft) || tagsQuery.isFetching)
+    hasDraftSearch && (draftTagKey !== normalizeTagName(debouncedDraft) || tagsQuery.isFetching)
   const knownTags = isSearchPending ? [] : (tagsQuery.data ?? []).map((tag) => tag.name)
   const existingDraftTag = knownTags.find((tag) => normalizeTagName(tag) === draftTagKey)
   const suggestions = knownTags
@@ -86,12 +82,7 @@ export function TagPicker({
   }
 
   function submitDraft() {
-    if (
-      !canAddDraft ||
-      createTagMutation.isPending ||
-      isSearchPending ||
-      !tagsQuery.isSuccess
-    ) {
+    if (!canAddDraft || createTagMutation.isPending || isSearchPending || !tagsQuery.isSuccess) {
       return
     }
 
@@ -162,12 +153,7 @@ export function TagPicker({
       <TagSuggestions
         suggestions={suggestions}
         draftTagName={draftTagName}
-        canCreateDraft={
-          canAddDraft &&
-          !existingDraftTag &&
-          tagsQuery.isSuccess &&
-          !isSearchPending
-        }
+        canCreateDraft={canAddDraft && !existingDraftTag && tagsQuery.isSuccess && !isSearchPending}
         isSearchPending={isSearchPending}
         isCreatePending={createTagMutation.isPending}
         disabled={disabled}

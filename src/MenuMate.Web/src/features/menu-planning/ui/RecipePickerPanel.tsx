@@ -116,7 +116,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
                 id: recipe.id,
                 revisionId: recipe.revisionId,
                 title: recipe.title,
-        servings: recipe.servings,
+                servings: recipe.servings,
               })
             }}
           >
