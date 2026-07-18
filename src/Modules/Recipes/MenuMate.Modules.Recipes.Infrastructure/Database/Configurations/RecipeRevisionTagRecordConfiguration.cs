@@ -11,10 +11,8 @@ internal sealed class RecipeRevisionTagRecordConfiguration : IEntityTypeConfigur
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.ToTable("recipe_revision_tags");
-        builder.HasKey(tag => tag.Id);
-        builder.Property(tag => tag.Id).ValueGeneratedNever();
-        builder.Property(tag => tag.Value).HasMaxLength(64).IsRequired();
-        builder.Property(tag => tag.NormalizedValue).HasMaxLength(64).IsRequired();
-        builder.HasIndex(tag => new { tag.RecipeRevisionId, tag.NormalizedValue }).IsUnique();
+        builder.HasKey(tag => new { tag.RecipeRevisionId, tag.TagId });
+        builder.Property(tag => tag.TagId).ValueGeneratedNever();
+        builder.HasIndex(tag => new { tag.TagId, tag.RecipeRevisionId });
     }
 }

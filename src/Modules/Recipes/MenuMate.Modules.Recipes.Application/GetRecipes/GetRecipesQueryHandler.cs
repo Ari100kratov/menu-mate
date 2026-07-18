@@ -1,5 +1,6 @@
 using MenuMate.Common.Application;
 using MenuMate.Common.Application.Storage;
+using MenuMate.Common.Application.Tags;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Application.RecipeImages;
@@ -11,17 +12,14 @@ namespace MenuMate.Modules.Recipes.Application.GetRecipes;
 internal sealed class GetRecipesQueryHandler(
     IRecipesReadDbContext dbContext,
     IUserContext userContext,
-    RecipeImageReadUrlService imageReadUrlService)
+    RecipeImageReadUrlService imageReadUrlService,
+    ITagCatalog tagCatalog)
     : IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>>
 {
     public async Task<Result<IReadOnlyCollection<RecipeListItemResponse>>> Handle(
         GetRecipesQuery query,
         CancellationToken cancellationToken)
     {
-        string? normalizedTag = string.IsNullOrWhiteSpace(query.Tag)
-            ? null
-            : TextNormalizer.NormalizeSearchText(query.Tag);
-
         bool catalog = string.Equals(query.Scope, "catalog", StringComparison.OrdinalIgnoreCase);
         bool hasCategory = !string.IsNullOrWhiteSpace(query.Category);
         bool hasValidCategory =
@@ -36,16 +34,29 @@ internal sealed class GetRecipesQueryHandler(
         int page = Math.Clamp(query.Page, 1, 100_000);
         int pageSize = Math.Clamp(query.PageSize, 1, 50);
 
-        IReadOnlyCollection<RecipeListItemResponse> recipes = await dbContext.GetRecipesAsync(
+        IReadOnlyCollection<RecipeListItemReadModel> readModels = await dbContext.GetRecipesAsync(
             userContext.UserId,
             catalog,
             query.Search,
-            normalizedTag,
+            query.TagIds,
             category,
             query.FavoritesOnly,
             (page - 1) * pageSize,
             pageSize,
             cancellationToken);
+        IReadOnlyDictionary<Guid, string> tagNames = await tagCatalog.GetNamesAsync(
+            readModels.SelectMany(recipe => recipe.TagIds).Distinct().ToArray(),
+            cancellationToken);
+        IReadOnlyCollection<RecipeListItemResponse> recipes = readModels
+            .Select(recipe => recipe.Response with
+            {
+                Tags = recipe.TagIds
+                    .Where(tagNames.ContainsKey)
+                    .Select(tagId => tagNames[tagId])
+                    .OrderBy(tagName => tagName)
+                    .ToArray()
+            })
+            .ToArray();
 
         try
         {

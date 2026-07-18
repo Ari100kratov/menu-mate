@@ -1,7 +1,9 @@
 using MenuMate.Common.Application;
+using MenuMate.Common.Application.Tags;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Domain.Models;
+using MenuMate.Modules.Recipes.Domain.ValueObjects;
 using MenuMate.SharedKernel;
 
 namespace MenuMate.Modules.Recipes.Application.CreateRecipe;
@@ -11,7 +13,8 @@ internal sealed class CreateRecipeCommandHandler(
     IRecipesUnitOfWork unitOfWork,
     IUserContext userContext,
     TimeProvider timeProvider,
-    RecipeProductResolver productResolver)
+    RecipeProductResolver productResolver,
+    RecipeTagCatalogResolver tagCatalogResolver)
     : ICommandHandler<CreateRecipeCommand, RecipeResponse>
 {
     public async Task<Result<RecipeResponse>> Handle(
@@ -53,6 +56,15 @@ internal sealed class CreateRecipeCommandHandler(
             return Result.Failure<RecipeResponse>(ingredients.Error);
         }
 
+        Result<IReadOnlyCollection<RecipeTag>> tags = await tagCatalogResolver.ResolveAsync(
+            draft.Value.Tags,
+            command.TagSource,
+            cancellationToken);
+        if (tags.IsFailure)
+        {
+            return Result.Failure<RecipeResponse>(tags.Error);
+        }
+
         var recipe = Recipe.Create(
             command.RecipeId ?? Guid.CreateVersion7(),
             userContext.UserId,
@@ -73,7 +85,7 @@ internal sealed class CreateRecipeCommandHandler(
             now);
         recipe.ReplaceIngredients(ingredients.Value, now);
         recipe.ReplaceSteps(draft.Value.Steps, now);
-        recipe.ReplaceTags(draft.Value.Tags, now);
+        recipe.ReplaceTags(tags.Value, now);
 
         await repository.AddAsync(recipe, cancellationToken);
         await repository.SaveToLibraryAsync(

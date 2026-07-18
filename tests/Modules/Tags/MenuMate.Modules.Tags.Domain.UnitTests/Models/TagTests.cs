@@ -11,7 +11,7 @@ public sealed class TagTests
     [Theory]
     [InlineData(TagKind.System, TagStatus.Confirmed)]
     [InlineData(TagKind.User, TagStatus.Confirmed)]
-    [InlineData(TagKind.Suggested, TagStatus.Proposed)]
+    [InlineData(TagKind.Suggested, TagStatus.Confirmed)]
     public void CreateShouldSetStatusFromKind(TagKind kind, TagStatus expectedStatus)
     {
         var tag = Tag.Create(Guid.CreateVersion7(), TagName.Create("Быстро").Value, kind, CreatedAt);

@@ -38,8 +38,8 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
         await MigrateAsync<AuthDbContext>(services);
         await MigrateAsync<RecipeImportsDbContext>(services);
         await MigrateAsync<ProductsDbContext>(services);
-        await MigrateAsync<RecipesDbContext>(services);
         await MigrateAsync<TagsDbContext>(services);
+        await MigrateAsync<RecipesDbContext>(services);
         await MigrateAsync<MenuPlanningDbContext>(services);
         await MigrateAsync<ShoppingListsDbContext>(services);
     }

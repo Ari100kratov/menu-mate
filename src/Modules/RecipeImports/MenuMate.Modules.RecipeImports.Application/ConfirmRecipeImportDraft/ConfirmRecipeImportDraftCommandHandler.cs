@@ -1,4 +1,5 @@
 using MenuMate.Common.Application;
+using MenuMate.Common.Application.Tags;
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.RecipeImports.Application.Abstractions;
 using MenuMate.Modules.RecipeImports.Domain.Enums;
@@ -44,7 +45,10 @@ internal sealed class ConfirmRecipeImportDraftCommandHandler(
         }
 
         Result<RecipeResponse> created = await createRecipeHandler.Handle(
-            new CreateRecipeCommand(command.Request, draft.TargetRecipeId.Value),
+            new CreateRecipeCommand(
+                command.Request,
+                draft.TargetRecipeId.Value,
+                TagCatalogSource.Suggested),
             cancellationToken);
         if (created.IsFailure)
         {

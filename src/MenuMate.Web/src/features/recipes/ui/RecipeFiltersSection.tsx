@@ -2,6 +2,8 @@ import { Check, Compass, Heart, Library, LoaderCircle, Search, X } from "lucide-
 import { useEffect, useRef, type WheelEvent } from "react"
 
 import { recipeCategoryOptions } from "@/features/recipes/model/recipe-form-options"
+import type { RecipeListTagFilter } from "@/features/recipes/model/recipe-list-filter-state"
+import { RecipeTagFilter } from "@/features/recipes/ui/RecipeTagFilter"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
@@ -9,6 +11,7 @@ interface RecipeFiltersSectionProps {
   scope: "library" | "catalog"
   search: string
   category: string
+  selectedTags: RecipeListTagFilter[]
   favoritesOnly: boolean
   recipesCount: number | undefined
   hasMoreRecipes: boolean
@@ -16,6 +19,7 @@ interface RecipeFiltersSectionProps {
   onScopeChange: (value: "library" | "catalog") => void
   onSearchChange: (value: string) => void
   onCategoryChange: (value: string) => void
+  onTagsChange: (tags: RecipeListTagFilter[]) => void
   onFavoritesOnlyChange: (value: boolean) => void
   onReset: () => void
 }
@@ -24,6 +28,7 @@ export function RecipeFiltersSection({
   scope,
   search,
   category,
+  selectedTags,
   favoritesOnly,
   recipesCount,
   hasMoreRecipes,
@@ -31,10 +36,13 @@ export function RecipeFiltersSection({
   onScopeChange,
   onSearchChange,
   onCategoryChange,
+  onTagsChange,
   onFavoritesOnlyChange,
   onReset,
 }: RecipeFiltersSectionProps) {
-  const hasActiveFilters = Boolean(search.trim() || category || favoritesOnly)
+  const hasActiveFilters = Boolean(
+    search.trim() || category || selectedTags.length > 0 || favoritesOnly,
+  )
   const categoriesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -102,7 +110,7 @@ export function RecipeFiltersSection({
             type="search"
             className="bg-card h-11 rounded-xl pl-9"
             value={search}
-            placeholder="Найти рецепт"
+            placeholder="Название или описание"
             aria-label="Поиск по названию и описанию рецепта"
             aria-busy={isSearchPending}
             autoComplete="off"
@@ -125,6 +133,10 @@ export function RecipeFiltersSection({
         >
           <Heart className={favoritesOnly ? "fill-current" : undefined} />
         </Button>
+      </div>
+
+      <div className="min-w-0">
+        <RecipeTagFilter selectedTags={selectedTags} onChange={onTagsChange} />
       </div>
 
       <div

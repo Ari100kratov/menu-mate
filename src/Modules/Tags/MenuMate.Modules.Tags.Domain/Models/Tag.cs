@@ -48,10 +48,7 @@ public sealed class Tag : Entity<Guid>
     /// Создает тег.
     /// </summary>
     public static Tag Create(Guid id, TagName name, TagKind kind, DateTimeOffset now)
-    {
-        TagStatus status = kind == TagKind.Suggested ? TagStatus.Proposed : TagStatus.Confirmed;
-        return new Tag(id, name, kind, status, now);
-    }
+        => new(id, name, kind, TagStatus.Confirmed, now);
 
     /// <summary>
     /// Rehydrates a tag from persistence.

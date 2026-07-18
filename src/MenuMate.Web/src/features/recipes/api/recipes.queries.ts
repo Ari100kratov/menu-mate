@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { tagQueryKeys } from "@/features/tags/api/tags.queries"
 
 import {
   copyRecipe,
@@ -20,7 +21,7 @@ import {
 const normalizedEmptyFilters = {
   scope: "library",
   search: "",
-  tag: "",
+  tagIds: [] as string[],
   category: "",
   favoritesOnly: false,
 } as const
@@ -36,7 +37,7 @@ export const recipeQueryKeys = {
       {
         scope: filters.scope ?? normalizedEmptyFilters.scope,
         search: filters.search?.trim() ?? normalizedEmptyFilters.search,
-        tag: filters.tag?.trim() ?? normalizedEmptyFilters.tag,
+        tagIds: [...(filters.tagIds ?? normalizedEmptyFilters.tagIds)].sort(),
         category: filters.category?.trim() ?? normalizedEmptyFilters.category,
         favoritesOnly: filters.favoritesOnly ?? normalizedEmptyFilters.favoritesOnly,
       },
@@ -79,6 +80,7 @@ export function useCreateRecipeMutation() {
     onSuccess: (recipe) => {
       queryClient.setQueryData(recipeQueryKeys.detail(recipe.id), recipe)
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: tagQueryKeys.lists() })
     },
   })
 }
@@ -91,6 +93,7 @@ export function useUpdateRecipeMutation(recipeId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.detail(recipeId) })
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: tagQueryKeys.lists() })
     },
   })
 }

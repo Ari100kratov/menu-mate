@@ -105,7 +105,7 @@ internal static class RecipeRequestMapper
             return Result.Failure<RecipeDraft>(mappedSteps.Error);
         }
 
-        Result<IReadOnlyCollection<RecipeTag>> mappedTags = MapTags(tags);
+        Result<IReadOnlyCollection<string>> mappedTags = MapTags(tags);
         if (mappedTags.IsFailure)
         {
             return Result.Failure<RecipeDraft>(mappedTags.Error);
@@ -216,21 +216,31 @@ internal static class RecipeRequestMapper
         return result;
     }
 
-    private static Result<IReadOnlyCollection<RecipeTag>> MapTags(IReadOnlyCollection<string> tags)
+    private static Result<IReadOnlyCollection<string>> MapTags(IReadOnlyCollection<string> tags)
     {
-        var result = new List<RecipeTag>(tags.Count);
+        var result = new List<string>(tags.Count);
+        HashSet<string> normalizedValues = [];
 
         foreach (string tagValue in tags)
         {
-            Result<RecipeTag> tag = RecipeTag.Create(tagValue);
-            if (tag.IsFailure)
+            if (string.IsNullOrWhiteSpace(tagValue))
             {
-                return Result.Failure<IReadOnlyCollection<RecipeTag>>(tag.Error);
+                return Result.Failure<IReadOnlyCollection<string>>(AppError.Validation(
+                    "Recipes.EmptyTag",
+                    "Тег не может быть пустым."));
             }
 
-            if (result.All(existing => existing.NormalizedValue != tag.Value.NormalizedValue))
+            string normalizedValue = TextNormalizer.NormalizeSearchText(tagValue);
+            if (normalizedValue.Length > 64)
             {
-                result.Add(tag.Value);
+                return Result.Failure<IReadOnlyCollection<string>>(AppError.Validation(
+                    "Recipes.TagTooLong",
+                    "Название тега не может быть длиннее 64 символов."));
+            }
+
+            if (normalizedValues.Add(normalizedValue))
+            {
+                result.Add(tagValue.Trim());
             }
         }
 
@@ -336,4 +346,4 @@ internal sealed record RecipeDraft(
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredient> Ingredients,
     IReadOnlyCollection<PreparationStep> Steps,
-    IReadOnlyCollection<RecipeTag> Tags);
+    IReadOnlyCollection<string> Tags);

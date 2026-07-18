@@ -68,15 +68,16 @@ public sealed class RecipeTests
     }
 
     [Fact]
-    public void ReplaceTagsShouldDeduplicateByNormalizedValue()
+    public void ReplaceTagsShouldDeduplicateByGlobalTagId()
     {
         Recipe recipe = CreateRecipe();
+        var fastTagId = Guid.CreateVersion7();
 
         recipe.ReplaceTags(
             [
-                RecipeTag.Create(" Быстро ").Value,
-                RecipeTag.Create("быстро").Value,
-                RecipeTag.Create("Ужин").Value
+                RecipeTag.Create(fastTagId, " Быстро ").Value,
+                RecipeTag.Create(fastTagId, "быстро").Value,
+                RecipeTag.Create(Guid.CreateVersion7(), "Ужин").Value
             ],
             FixedNow.AddMinutes(1));
 
@@ -84,14 +85,15 @@ public sealed class RecipeTests
     }
 
     [Fact]
-    public void AddAndRemoveTagShouldUseNormalizedValue()
+    public void AddAndRemoveTagShouldUseGlobalTagId()
     {
         Recipe recipe = CreateRecipe();
-        RecipeTag tag = RecipeTag.Create("Быстро").Value;
+        var tagId = Guid.CreateVersion7();
+        RecipeTag tag = RecipeTag.Create(tagId, "Быстро").Value;
 
         recipe.AddTag(tag, FixedNow.AddMinutes(1));
-        recipe.AddTag(RecipeTag.Create(" быстро ").Value, FixedNow.AddMinutes(2));
-        recipe.RemoveTag(tag.NormalizedValue, FixedNow.AddMinutes(3));
+        recipe.AddTag(RecipeTag.Create(tagId, " быстро ").Value, FixedNow.AddMinutes(2));
+        recipe.RemoveTag(tagId, FixedNow.AddMinutes(3));
 
         Assert.Empty(recipe.Tags);
         Assert.Equal(FixedNow.AddMinutes(3), recipe.UpdatedAt);

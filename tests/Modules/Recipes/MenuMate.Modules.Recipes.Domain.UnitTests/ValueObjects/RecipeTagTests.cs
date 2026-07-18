@@ -8,8 +8,10 @@ public sealed class RecipeTagTests
     [Fact]
     public void CreateShouldTrimAndNormalizeTag()
     {
-        RecipeTag tag = RecipeTag.Create("  Быстрый   ужин ").Value;
+        var tagId = Guid.CreateVersion7();
+        RecipeTag tag = RecipeTag.Create(tagId, "  Быстрый   ужин ").Value;
 
+        Assert.Equal(tagId, tag.Id);
         Assert.Equal("Быстрый   ужин", tag.Value);
         Assert.Equal("БЫСТРЫЙ УЖИН", tag.NormalizedValue);
     }
@@ -17,7 +19,7 @@ public sealed class RecipeTagTests
     [Fact]
     public void CreateShouldRejectEmptyTag()
     {
-        Result<RecipeTag> result = RecipeTag.Create(" ");
+        Result<RecipeTag> result = RecipeTag.Create(Guid.CreateVersion7(), " ");
 
         Assert.True(result.IsFailure);
         Assert.Equal("Recipes.EmptyTag", result.Error.Code);

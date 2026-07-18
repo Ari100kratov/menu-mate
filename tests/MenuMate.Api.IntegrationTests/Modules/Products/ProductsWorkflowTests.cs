@@ -28,11 +28,34 @@ public sealed class ProductsWorkflowTests : IAsyncLifetime, IDisposable
             "/api/products?search=кур");
 
         Assert.NotNull(products);
-        Assert.Equal(2, products.Length);
-        Assert.Equal(2, products.Select(product => product.Id).Distinct().Count());
+        ProductResponse[] exactProducts =
+        [
+            .. products.Where(product =>
+                string.Equals(product.Name, "Курица", StringComparison.OrdinalIgnoreCase))
+        ];
+        Assert.Equal(2, exactProducts.Length);
+        Assert.Equal(2, exactProducts.Select(product => product.Id).Distinct().Count());
         Assert.Equal(
             ["MeatAndPoultry", "Other"],
-            products.Select(product => product.Category).Order(StringComparer.Ordinal));
+            exactProducts.Select(product => product.Category).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public async Task ExactProductMatchShouldBeRankedBeforeSubstringMatches()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("product-ranking"));
+
+        ProductResponse[]? products = await httpClient.GetFromJsonAsync<ProductResponse[]>(
+            "/api/products?search=соль");
+
+        Assert.NotNull(products);
+        Assert.NotEmpty(products);
+        Assert.Equal("соль", products[0].Name, ignoreCase: true);
+        Assert.Contains(
+            products,
+            product => product.Name.Contains("фасоль", StringComparison.OrdinalIgnoreCase));
     }
 
     private static async Task CreateRecipeAsync(

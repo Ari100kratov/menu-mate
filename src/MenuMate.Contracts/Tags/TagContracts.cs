@@ -23,5 +23,4 @@ public sealed record TagResponse(
 /// Запрос на создание тега.
 /// </summary>
 /// <param name="Name">Отображаемое имя тега.</param>
-/// <param name="Kind">Необязательный источник тега.</param>
-public sealed record CreateTagRequest(string Name, string? Kind);
+public sealed record CreateTagRequest(string Name);

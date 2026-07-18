@@ -1,6 +1,8 @@
 using MenuMate.Common.Application;
+using MenuMate.Common.Application.Tags;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Domain.Models;
+using MenuMate.Modules.Recipes.Domain.ValueObjects;
 using MenuMate.SharedKernel;
 
 namespace MenuMate.Modules.Recipes.Application.UpdateRecipe;
@@ -10,7 +12,8 @@ internal sealed class UpdateRecipeCommandHandler(
     IRecipesUnitOfWork unitOfWork,
     IUserContext userContext,
     TimeProvider timeProvider,
-    RecipeProductResolver productResolver)
+    RecipeProductResolver productResolver,
+    RecipeTagCatalogResolver tagCatalogResolver)
     : ICommandHandler<UpdateRecipeCommand>
 {
     public async Task<Result> Handle(UpdateRecipeCommand command, CancellationToken cancellationToken)
@@ -41,6 +44,15 @@ internal sealed class UpdateRecipeCommandHandler(
             return Result.Failure(ingredients.Error);
         }
 
+        Result<IReadOnlyCollection<RecipeTag>> tags = await tagCatalogResolver.ResolveAsync(
+            draft.Value.Tags,
+            TagCatalogSource.User,
+            cancellationToken);
+        if (tags.IsFailure)
+        {
+            return Result.Failure(tags.Error);
+        }
+
         recipe.UpdateDetails(
             draft.Value.Title,
             draft.Value.Servings,
@@ -53,7 +65,7 @@ internal sealed class UpdateRecipeCommandHandler(
             now);
         recipe.ReplaceIngredients(ingredients.Value, now);
         recipe.ReplaceSteps(draft.Value.Steps, now);
-        recipe.ReplaceTags(draft.Value.Tags, now);
+        recipe.ReplaceTags(tags.Value, now);
         recipe.PublishRevision(now);
 
         await repository.UpdateAsync(recipe, cancellationToken);

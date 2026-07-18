@@ -12,7 +12,7 @@ internal interface IRecipesReadDbContext
     /// <summary>
     /// Возвращает детальную карточку рецепта владельца.
     /// </summary>
-    Task<RecipeResponse?> GetRecipeAsync(
+    Task<RecipeReadModel?> GetRecipeAsync(
         Guid recipeId,
         UserId currentUserId,
         CancellationToken cancellationToken);
@@ -20,14 +20,15 @@ internal interface IRecipesReadDbContext
     /// <summary>
     /// Возвращает список рецептов владельца с базовой фильтрацией.
     /// </summary>
-    Task<IReadOnlyCollection<RecipeListItemResponse>> GetRecipesAsync(
+    Task<IReadOnlyCollection<RecipeListItemReadModel>> GetRecipesAsync(
         UserId currentUserId,
         bool catalog,
         string? search,
-        string? normalizedTag,
+        IReadOnlyCollection<Guid> tagIds,
         RecipeCategory? category,
         bool favoritesOnly,
         int skip,
         int take,
         CancellationToken cancellationToken);
+
 }

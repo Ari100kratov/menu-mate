@@ -3,38 +3,51 @@ using MenuMate.SharedKernel;
 namespace MenuMate.Modules.Recipes.Domain.ValueObjects;
 
 /// <summary>
-/// Снимок тега внутри рецепта.
+/// Ссылка рецепта на тег из глобального каталога.
 /// </summary>
 public sealed record RecipeTag
 {
-    private RecipeTag(string value, string normalizedValue)
+    private RecipeTag(Guid id, string value, string normalizedValue)
     {
+        Id = id;
         Value = value;
         NormalizedValue = normalizedValue;
     }
 
-    /// <summary>
-    /// Отображаемое название тега.
-    /// </summary>
+    /// <summary>Идентификатор глобального тега.</summary>
+    public Guid Id { get; }
+
+    /// <summary>Каноническое отображаемое название.</summary>
     public string Value { get; }
 
-    /// <summary>
-    /// Нормализованное название тега.
-    /// </summary>
+    /// <summary>Нормализованное название для сравнения в памяти.</summary>
     public string NormalizedValue { get; }
 
-    /// <summary>
-    /// Создает тег рецепта.
-    /// </summary>
-    public static Result<RecipeTag> Create(string value)
+    /// <summary>Создаёт разрешённую ссылку на глобальный тег.</summary>
+    public static Result<RecipeTag> Create(Guid id, string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (id == Guid.Empty)
         {
-            return Result.Failure<RecipeTag>(AppError.Validation("Recipes.EmptyTag", "Тег не может быть пустым."));
+            return Result.Failure<RecipeTag>(AppError.Validation(
+                "Recipes.EmptyTagId",
+                "Идентификатор тега не может быть пустым."));
         }
 
-        return new RecipeTag(value.Trim(), TextNormalizer.NormalizeSearchText(value));
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Result.Failure<RecipeTag>(AppError.Validation(
+                "Recipes.EmptyTag",
+                "Тег не может быть пустым."));
+        }
+
+        string normalizedValue = TextNormalizer.NormalizeSearchText(value);
+        if (normalizedValue.Length > 64)
+        {
+            return Result.Failure<RecipeTag>(AppError.Validation(
+                "Recipes.TagTooLong",
+                "Название тега не может быть длиннее 64 символов."));
+        }
+
+        return new RecipeTag(id, value.Trim(), normalizedValue);
     }
 }
-
-

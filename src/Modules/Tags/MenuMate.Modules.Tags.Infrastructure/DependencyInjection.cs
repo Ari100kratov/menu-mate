@@ -1,4 +1,5 @@
 using MenuMate.Modules.Tags.Application.Abstractions;
+using MenuMate.Common.Application.Tags;
 using MenuMate.Modules.Tags.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -35,6 +36,7 @@ public static class TagsInfrastructureDependencyInjection
         services.AddScoped<ITagsRepository, EfTagsRepository>();
         services.AddScoped<ITagsUnitOfWork>(provider => provider.GetRequiredService<TagsDbContext>());
         services.AddScoped<ITagsReadDbContext>(provider => provider.GetRequiredService<TagsDbContext>());
+        services.AddScoped<ITagCatalog, TagCatalog>();
 
         return services;
     }

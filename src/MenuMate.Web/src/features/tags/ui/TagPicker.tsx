@@ -8,6 +8,7 @@ import {
   serializeTagValues,
 } from "@/features/tags/model/tag-values"
 import { getApiErrorMessages } from "@/shared/api/errors"
+import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
 import { cn } from "@/shared/lib/utils"
 import { Input } from "@/shared/ui/input"
 import { SelectedTagChips } from "./SelectedTagChips"
@@ -35,14 +36,23 @@ export function TagPicker({
   const [draft, setDraft] = useState("")
   const selectedTags = useMemo(() => parseTagValues(value), [value])
   const selectedTagKeys = useMemo(() => new Set(selectedTags.map(normalizeTagName)), [selectedTags])
-  const tagsQuery = useTagsQuery({ search: draft, includeHidden: false })
-  const createTagMutation = useCreateTagMutation()
-  const knownTags = tagsQuery.data ?? []
+  const debouncedDraft = useDebouncedValue(draft, 250)
   const draftTagName = draft.trim()
   const draftTagKey = normalizeTagName(draftTagName)
-  const existingDraftTag = knownTags.find((tag) => normalizeTagName(tag.name) === draftTagKey)
+  const hasDraftSearch = draftTagKey.length > 0
+  const hasDebouncedSearch = normalizeTagName(debouncedDraft).length > 0
+  const tagsQuery = useTagsQuery(
+    { search: debouncedDraft },
+    hasDraftSearch && hasDebouncedSearch,
+  )
+  const createTagMutation = useCreateTagMutation()
+  const isSearchPending =
+    hasDraftSearch &&
+    (draftTagKey !== normalizeTagName(debouncedDraft) || tagsQuery.isFetching)
+  const knownTags = isSearchPending ? [] : (tagsQuery.data ?? []).map((tag) => tag.name)
+  const existingDraftTag = knownTags.find((tag) => normalizeTagName(tag) === draftTagKey)
   const suggestions = knownTags
-    .filter((tag) => !selectedTagKeys.has(normalizeTagName(tag.name)))
+    .filter((tag) => !selectedTagKeys.has(normalizeTagName(tag)))
     .slice(0, 6)
   const canAddDraft = draftTagName.length > 0 && !selectedTagKeys.has(draftTagKey)
   const createTagError = createTagMutation.error
@@ -76,19 +86,23 @@ export function TagPicker({
   }
 
   function submitDraft() {
-    if (!canAddDraft || createTagMutation.isPending) {
+    if (
+      !canAddDraft ||
+      createTagMutation.isPending ||
+      isSearchPending ||
+      !tagsQuery.isSuccess
+    ) {
       return
     }
 
     if (existingDraftTag) {
-      addTag(existingDraftTag.name)
+      addTag(existingDraftTag)
       return
     }
 
     createTagMutation.mutate(
       {
         name: draftTagName,
-        kind: "User",
       },
       {
         onSuccess: (tag) => {
@@ -148,7 +162,13 @@ export function TagPicker({
       <TagSuggestions
         suggestions={suggestions}
         draftTagName={draftTagName}
-        canCreateDraft={canAddDraft && !existingDraftTag}
+        canCreateDraft={
+          canAddDraft &&
+          !existingDraftTag &&
+          tagsQuery.isSuccess &&
+          !isSearchPending
+        }
+        isSearchPending={isSearchPending}
         isCreatePending={createTagMutation.isPending}
         disabled={disabled}
         onSelect={addTag}

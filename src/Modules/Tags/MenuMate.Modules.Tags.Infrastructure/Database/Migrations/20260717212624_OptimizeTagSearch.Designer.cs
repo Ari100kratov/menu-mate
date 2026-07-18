@@ -3,6 +3,7 @@ using System;
 using MenuMate.Modules.Tags.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MenuMate.Modules.Tags.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(TagsDbContext))]
-    partial class TagsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260717212624_OptimizeTagSearch")]
+    partial class OptimizeTagSearch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

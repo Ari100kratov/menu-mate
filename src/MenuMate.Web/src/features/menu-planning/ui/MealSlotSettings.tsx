@@ -35,6 +35,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
@@ -81,12 +82,28 @@ export function MealSlotSettings({
     onReorder(next.map((slot) => slot.id))
   }
 
+  function resetDrafts() {
+    setOrderedSlots([...mealSlots])
+    setNames(Object.fromEntries(mealSlots.map((slot) => [slot.id, slot.name])))
+    setNewName("")
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      resetDrafts()
+    }
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Приемы пищи</DialogTitle>
-          <DialogDescription>Изменения применяются ко всему календарю.</DialogDescription>
+          <DialogDescription>
+            Порядок и состав сохраняются сразу. Изменённое название сохраните кнопкой справа; при
+            закрытии черновик будет сброшен.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
@@ -145,6 +162,18 @@ export function MealSlotSettings({
             </Button>
           </form>
         </div>
+
+        <DialogFooter className="border-t px-5 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              handleOpenChange(false)
+            }}
+          >
+            Закрыть
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

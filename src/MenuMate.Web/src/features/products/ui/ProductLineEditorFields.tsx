@@ -1,4 +1,4 @@
-import { CircleCheck, CopyPlus, Search } from "lucide-react"
+import { CircleCheck, CopyPlus, LoaderCircle, Search } from "lucide-react"
 
 import { normalizeProductSearch } from "@/features/products/api/products.api"
 import { useProductsQuery } from "@/features/products/api/products.queries"
@@ -17,6 +17,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/shared/ui/fie
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Textarea } from "@/shared/ui/textarea"
+import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
 
 interface ProductLineEditorFieldsProps {
   idPrefix: string
@@ -37,11 +38,16 @@ export function ProductLineEditorFields({
   commentDescription = "Комментарий будет виден рядом с продуктом.",
   onChange,
 }: ProductLineEditorFieldsProps) {
-  const productsQuery = useProductsQuery(value.productName)
-  const suggestions =
-    value.productName.trim() && !value.productId ? (productsQuery.data ?? []).slice(0, 6) : []
+  const debouncedProductName = useDebouncedValue(value.productName, 250)
   const normalizedProductName = normalizeProductSearch(value.productName)
-  const exactNameMatches = (productsQuery.data ?? []).filter(
+  const normalizedDebouncedProductName = normalizeProductSearch(debouncedProductName)
+  const productsQuery = useProductsQuery(debouncedProductName, !value.productId)
+  const isProductSearchPending =
+    !value.productId &&
+    (normalizedProductName !== normalizedDebouncedProductName || productsQuery.isFetching)
+  const resolvedProducts = isProductSearchPending ? [] : (productsQuery.data ?? [])
+  const suggestions = normalizedProductName && !value.productId ? resolvedProducts.slice(0, 6) : []
+  const exactNameMatches = resolvedProducts.filter(
     (product) => normalizeProductSearch(product.name) === normalizedProductName,
   )
   const exactCategoryMatch = exactNameMatches.find((product) => product.category === value.category)
@@ -55,7 +61,11 @@ export function ProductLineEditorFields({
       <Field data-editor-invalid={Boolean(errors.productName)}>
         <FieldLabel htmlFor={`${idPrefix}-product-name`}>Продукт</FieldLabel>
         <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          {isProductSearchPending ? (
+            <LoaderCircle className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 animate-spin" />
+          ) : (
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          )}
           <Input
             id={`${idPrefix}-product-name`}
             className="pl-9"
@@ -75,7 +85,7 @@ export function ProductLineEditorFields({
               <button
                 key={product.id}
                 type="button"
-                className="type-body hover:bg-muted focus-visible:bg-muted flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left outline-none"
+                className="type-body hover:bg-muted focus-visible:bg-muted flex w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2.5 text-left outline-none"
                 onClick={() => {
                   update({
                     productId: product.id,
@@ -84,8 +94,8 @@ export function ProductLineEditorFields({
                   })
                 }}
               >
-                <span className="font-medium">{product.name}</span>
-                <span className="type-supporting text-muted-foreground">
+                <span className="w-full min-w-0 font-medium break-words">{product.name}</span>
+                <span className="type-supporting text-muted-foreground w-full min-w-0 break-words">
                   {getProductCategoryLabel(product.category)}
                 </span>
               </button>

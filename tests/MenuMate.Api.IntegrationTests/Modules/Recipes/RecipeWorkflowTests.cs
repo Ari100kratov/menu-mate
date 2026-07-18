@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using MenuMate.Contracts.Recipes;
+using MenuMate.Contracts.Tags;
 
 namespace MenuMate.Api.IntegrationTests;
 
@@ -75,24 +76,36 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
 
         RecipeListItemResponse[]? search = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?search=паста");
-        RecipeListItemResponse[]? tag = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
-            "/api/recipes?tag=БЫСТРО");
+        TagResponse[]? catalogTags = await httpClient.GetFromJsonAsync<TagResponse[]>(
+            "/api/tags?search=быстро");
+        Assert.NotNull(catalogTags);
+        TagResponse catalogTag = Assert.Single(catalogTags);
+        TagResponse[]? breakfastTags = await httpClient.GetFromJsonAsync<TagResponse[]>(
+            "/api/tags?search=завтрак");
+        Assert.NotNull(breakfastTags);
+        TagResponse breakfastTag = Assert.Single(breakfastTags);
+        RecipeListItemResponse[]? tags = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+            $"/api/recipes?tagIds={catalogTag.Id}&tagIds={breakfastTag.Id}");
         RecipeListItemResponse[]? category = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?category=Breakfast");
         RecipeListItemResponse[]? firstPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?page=1&pageSize=1");
         RecipeListItemResponse[]? secondPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
             "/api/recipes?page=2&pageSize=1");
-
         Assert.NotNull(search);
-        Assert.NotNull(tag);
+        Assert.NotNull(tags);
         Assert.NotNull(category);
         Assert.NotNull(firstPage);
         Assert.NotNull(secondPage);
         Assert.Equal("Быстрая паста", Assert.Single(search).Title);
-        Assert.Equal("Быстрая паста", Assert.Single(tag).Title);
+        Assert.Equal(
+            ["Быстрая паста", "Овсянка"],
+            [.. tags.Select(recipe => recipe.Title).OrderBy(title => title)]);
         Assert.Equal("Овсянка", Assert.Single(category).Title);
         Assert.NotEqual(Assert.Single(firstPage).Id, Assert.Single(secondPage).Id);
+        Assert.Equal("быстро", catalogTag.Name);
+        Assert.Equal("User", catalogTag.Kind);
+        Assert.Equal("Confirmed", catalogTag.Status);
     }
 
     private static async Task<RecipeResponse> CreateRecipeAsync(HttpClient client, CreateRecipeRequest request)

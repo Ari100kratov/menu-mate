@@ -1,12 +1,14 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 
 import { getProducts, normalizeProductSearch } from "@/features/products/api/products.api"
 
-export function useProductsQuery(search: string) {
+export function useProductsQuery(search: string, enabled = true) {
+  const normalizedSearch = normalizeProductSearch(search)
+
   return useQuery({
-    queryKey: ["products", normalizeProductSearch(search)],
+    queryKey: ["products", normalizedSearch],
     queryFn: () => getProducts(search),
-    placeholderData: keepPreviousData,
+    enabled: enabled && Boolean(normalizedSearch),
     staleTime: 60_000,
   })
 }

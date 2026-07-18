@@ -21,10 +21,12 @@ export default function RecipesPage() {
     scope,
     search,
     category,
+    selectedTags,
     favoritesOnly,
     setScope,
     setSearch,
     setCategory,
+    setTags,
     setFavoritesOnly,
     resetActiveFilters,
   } = useRecipeListFilterState("menumate:recipes:filters:v1")
@@ -33,11 +35,14 @@ export default function RecipesPage() {
     scope,
     search: debouncedSearch,
     category,
+    tagIds: selectedTags.map((tag) => tag.id),
     favoritesOnly,
   })
   const favoriteMutation = useSetRecipeFavoriteMutation()
   const recipes = recipesQuery.data?.pages.flat() ?? []
-  const hasActiveFilters = Boolean(search.trim() || category || favoritesOnly)
+  const hasActiveFilters = Boolean(
+    search.trim() || category || selectedTags.length > 0 || favoritesOnly,
+  )
   const isSearchPending = search.trim() !== debouncedSearch.trim()
 
   return (
@@ -50,6 +55,7 @@ export default function RecipesPage() {
         scope={scope}
         search={search}
         category={category}
+        selectedTags={selectedTags}
         favoritesOnly={favoritesOnly}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
         hasMoreRecipes={recipesQuery.hasNextPage}
@@ -57,6 +63,7 @@ export default function RecipesPage() {
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
+        onTagsChange={setTags}
         onFavoritesOnlyChange={setFavoritesOnly}
         onReset={resetActiveFilters}
       />

@@ -223,15 +223,15 @@ public sealed class Recipe : Entity<Guid>
     {
         ArgumentNullException.ThrowIfNull(tags);
         _tags.Clear();
-        HashSet<string> normalizedValues = [];
-        _tags.AddRange(tags.Where(tag => normalizedValues.Add(tag.NormalizedValue)));
+        HashSet<Guid> tagIds = [];
+        _tags.AddRange(tags.Where(tag => tagIds.Add(tag.Id)));
         UpdatedAt = now;
     }
 
     /// <summary>Adds a tag when it does not already exist.</summary>
     public void AddTag(RecipeTag tag, DateTimeOffset now)
     {
-        if (_tags.Any(existing => existing.NormalizedValue == tag.NormalizedValue))
+        if (_tags.Any(existing => existing.Id == tag.Id))
         {
             return;
         }
@@ -240,10 +240,10 @@ public sealed class Recipe : Entity<Guid>
         UpdatedAt = now;
     }
 
-    /// <summary>Removes a tag by normalized value.</summary>
-    public void RemoveTag(string normalizedTagName, DateTimeOffset now)
+    /// <summary>Removes a tag by its global catalog identifier.</summary>
+    public void RemoveTag(Guid tagId, DateTimeOffset now)
     {
-        _tags.RemoveAll(tag => tag.NormalizedValue == normalizedTagName);
+        _tags.RemoveAll(tag => tag.Id == tagId);
         UpdatedAt = now;
     }
 

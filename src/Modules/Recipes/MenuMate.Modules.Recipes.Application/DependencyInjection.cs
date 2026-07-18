@@ -37,6 +37,7 @@ public static class RecipesApplicationDependencyInjection
         services.AddScoped<IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>>, GetRecipesQueryHandler>();
         services.AddScoped<RecipeImageReadUrlService>();
         services.AddScoped<RecipeProductResolver>();
+        services.AddScoped<RecipeTagCatalogResolver>();
 
         return services;
     }

@@ -22,17 +22,12 @@ internal sealed class CreateTagCommandHandler(
             return Result.Failure<TagResponse>(name.Error);
         }
 
-        if (!Enum.TryParse(command.Request.Kind ?? TagKind.User.ToString(), ignoreCase: true, out TagKind kind))
-        {
-            return Result.Failure<TagResponse>(TagApplicationErrors.InvalidKind);
-        }
-
         if (await repository.ExistsByNormalizedNameAsync(name.Value.NormalizedValue, cancellationToken))
         {
             return Result.Failure<TagResponse>(TagApplicationErrors.DuplicateName);
         }
 
-        var tag = Tag.Create(Guid.CreateVersion7(), name.Value, kind, timeProvider.GetUtcNow());
+        var tag = Tag.Create(Guid.CreateVersion7(), name.Value, TagKind.User, timeProvider.GetUtcNow());
 
         await repository.AddAsync(tag, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

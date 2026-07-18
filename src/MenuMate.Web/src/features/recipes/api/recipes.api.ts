@@ -24,7 +24,7 @@ export interface UploadRecipeImageRequest {
 export interface RecipeListFilters {
   scope?: "library" | "catalog"
   search?: string
-  tag?: string
+  tagIds?: string[]
   category?: string
   favoritesOnly?: boolean
   page?: number
@@ -38,7 +38,7 @@ export async function getRecipes(filters: RecipeListFilters) {
         query: {
           scope: filters.scope ?? "library",
           search: normalizeQueryValue(filters.search),
-          tag: normalizeQueryValue(filters.tag),
+          tagIds: normalizeQueryValues(filters.tagIds),
           category: normalizeQueryValue(filters.category),
           favoritesOnly: filters.favoritesOnly ?? false,
           page: filters.page ?? 1,
@@ -187,4 +187,12 @@ function normalizeQueryValue(value: string | undefined) {
   }
 
   return normalized
+}
+
+function normalizeQueryValues(values: string[] | undefined) {
+  const normalizedValues = values
+    ?.map((value) => normalizeQueryValue(value))
+    .filter((value): value is string => Boolean(value))
+
+  return normalizedValues && normalizedValues.length > 0 ? normalizedValues : undefined
 }

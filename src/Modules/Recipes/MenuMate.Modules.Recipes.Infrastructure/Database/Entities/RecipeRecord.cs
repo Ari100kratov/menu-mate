@@ -15,7 +15,7 @@ internal sealed class RecipeRecord
     public int Servings { get; set; }
     public RecipeCategory Category { get; set; }
     public RecipeVisibility Visibility { get; set; }
-    public RecipeRevisionId CurrentRevisionId { get; set; }
+    public Guid CurrentRevisionId { get; set; }
     public int RevisionNumber { get; set; }
     public Guid? SourceRecipeId { get; set; }
     public RecipeRevisionId? SourceRevisionId { get; set; }
@@ -27,7 +27,6 @@ internal sealed class RecipeRecord
     public bool IsDeleted { get; set; }
     public List<RecipeIngredientRecord> Ingredients { get; set; } = [];
     public List<PreparationStepRecord> Steps { get; set; } = [];
-    public List<RecipeTagRecord> Tags { get; set; } = [];
     public List<RecipeImageRecord> Images { get; set; } = [];
     public List<RecipeRevisionRecord> Revisions { get; set; } = [];
     public List<RecipeLibraryEntryRecord> LibraryEntries { get; set; } = [];
@@ -48,7 +47,7 @@ internal sealed class RecipeRecord
         Servings = recipe.Servings.Value;
         Category = recipe.Category;
         Visibility = recipe.Visibility;
-        CurrentRevisionId = recipe.CurrentRevisionId;
+        CurrentRevisionId = recipe.CurrentRevisionId.Value;
         RevisionNumber = recipe.RevisionNumber;
         SourceRecipeId = recipe.SourceRecipeId;
         SourceRevisionId = recipe.SourceRevisionId;
@@ -63,8 +62,6 @@ internal sealed class RecipeRecord
         Ingredients.AddRange(recipe.Ingredients.Select(RecipeIngredientRecord.FromDomain));
         Steps.Clear();
         Steps.AddRange(recipe.Steps.Select(PreparationStepRecord.FromDomain));
-        Tags.Clear();
-        Tags.AddRange(recipe.Tags.Select(RecipeTagRecord.FromDomain));
 
         foreach (RecipeIngredientRecord ingredient in Ingredients)
         {
@@ -76,18 +73,13 @@ internal sealed class RecipeRecord
             step.RecipeId = Id;
         }
 
-        foreach (RecipeTagRecord tag in Tags)
-        {
-            tag.RecipeId = Id;
-        }
-
         if (Revisions.All(revision => revision.Id != recipe.CurrentRevisionId.Value))
         {
             Revisions.Add(RecipeRevisionRecord.FromDomain(recipe));
         }
     }
 
-    public Recipe ToDomain()
+    public Recipe ToDomain(IReadOnlyCollection<RecipeTag> tags)
     {
         Result<RecipeTitle> title = RecipeTitle.Create(Title);
         Result<Servings> servings = Domain.ValueObjects.Servings.Create(Servings);
@@ -109,7 +101,7 @@ internal sealed class RecipeRecord
             servings.Value,
             Category,
             Visibility,
-            CurrentRevisionId,
+            RecipeRevisionId.From(CurrentRevisionId),
             RevisionNumber,
             SourceRecipeId,
             SourceRevisionId,
@@ -122,6 +114,6 @@ internal sealed class RecipeRecord
             IsDeleted,
             Ingredients.OrderBy(ingredient => ingredient.Order).Select(ingredient => ingredient.ToDomain()),
             Steps.OrderBy(step => step.Number).Select(step => step.ToDomain()),
-            Tags.Select(tag => tag.ToDomain()));
+            tags);
     }
 }

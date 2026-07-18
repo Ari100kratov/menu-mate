@@ -75,10 +75,25 @@ public sealed class ProductCatalog : IProductCatalog
             query = query.Where(product => product.NormalizedName
                 .Replace("Ё", "Е")
                 .Contains(normalized));
+
+            string normalizedWord = $" {normalized} ";
+            query = query
+                .OrderBy(product => product.NormalizedName.Replace("Ё", "Е") == normalized
+                    ? 0
+                    : product.NormalizedName.Replace("Ё", "Е").StartsWith(normalized)
+                        ? 1
+                        : product.NormalizedName.Replace("Ё", "Е").EndsWith($" {normalized}") ||
+                          product.NormalizedName.Replace("Ё", "Е").Contains(normalizedWord)
+                            ? 2
+                            : 3)
+                .ThenBy(product => product.Name);
+        }
+        else
+        {
+            query = query.OrderBy(product => product.Name);
         }
 
         return await query
-            .OrderBy(product => product.Name)
             .Take(30)
             .Select(product => new ProductCatalogItem(product.Id, product.Name, product.Category))
             .ToArrayAsync(cancellationToken);

@@ -114,7 +114,7 @@ public static class RecipesEndpoints
     private static async Task<IResult> GetRecipesAsync(
         string? scope,
         string? search,
-        string? tag,
+        Guid[]? tagIds,
         string? category,
         bool? favoritesOnly,
         int? page,
@@ -127,7 +127,7 @@ public static class RecipesEndpoints
             new GetRecipesQuery(
                 scope ?? "library",
                 search,
-                tag,
+                tagIds ?? [],
                 category,
                 favoritesOnly ?? false,
                 page ?? 1,

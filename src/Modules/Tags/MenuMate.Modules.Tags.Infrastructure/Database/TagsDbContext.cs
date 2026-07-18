@@ -31,11 +31,31 @@ public sealed class TagsDbContext(DbContextOptions<TagsDbContext> options)
         if (!string.IsNullOrWhiteSpace(search))
         {
             string normalized = TextNormalizer.NormalizeSearchText(search);
-            query = query.Where(tag => tag.NormalizedName.Contains(normalized));
+            string normalizedWord = $" {normalized} ";
+            string containsPattern = $"%{EscapeLikePattern(normalized)}%";
+            query = query.Where(tag => EF.Functions.Like(
+                tag.NormalizedName,
+                containsPattern,
+                "\\"));
+            query = query
+                .OrderBy(tag => tag.NormalizedName == normalized
+                    ? 0
+                    : tag.NormalizedName.StartsWith(normalized)
+                        ? 1
+                        : tag.NormalizedName.EndsWith($" {normalized}") ||
+                          tag.NormalizedName.Contains(normalizedWord)
+                            ? 2
+                            : 3)
+                .ThenBy(tag => tag.NormalizedName.Length)
+                .ThenBy(tag => tag.Name);
+        }
+        else
+        {
+            query = query.OrderBy(tag => tag.Name);
         }
 
         return await query
-            .OrderBy(tag => tag.Name)
+            .Take(30)
             .Select(tag => new TagResponse(
                 tag.Id,
                 tag.Name,
@@ -52,7 +72,13 @@ public sealed class TagsDbContext(DbContextOptions<TagsDbContext> options)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
+        modelBuilder.HasPostgresExtension("pg_trgm");
         modelBuilder.HasDefaultSchema(TagsSchema.Name);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TagsDbContext).Assembly);
     }
+
+    private static string EscapeLikePattern(string value) =>
+        value.Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal);
 }

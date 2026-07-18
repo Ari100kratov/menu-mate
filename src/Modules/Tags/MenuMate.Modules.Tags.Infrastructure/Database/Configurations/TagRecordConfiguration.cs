@@ -18,6 +18,12 @@ internal sealed class TagRecordConfiguration : IEntityTypeConfiguration<TagRecor
         builder.Property(tag => tag.Kind).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(tag => tag.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.HasIndex(tag => tag.NormalizedName).IsUnique();
+        builder.HasIndex(
+                [nameof(TagRecord.NormalizedName)],
+                "ix_tags_normalized_name_trgm")
+            .HasDatabaseName("ix_tags_normalized_name_trgm")
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
         builder.HasIndex(tag => tag.Status);
     }
 }

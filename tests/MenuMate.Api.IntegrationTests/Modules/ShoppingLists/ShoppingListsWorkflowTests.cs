@@ -32,7 +32,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         ShoppingListResponse shoppingList = await GenerateShoppingListAsync(httpClient);
 
         ShoppingListItemResponse item = Assert.Single(Assert.Single(shoppingList.Categories).Items);
-        Assert.Equal("Rice", item.Name);
+        Assert.Equal("rice", item.Name);
         Assert.Equal(1000m, item.Amount);
         Assert.Equal("Gram", item.Unit);
         Assert.Contains("1000", shoppingList.Text, StringComparison.Ordinal);
@@ -58,10 +58,10 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
 
         ShoppingListItemResponse updatedManualItem = Assert.Single(
             listWithUpdatedManualItem.Categories.SelectMany(category => category.Items),
-            item => item.Name == "Oat milk");
+            item => item.Name == "oat milk");
         ShoppingListItemResponse purchasedRice = Assert.Single(
             listWithUpdatedManualItem.Categories.SelectMany(category => category.Items),
-            item => item.Name == "Rice");
+            item => item.Name == "rice");
 
         Assert.Equal(2m, updatedManualItem.Amount);
         Assert.Equal("Liter", updatedManualItem.Unit);
@@ -212,7 +212,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
 
         return Assert.Single(
             shoppingList.Categories.SelectMany(category => category.Items),
-            item => item.Name == "Milk");
+            item => item.Name == "milk");
     }
 
     private static async Task<ShoppingListResponse> UpdateManualItemAsync(

@@ -15,7 +15,7 @@ public sealed class TagsWorkflowTests : IAsyncLifetime, IDisposable
     public void Dispose() => _factory.Dispose();
 
     [Fact]
-    public async Task SuggestedTagShouldSupportCreateSearchConfirmAndHide()
+    public async Task UserTagShouldBeCreatedAsConfirmedAndFoundBySearch()
     {
         using HttpClient httpClient = _factory.CreateClient();
         var client = new ApiTestClient(httpClient);
@@ -23,30 +23,20 @@ public sealed class TagsWorkflowTests : IAsyncLifetime, IDisposable
 
         HttpResponseMessage createResponse = await httpClient.PostAsJsonAsync(
             "/api/tags/",
-            new CreateTagRequest("  Быстрый ужин  ", "Suggested"));
+            new CreateTagRequest("  Быстрый ужин  "));
         createResponse.EnsureSuccessStatusCode();
         TagResponse? created = await createResponse.Content.ReadFromJsonAsync<TagResponse>();
         Assert.NotNull(created);
         Assert.Equal("Быстрый ужин", created.Name);
         Assert.Equal("БЫСТРЫЙ УЖИН", created.NormalizedName);
-        Assert.Equal("Proposed", created.Status);
+        Assert.Equal("User", created.Kind);
+        Assert.Equal("Confirmed", created.Status);
 
         TagResponse[]? search = await httpClient.GetFromJsonAsync<TagResponse[]>("/api/tags?search=ужин");
         Assert.NotNull(search);
         Assert.Equal(created.Id, Assert.Single(search).Id);
 
-        HttpResponseMessage confirmResponse = await httpClient.PostAsync(
-            RelativeUri($"/api/tags/{created.Id}/confirm"),
-            content: null);
-        confirmResponse.EnsureSuccessStatusCode();
-
-        HttpResponseMessage hideResponse = await httpClient.DeleteAsync(
-            RelativeUri($"/api/tags/{created.Id}"));
-        hideResponse.EnsureSuccessStatusCode();
-
-        Assert.Empty(await GetTagsAsync(httpClient, includeHidden: false));
-        TagResponse hidden = Assert.Single(await GetTagsAsync(httpClient, includeHidden: true));
-        Assert.Equal("Hidden", hidden.Status);
+        Assert.Equal(created.Id, Assert.Single(await GetTagsAsync(httpClient)).Id);
     }
 
     [Fact]
@@ -58,12 +48,12 @@ public sealed class TagsWorkflowTests : IAsyncLifetime, IDisposable
 
         HttpResponseMessage first = await httpClient.PostAsJsonAsync(
             "/api/tags/",
-            new CreateTagRequest("Быстро", "User"));
+            new CreateTagRequest("Быстро"));
         first.EnsureSuccessStatusCode();
 
         HttpResponseMessage duplicate = await httpClient.PostAsJsonAsync(
             "/api/tags/",
-            new CreateTagRequest("  быстро ", "User"));
+            new CreateTagRequest("  быстро "));
 
         await ProblemDetailsAssert.HasProblemAsync(
             duplicate,
@@ -71,13 +61,35 @@ public sealed class TagsWorkflowTests : IAsyncLifetime, IDisposable
             "Tags.DuplicateName");
     }
 
-    private static async Task<TagResponse[]> GetTagsAsync(HttpClient client, bool includeHidden)
+    [Fact]
+    public async Task SearchShouldRankExactThenPrefixThenWholeWordThenSubstring()
     {
-        TagResponse[]? tags = await client.GetFromJsonAsync<TagResponse[]>(
-            $"/api/tags?includeHidden={includeHidden}");
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("tag-ranking"));
+
+        string[] names = ["Малосольные огурцы", "Морская соль", "Соль крупная", "Соль"];
+        foreach (string name in names)
+        {
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync(
+                "/api/tags/",
+                new CreateTagRequest(name));
+            response.EnsureSuccessStatusCode();
+        }
+
+        TagResponse[]? results = await httpClient.GetFromJsonAsync<TagResponse[]>(
+            "/api/tags?search=соль");
+
+        Assert.NotNull(results);
+        Assert.Equal(
+            ["Соль", "Соль крупная", "Морская соль", "Малосольные огурцы"],
+            results.Select(tag => tag.Name));
+    }
+
+    private static async Task<TagResponse[]> GetTagsAsync(HttpClient client)
+    {
+        TagResponse[]? tags = await client.GetFromJsonAsync<TagResponse[]>("/api/tags");
         Assert.NotNull(tags);
         return tags;
     }
-
-    private static Uri RelativeUri(string path) => new(path, UriKind.Relative);
 }

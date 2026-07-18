@@ -63,11 +63,11 @@ ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Men
 
 MigratorLogMessages.StartingMigrations(logger);
 
-await MigrateDbContextAsync<RecipesDbContext>(services, logger);
 await MigrateDbContextAsync<RecipeImportsDbContext>(services, logger);
 await MigrateDbContextAsync<ProductsDbContext>(services, logger);
 await MigrateDbContextAsync<AuthDbContext>(services, logger);
 await MigrateDbContextAsync<TagsDbContext>(services, logger);
+await MigrateDbContextAsync<RecipesDbContext>(services, logger);
 await MigrateDbContextAsync<MenuPlanningDbContext>(services, logger);
 await MigrateDbContextAsync<ShoppingListsDbContext>(services, logger);
 await MigrateDbContextAsync<DataImportDbContext>(services, logger);

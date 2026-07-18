@@ -9,6 +9,7 @@ import {
   updateRecipeImportDraft,
 } from "@/features/imports/api/imports.api"
 import { recipeQueryKeys } from "@/features/recipes/api/recipes.queries"
+import { tagQueryKeys } from "@/features/tags/api/tags.queries"
 import type { CreateRecipeRequest } from "@/features/recipes/api/recipes.api"
 
 export const recipeImportQueryKeys = {
@@ -64,6 +65,7 @@ export function useConfirmRecipeImportDraftMutation(draftId: string) {
     onSuccess: (recipe) => {
       queryClient.setQueryData(recipeQueryKeys.detail(recipe.id), recipe)
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: tagQueryKeys.lists() })
       void queryClient.invalidateQueries({ queryKey: recipeImportQueryKeys.all })
     },
   })

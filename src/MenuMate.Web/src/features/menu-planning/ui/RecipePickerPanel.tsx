@@ -24,10 +24,12 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
     scope,
     search,
     category,
+    selectedTags,
     favoritesOnly,
     setScope,
     setSearch,
     setCategory,
+    setTags,
     setFavoritesOnly,
     resetActiveFilters,
   } = useRecipeListFilterState("menumate:menu:recipe-picker-filters:v1")
@@ -37,6 +39,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
     scope,
     search: debouncedSearch,
     category,
+    tagIds: selectedTags.map((tag) => tag.id),
     favoritesOnly,
   })
   const recipes = recipesQuery.data?.pages.flat() ?? []
@@ -63,6 +66,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         scope={scope}
         search={search}
         category={category}
+        selectedTags={selectedTags}
         favoritesOnly={favoritesOnly}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
         hasMoreRecipes={recipesQuery.hasNextPage}
@@ -70,6 +74,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
+        onTagsChange={setTags}
         onFavoritesOnlyChange={setFavoritesOnly}
         onReset={resetActiveFilters}
       />

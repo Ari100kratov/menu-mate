@@ -1,12 +1,15 @@
+using MenuMate.Common.Application.Tags;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Domain.Models;
+using MenuMate.Modules.Recipes.Domain.ValueObjects;
 using MenuMate.Modules.Recipes.Infrastructure.Database.Entities;
+using MenuMate.SharedKernel;
 using MenuMate.SharedKernel.Identifiers;
 using Microsoft.EntityFrameworkCore;
 
 namespace MenuMate.Modules.Recipes.Infrastructure.Database;
 
-internal sealed class EfRecipesRepository(RecipesDbContext dbContext) : IRecipesRepository
+internal sealed class EfRecipesRepository(RecipesDbContext dbContext, ITagCatalog tagCatalog) : IRecipesRepository
 {
     public async Task AddAsync(Recipe recipe, CancellationToken cancellationToken)
     {
@@ -19,7 +22,22 @@ internal sealed class EfRecipesRepository(RecipesDbContext dbContext) : IRecipes
             .AsNoTracking()
             .FirstOrDefaultAsync(recipe => recipe.Id == id && !recipe.IsDeleted, cancellationToken);
 
-        return record?.ToDomain();
+        if (record is null)
+        {
+            return null;
+        }
+
+        Guid[] tagIds = await dbContext.RecipeRevisionTags
+            .AsNoTracking()
+            .Where(tag => tag.RecipeRevisionId == record.CurrentRevisionId)
+            .Select(tag => tag.TagId)
+            .ToArrayAsync(cancellationToken);
+        IReadOnlyDictionary<Guid, string> tagNames = await tagCatalog.GetNamesAsync(
+            tagIds,
+            cancellationToken);
+        RecipeTag[] tags = [.. tagIds.Select(tagId => CreateTag(tagId, tagNames))];
+
+        return record.ToDomain(tags);
     }
 
     public async Task UpdateAsync(Recipe recipe, CancellationToken cancellationToken)
@@ -107,6 +125,16 @@ internal sealed class EfRecipesRepository(RecipesDbContext dbContext) : IRecipes
         dbContext.Recipes
             .Include(recipe => recipe.Ingredients)
             .Include(recipe => recipe.Steps)
-            .Include(recipe => recipe.Tags)
             .Include(recipe => recipe.Revisions);
+
+    private static RecipeTag CreateTag(Guid tagId, IReadOnlyDictionary<Guid, string> tagNames)
+    {
+        if (!tagNames.TryGetValue(tagId, out string? tagName))
+        {
+            throw new InvalidOperationException($"Tag '{tagId}' was not found in the global catalog.");
+        }
+
+        Result<RecipeTag> tag = RecipeTag.Create(tagId, tagName);
+        return tag.IsSuccess ? tag.Value : throw new DomainException(tag.Error);
+    }
 }

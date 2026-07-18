@@ -4,89 +4,135 @@ import { usePersistentState } from "@/shared/lib/persistent-state"
 
 export type RecipeListScope = "library" | "catalog"
 
+export interface RecipeListTagFilter {
+  id: string
+  name: string
+}
+
 export interface RecipeListFilterValues {
   search: string
   category: string
+  tags?: RecipeListTagFilter[]
+  // Поддержка сохранённого одиночного фильтра до перехода на множественный выбор.
+  tagId?: string
+  // Поддержка сохранённого одиночного фильтра до перехода на множественный выбор.
+  tagName?: string
   favoritesOnly: boolean
 }
 
 interface RecipeListFilterState {
   scope: RecipeListScope
+  filters: RecipeListFilterValues
+}
+
+interface LegacyRecipeListFilterState {
+  scope: RecipeListScope
   filters: Record<RecipeListScope, RecipeListFilterValues>
 }
+
+type StoredRecipeListFilterState = RecipeListFilterState | LegacyRecipeListFilterState
 
 const emptyFilters: RecipeListFilterValues = {
   search: "",
   category: "",
+  tags: [],
+  tagId: "",
+  tagName: "",
   favoritesOnly: false,
 }
 
 const initialState: RecipeListFilterState = {
   scope: "library",
-  filters: {
-    library: { ...emptyFilters },
-    catalog: { ...emptyFilters },
-  },
+  filters: { ...emptyFilters },
 }
 
 export function useRecipeListFilterState(storageKey: string) {
-  const [state, setState] = usePersistentState(storageKey, initialState, isRecipeListFilterState)
-  const activeFilters = state.filters[state.scope]
+  const [storedState, setStoredState] = usePersistentState<StoredRecipeListFilterState>(
+    storageKey,
+    initialState,
+    isStoredRecipeListFilterState,
+  )
+  const state = normalizeState(storedState)
+  const selectedTags = getSelectedTags(state.filters)
 
   const setScope = useCallback(
     (scope: RecipeListScope) => {
-      setState((current) => ({ ...current, scope }))
+      setStoredState((current) => ({ ...normalizeState(current), scope }))
     },
-    [setState],
+    [setStoredState],
   )
 
-  const updateActiveFilters = useCallback(
+  const updateFilters = useCallback(
     (updates: Partial<RecipeListFilterValues>) => {
-      setState((current) => ({
-        ...current,
-        filters: {
-          ...current.filters,
-          [current.scope]: {
-            ...current.filters[current.scope],
+      setStoredState((current) => {
+        const normalized = normalizeState(current)
+        return {
+          ...normalized,
+          filters: {
+            ...normalized.filters,
             ...updates,
           },
-        },
-      }))
+        }
+      })
     },
-    [setState],
+    [setStoredState],
   )
 
-  const resetActiveFilters = useCallback(() => {
-    updateActiveFilters(emptyFilters)
-  }, [updateActiveFilters])
+  const resetFilters = useCallback(() => {
+    updateFilters(emptyFilters)
+  }, [updateFilters])
 
   return {
     scope: state.scope,
-    ...activeFilters,
+    ...state.filters,
+    selectedTags,
     setScope,
     setSearch: (search: string) => {
-      updateActiveFilters({ search })
+      updateFilters({ search })
     },
     setCategory: (category: string) => {
-      updateActiveFilters({ category })
+      updateFilters({ category })
+    },
+    setTags: (tags: RecipeListTagFilter[]) => {
+      updateFilters({ tags, tagId: undefined, tagName: undefined })
     },
     setFavoritesOnly: (favoritesOnly: boolean) => {
-      updateActiveFilters({ favoritesOnly })
+      updateFilters({ favoritesOnly })
     },
-    resetActiveFilters,
+    resetActiveFilters: resetFilters,
   }
 }
 
+function normalizeState(state: StoredRecipeListFilterState): RecipeListFilterState {
+  if (isLegacyRecipeListFilterState(state)) {
+    return {
+      scope: state.scope,
+      filters: state.filters[state.scope],
+    }
+  }
+
+  return state
+}
+
+function isStoredRecipeListFilterState(value: unknown): value is StoredRecipeListFilterState {
+  return isRecipeListFilterState(value) || isLegacyRecipeListFilterState(value)
+}
+
 function isRecipeListFilterState(value: unknown): value is RecipeListFilterState {
-  if (!isRecord(value) || (value.scope !== "library" && value.scope !== "catalog")) {
-    return false
-  }
+  return isStateShell(value) && isFilterValues(value.filters)
+}
 
-  if (!isRecord(value.filters)) {
-    return false
-  }
+function isLegacyRecipeListFilterState(value: unknown): value is LegacyRecipeListFilterState {
+  return (
+    isStateShell(value) &&
+    isRecord(value.filters) &&
+    isFilterValues(value.filters.library) &&
+    isFilterValues(value.filters.catalog)
+  )
+}
 
-  return isFilterValues(value.filters.library) && isFilterValues(value.filters.catalog)
+function isStateShell(value: unknown): value is { scope: RecipeListScope; filters: unknown } {
+  return isRecord(value) && (value.scope === "library" || value.scope === "catalog")
 }
 
 function isFilterValues(value: unknown): value is RecipeListFilterValues {
@@ -94,7 +140,35 @@ function isFilterValues(value: unknown): value is RecipeListFilterValues {
     isRecord(value) &&
     typeof value.search === "string" &&
     typeof value.category === "string" &&
+    (value.tags === undefined ||
+      (Array.isArray(value.tags) && value.tags.every(isRecipeListTagFilter))) &&
+    (value.tagId === undefined || typeof value.tagId === "string") &&
+    (value.tagName === undefined || typeof value.tagName === "string") &&
     typeof value.favoritesOnly === "boolean"
+  )
+}
+
+function getSelectedTags(filters: RecipeListFilterValues) {
+  const storedTags = filters.tags ?? []
+  const tags =
+    storedTags.length > 0
+      ? storedTags
+      : filters.tagId && filters.tagName
+        ? [{ id: filters.tagId, name: filters.tagName }]
+        : []
+
+  return tags.filter(
+    (tag, index) => tag.id.length > 0 && tags.findIndex((item) => item.id === tag.id) === index,
+  )
+}
+
+function isRecipeListTagFilter(value: unknown): value is RecipeListTagFilter {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    value.id.length > 0 &&
+    typeof value.name === "string" &&
+    value.name.length > 0
   )
 }
 

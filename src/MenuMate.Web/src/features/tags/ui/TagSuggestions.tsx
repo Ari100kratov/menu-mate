@@ -1,12 +1,12 @@
-import { Plus } from "lucide-react"
+import { LoaderCircle, Plus } from "lucide-react"
 
-import type { TagItem } from "@/features/tags/api/tags.api"
 import { Button } from "@/shared/ui/button"
 
 interface TagSuggestionsProps {
-  suggestions: readonly TagItem[]
+  suggestions: readonly string[]
   draftTagName: string
   canCreateDraft: boolean
+  isSearchPending: boolean
   isCreatePending: boolean
   disabled?: boolean
   onSelect: (tagName: string) => void
@@ -17,6 +17,7 @@ export function TagSuggestions({
   suggestions,
   draftTagName,
   canCreateDraft,
+  isSearchPending,
   isCreatePending,
   disabled,
   onSelect,
@@ -26,11 +27,20 @@ export function TagSuggestions({
     return null
   }
 
+  if (draftTagName && isSearchPending) {
+    return (
+      <div className="type-supporting text-muted-foreground flex items-center gap-2 px-1">
+        <LoaderCircle className="size-4 animate-spin" />
+        Ищем существующие теги...
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       {suggestions.map((tag) => (
         <Button
-          key={tag.id}
+          key={tag}
           type="button"
           variant="secondary"
           size="sm"
@@ -39,10 +49,10 @@ export function TagSuggestions({
             event.preventDefault()
           }}
           onClick={() => {
-            onSelect(tag.name)
+            onSelect(tag)
           }}
         >
-          {tag.name}
+          {tag}
         </Button>
       ))}
 

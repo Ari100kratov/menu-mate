@@ -26,9 +26,7 @@ internal sealed class RecipeRecordConfiguration : IEntityTypeConfiguration<Recip
         builder.Property(recipe => recipe.Description).HasMaxLength(2000);
         builder.Property(recipe => recipe.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(recipe => recipe.Visibility).HasConversion<string>().HasMaxLength(32).IsRequired();
-        builder.Property(recipe => recipe.CurrentRevisionId)
-            .HasConversion(revisionId => revisionId.Value, value => RecipeRevisionId.From(value))
-            .IsRequired();
+        builder.Property(recipe => recipe.CurrentRevisionId).ValueGeneratedNever().IsRequired();
         builder.Property(recipe => recipe.SourceRevisionId).HasConversion(nullableRevisionIdConverter);
         builder.Property(recipe => recipe.SourceUrl).HasMaxLength(2048);
         builder.HasIndex(recipe => recipe.Category);
@@ -46,10 +44,6 @@ internal sealed class RecipeRecordConfiguration : IEntityTypeConfiguration<Recip
         builder.HasMany(recipe => recipe.Steps)
             .WithOne()
             .HasForeignKey(step => step.RecipeId)
-            .OnDelete(DeleteBehavior.Cascade);
-        builder.HasMany(recipe => recipe.Tags)
-            .WithOne()
-            .HasForeignKey(tag => tag.RecipeId)
             .OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(recipe => recipe.Images)
             .WithOne()

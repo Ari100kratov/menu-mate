@@ -372,38 +372,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/tags/{tagId}/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ConfirmTag"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tags/{tagId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["HideTag"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/menu-calendar": {
         parameters: {
             query?: never;
@@ -680,8 +648,6 @@ export interface components {
         CreateTagRequest: {
             /** @description Отображаемое имя тега. */
             name: string;
-            /** @description Необязательный источник тега. */
-            kind: null | string;
         };
         /** @description Запрос на генерацию списка покупок из диапазона меню. */
         GenerateShoppingListRequest: {
@@ -2081,11 +2047,11 @@ export interface operations {
             query?: {
                 scope?: string;
                 search?: string;
-                tag?: string;
+                tagIds?: string[];
                 category?: string;
                 favoritesOnly?: boolean;
-                page?: number;
-                pageSize?: number;
+                page?: number | string;
+                pageSize?: number | string;
             };
             header?: never;
             path?: never;
@@ -2668,7 +2634,6 @@ export interface operations {
         parameters: {
             query?: {
                 search?: string;
-                includeHidden?: boolean;
             };
             header?: never;
             path?: never;
@@ -2745,92 +2710,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    ConfirmTag: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                tagId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    HideTag: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                tagId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
             };
         };
     };
