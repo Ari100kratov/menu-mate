@@ -139,7 +139,7 @@ export default function RecipeImportPage() {
               onClick={handleUpload}
             >
               <ImagePlus />
-              {createMutation.isPending ? "Распознаём рецепт..." : "Создать черновик"}
+              {createMutation.isPending ? "Распознаем рецепт..." : "Создать черновик"}
             </Button>
           </div>
           <div className="bg-muted flex min-h-48 overflow-hidden rounded-lg border p-2">

@@ -15,6 +15,9 @@ internal interface IRecipeImagesRepository
     /// </summary>
     Task AddAsync(RecipeImageMetadata image, CancellationToken cancellationToken);
 
+    /// <summary>Returns the active cover metadata for a source recipe.</summary>
+    Task<RecipeImageMetadata?> GetActiveCoverAsync(Guid recipeId, CancellationToken cancellationToken);
+
     /// <summary>
     /// Помечает активные изображения указанной области удаленными и возвращает ссылки на их объекты.
     /// </summary>

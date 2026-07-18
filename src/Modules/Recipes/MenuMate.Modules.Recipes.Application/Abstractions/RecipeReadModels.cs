@@ -9,3 +9,5 @@ internal sealed record RecipeReadModel(
 internal sealed record RecipeListItemReadModel(
     RecipeListItemResponse Response,
     IReadOnlyCollection<Guid> TagIds);
+
+internal sealed record RecipeRevisionAccessReadModel(bool IsSourceAccessible);

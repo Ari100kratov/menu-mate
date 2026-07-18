@@ -6,4 +6,5 @@ internal sealed class RecipeRevisionAccessSourceRecord
 {
     public RecipeRevisionId Id { get; set; }
     public RecipeId RecipeId { get; set; }
+    public string Title { get; set; } = string.Empty;
 }

@@ -200,6 +200,47 @@ public sealed class Recipe : Entity<Guid>
         UpdatedAt = now;
     }
 
+    /// <summary>Changes recipe visibility without publishing a content revision.</summary>
+    public void ChangeVisibility(RecipeVisibility visibility, DateTimeOffset now)
+    {
+        if (Visibility == visibility)
+        {
+            return;
+        }
+
+        Visibility = visibility;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Checks whether the supplied versioned content equals the current projection.</summary>
+    public bool HasSameVersionedContent(
+        RecipeTitle title,
+        Servings servings,
+        RecipeCategory category,
+        int? totalTimeMinutes,
+        int? activeTimeMinutes,
+        string? description,
+        Uri? sourceUrl,
+        IReadOnlyCollection<RecipeIngredient> ingredients,
+        IReadOnlyCollection<PreparationStep> steps,
+        IReadOnlyCollection<RecipeTag> tags)
+    {
+        ArgumentNullException.ThrowIfNull(ingredients);
+        ArgumentNullException.ThrowIfNull(steps);
+        ArgumentNullException.ThrowIfNull(tags);
+
+        return Title == title &&
+            Servings == servings &&
+            Category == category &&
+            TotalTimeMinutes == totalTimeMinutes &&
+            ActiveTimeMinutes == activeTimeMinutes &&
+            string.Equals(NormalizeOptionalText(Description), NormalizeOptionalText(description), StringComparison.Ordinal) &&
+            Equals(SourceUrl, sourceUrl) &&
+            _ingredients.SequenceEqual(ingredients, RecipeIngredientContentComparer.Instance) &&
+            _steps.SequenceEqual(steps) &&
+            _tags.Select(tag => tag.Id).ToHashSet().SetEquals(tags.Select(tag => tag.Id));
+    }
+
     /// <summary>Replaces all current ingredients.</summary>
     public void ReplaceIngredients(IEnumerable<RecipeIngredient> ingredients, DateTimeOffset now)
     {
@@ -267,5 +308,36 @@ public sealed class Recipe : Entity<Guid>
     {
         IsDeleted = true;
         UpdatedAt = now;
+    }
+
+    private static string? NormalizeOptionalText(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private sealed class RecipeIngredientContentComparer : IEqualityComparer<RecipeIngredient>
+    {
+        public static RecipeIngredientContentComparer Instance { get; } = new();
+
+        public bool Equals(RecipeIngredient? left, RecipeIngredient? right) =>
+            ReferenceEquals(left, right) ||
+            left is not null &&
+            right is not null &&
+            left.IngredientId == right.IngredientId &&
+            left.Name == right.Name &&
+            left.Quantity == right.Quantity &&
+            left.Category == right.Category &&
+            string.Equals(
+                NormalizeOptionalText(left.Comment),
+                NormalizeOptionalText(right.Comment),
+                StringComparison.Ordinal) &&
+            left.IsOptional == right.IsOptional;
+
+        public int GetHashCode(RecipeIngredient ingredient) =>
+            HashCode.Combine(
+                ingredient.IngredientId,
+                ingredient.Name,
+                ingredient.Quantity,
+                ingredient.Category,
+                NormalizeOptionalText(ingredient.Comment),
+                ingredient.IsOptional);
     }
 }

@@ -69,7 +69,7 @@ export default function ShoppingPreviewPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Список покупок заменён")
+          toast.success("Список покупок заменен")
           void navigate("/shopping")
         },
       },

@@ -85,6 +85,7 @@ export default function RecipesPage() {
                   favoriteMutation.mutate({
                     recipeId: recipe.id,
                     isFavorite: !recipe.isFavorite,
+                    revisionId: recipe.isFavorite ? undefined : recipe.revisionId,
                   })
                 }}
               />

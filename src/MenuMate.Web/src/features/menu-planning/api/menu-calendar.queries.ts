@@ -11,7 +11,7 @@ import {
   reorderMealSlots,
   updateMealSlot,
   updateMenuCalendarItem,
-  type MenuCalendarItemRequest,
+  type UpdateMenuCalendarItemRequest,
 } from "@/features/menu-planning/api/menu-calendar.api"
 
 export const menuCalendarQueryKeys = {
@@ -56,7 +56,7 @@ export function useAddMenuCalendarItemMutation() {
 
 export function useUpdateMenuCalendarItemMutation() {
   return useCalendarMutation(
-    ({ itemId, request }: { itemId: string; request: MenuCalendarItemRequest }) =>
+    ({ itemId, request }: { itemId: string; request: UpdateMenuCalendarItemRequest }) =>
       updateMenuCalendarItem(itemId, request),
   )
 }

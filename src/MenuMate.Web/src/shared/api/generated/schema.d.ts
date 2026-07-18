@@ -292,22 +292,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/recipes/{recipeId}/library": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["SaveRecipeToLibrary"];
-        delete: operations["RemoveRecipeFromLibrary"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/recipes/{recipeId}/copy": {
         parameters: {
             query?: never;
@@ -568,6 +552,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Запрос на создание независимой копии выбранной ревизии рецепта. */
+        CopyRecipeRequest: {
+            /**
+             * Format: uuid
+             * @description Точная ревизия исходного рецепта.
+             */
+            sourceRevisionId: string;
+            /** @description Отредактированное содержимое будущей копии. */
+            recipe: components["schemas"]["CreateRecipeRequest"];
+            /** @description Копировать доступную обложку исходного рецепта. */
+            copySourceCover: boolean;
+        };
         /** @description Запрос на создание приема пищи. */
         CreateMealSlotRequest: {
             /** @description Название приема пищи. */
@@ -595,8 +591,6 @@ export interface components {
              * @description Идентификатор immutable revision рецепта.
              */
             recipeRevisionId: null | string;
-            /** @description Снимок названия рецепта. */
-            recipeTitle: null | string;
             /** @description Свободный текст для позиции без рецепта. */
             text: null | string;
             /**
@@ -997,18 +991,27 @@ export interface components {
             id: string;
             /**
              * Format: uuid
-             * @description Идентификатор текущей ревизии рецепта.
+             * @description Идентификатор отображаемой ревизии рецепта.
              */
-            currentRevisionId: string;
+            revisionId: string;
+            /**
+             * Format: uuid
+             * @description Идентификатор актуальной ревизии, если источник доступен.
+             */
+            currentRevisionId: null | string;
             /**
              * Format: int32
-             * @description Номер текущей ревизии рецепта.
+             * @description Номер отображаемой ревизии рецепта.
              */
             revisionNumber: number | string;
             /** @description Признак принадлежности рецепта текущему пользователю. */
             isOwnedByCurrentUser: boolean;
-            /** @description Признак сохранения рецепта текущим пользователем. */
-            isSaved: boolean;
+            /** @description Признак нахождения рецепта в избранном. */
+            isFavorite: boolean;
+            /** @description Признак того, что отображаемая ревизия закреплена в избранном. */
+            isDisplayedRevisionSaved: boolean;
+            /** @description Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable. */
+            revisionState: string;
             /** @description Название блюда. */
             title: string;
             /** @description Краткое описание. */
@@ -1032,8 +1035,6 @@ export interface components {
              * @description Активное время приготовления в минутах.
              */
             activeTimeMinutes: null | number | string;
-            /** @description Признак избранного рецепта. */
-            isFavorite: boolean;
             /** @description Теги рецепта. */
             tags: string[];
             coverImage: null | components["schemas"]["RecipeImageResponse"];
@@ -1047,18 +1048,32 @@ export interface components {
             id: string;
             /**
              * Format: uuid
-             * @description Идентификатор текущей ревизии рецепта.
+             * @description Идентификатор отображаемой ревизии рецепта.
              */
-            currentRevisionId: string;
+            revisionId: string;
+            /**
+             * Format: uuid
+             * @description Идентификатор актуальной ревизии, если источник доступен.
+             */
+            currentRevisionId: null | string;
+            /**
+             * Format: uuid
+             * @description Идентификатор ревизии, закрепленной в избранном.
+             */
+            savedRevisionId: null | string;
             /**
              * Format: int32
-             * @description Номер текущей ревизии рецепта.
+             * @description Номер отображаемой ревизии рецепта.
              */
             revisionNumber: number | string;
             /** @description Признак принадлежности рецепта текущему пользователю. */
             isOwnedByCurrentUser: boolean;
-            /** @description Признак сохранения рецепта текущим пользователем. */
-            isSaved: boolean;
+            /** @description Признак нахождения рецепта в избранном. */
+            isFavorite: boolean;
+            /** @description Признак того, что отображаемая ревизия закреплена в избранном. */
+            isDisplayedRevisionSaved: boolean;
+            /** @description Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable. */
+            revisionState: string;
             /**
              * Format: uuid
              * @description Идентификатор исходного рецепта, если рецепт создан как копия.
@@ -1092,8 +1107,6 @@ export interface components {
              * @description Активное время приготовления в минутах.
              */
             activeTimeMinutes: null | number | string;
-            /** @description Признак избранного рецепта. */
-            isFavorite: boolean;
             /**
              * Format: uri
              * @description URL источника рецепта.
@@ -1282,19 +1295,7 @@ export interface components {
              * @description Идентификатор приема пищи.
              */
             mealSlotId: string;
-            /**
-             * Format: uuid
-             * @description Идентификатор рецепта для позиции на основе рецепта.
-             */
-            recipeId: null | string;
-            /**
-             * Format: uuid
-             * @description Идентификатор immutable revision рецепта.
-             */
-            recipeRevisionId: null | string;
-            /** @description Снимок названия рецепта. */
-            recipeTitle: null | string;
-            /** @description Свободный текст для позиции без рецепта. */
+            /** @description Новое значение свободного текста; для позиции рецепта игнорируется. */
             text: null | string;
             /**
              * Format: int32
@@ -2050,6 +2051,7 @@ export interface operations {
                 tagIds?: string[];
                 category?: string;
                 favoritesOnly?: boolean;
+                availableOnly?: boolean;
                 page?: number | string;
                 pageSize?: number | string;
             };
@@ -2133,7 +2135,9 @@ export interface operations {
     };
     GetRecipeById: {
         parameters: {
-            query?: never;
+            query?: {
+                revisionId?: string;
+            };
             header?: never;
             path: {
                 recipeId: string;
@@ -2281,7 +2285,9 @@ export interface operations {
     };
     MarkRecipeAsFavorite: {
         parameters: {
-            query?: never;
+            query?: {
+                revisionId?: string;
+            };
             header?: never;
             path: {
                 recipeId: string;
@@ -2369,96 +2375,6 @@ export interface operations {
             };
         };
     };
-    SaveRecipeToLibrary: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                recipeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    RemoveRecipeFromLibrary: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                recipeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
     CopyRecipe: {
         parameters: {
             query?: never;
@@ -2468,7 +2384,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopyRecipeRequest"];
+            };
+        };
         responses: {
             /** @description Created */
             201: {

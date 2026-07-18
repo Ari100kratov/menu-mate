@@ -17,5 +17,9 @@ export async function getProducts(search: string) {
 }
 
 export function normalizeProductSearch(value: string) {
-  return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е").replaceAll(/\s+/g, " ")
+  return value
+    .trim()
+    .toLocaleLowerCase("ru-RU")
+    .replaceAll("ё", "е")
+    .replaceAll(/\s+/g, " ")
 }

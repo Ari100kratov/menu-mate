@@ -41,6 +41,7 @@ internal sealed class GetRecipesQueryHandler(
             query.TagIds,
             category,
             query.FavoritesOnly,
+            query.AvailableOnly,
             (page - 1) * pageSize,
             pageSize,
             cancellationToken);

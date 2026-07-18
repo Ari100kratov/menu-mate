@@ -12,6 +12,7 @@ internal sealed class RecipeCoverImageReader(
     : IRecipeCoverImageReader
 {
     public async Task<IReadOnlyDictionary<Guid, Uri>> GetReadUrlsAsync(
+        UserId userId,
         IReadOnlyCollection<RecipeId> recipeIds,
         CancellationToken cancellationToken)
     {
@@ -25,7 +26,11 @@ internal sealed class RecipeCoverImageReader(
             .Where(image =>
                 recipeIds.Contains(image.RecipeId) &&
                 image.Scope == "Cover" &&
-                !image.IsDeleted)
+                !image.IsDeleted &&
+                dbContext.Set<RecipeAccessSourceRecord>().Any(recipe =>
+                    recipe.Id == image.RecipeId &&
+                    !recipe.IsDeleted &&
+                    (recipe.OwnerUserId == userId || recipe.Visibility == "Public")))
             .OrderByDescending(image => image.CreatedAt)
             .ToArrayAsync(cancellationToken);
 

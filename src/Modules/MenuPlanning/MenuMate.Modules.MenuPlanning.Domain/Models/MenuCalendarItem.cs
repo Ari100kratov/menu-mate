@@ -219,9 +219,6 @@ public sealed class MenuCalendarItem : Entity<Guid>
     public Result Update(
         DateOnly date,
         Guid mealSlotId,
-        RecipeId? recipeId,
-        RecipeRevisionId? recipeRevisionId,
-        string? recipeTitle,
         string? text,
         MenuServings servings,
         DateTimeOffset now,
@@ -233,22 +230,14 @@ public sealed class MenuCalendarItem : Entity<Guid>
             return Result.Failure(placement.Error);
         }
 
-        if (recipeId.HasValue != recipeRevisionId.HasValue)
-        {
-            return Result.Failure(MenuCalendarErrors.InvalidItemPayload);
-        }
-
-        if (!recipeId.HasValue && string.IsNullOrWhiteSpace(text))
+        if (!IsRecipeItem && string.IsNullOrWhiteSpace(text))
         {
             return Result.Failure(MenuCalendarErrors.EmptyTextItem);
         }
 
         Date = date;
         MealSlotId = mealSlotId;
-        RecipeId = recipeId;
-        RecipeRevisionId = recipeRevisionId;
-        RecipeTitle = string.IsNullOrWhiteSpace(recipeTitle) ? null : recipeTitle.Trim();
-        Text = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+        Text = IsRecipeItem || string.IsNullOrWhiteSpace(text) ? null : text.Trim();
         Servings = servings;
         Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
         UpdatedAt = now;

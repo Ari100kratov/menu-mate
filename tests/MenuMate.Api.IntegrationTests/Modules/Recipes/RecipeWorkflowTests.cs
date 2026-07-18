@@ -40,6 +40,27 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal("Паста с овощами", updated.Title);
         Assert.Equal("Public", updated.Visibility);
 
+        HttpResponseMessage identicalUpdateResponse = await httpClient.PutAsJsonAsync(
+            $"/api/recipes/{created.Id}",
+            CreateRequest("Паста с овощами", "Public"));
+        identicalUpdateResponse.EnsureSuccessStatusCode();
+        RecipeResponse? afterIdenticalUpdate = await httpClient.GetFromJsonAsync<RecipeResponse>(
+            $"/api/recipes/{created.Id}");
+        Assert.NotNull(afterIdenticalUpdate);
+        Assert.Equal(updated.RevisionId, afterIdenticalUpdate.RevisionId);
+        Assert.Equal(2, afterIdenticalUpdate.RevisionNumber);
+
+        HttpResponseMessage visibilityUpdateResponse = await httpClient.PutAsJsonAsync(
+            $"/api/recipes/{created.Id}",
+            CreateRequest("Паста с овощами", "Private"));
+        visibilityUpdateResponse.EnsureSuccessStatusCode();
+        RecipeResponse? afterVisibilityUpdate = await httpClient.GetFromJsonAsync<RecipeResponse>(
+            $"/api/recipes/{created.Id}");
+        Assert.NotNull(afterVisibilityUpdate);
+        Assert.Equal(updated.RevisionId, afterVisibilityUpdate.RevisionId);
+        Assert.Equal(2, afterVisibilityUpdate.RevisionNumber);
+        Assert.Equal("Private", afterVisibilityUpdate.Visibility);
+
         HttpResponseMessage favoriteResponse = await httpClient.PostAsync(
             RelativeUri($"/api/recipes/{created.Id}/favorite"),
             content: null);

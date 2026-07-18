@@ -15,6 +15,45 @@ internal sealed class EfRecipeImagesRepository(RecipesDbContext dbContext) : IRe
         await dbContext.RecipeImages.AddAsync(RecipeImageRecord.FromMetadata(image), cancellationToken);
     }
 
+    public async Task<RecipeImageMetadata?> GetActiveCoverAsync(
+        Guid recipeId,
+        CancellationToken cancellationToken)
+    {
+        RecipeImageRecord? image = await dbContext.RecipeImages
+            .AsNoTracking()
+            .Where(image =>
+                image.RecipeId == recipeId &&
+                image.Scope == RecipeImageScope.Cover &&
+                !image.IsDeleted)
+            .OrderByDescending(image => image.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (image is null)
+        {
+            return null;
+        }
+
+        Uri? sourceUrl = image.SourceUrl is null ? null : new Uri(image.SourceUrl, UriKind.Absolute);
+        Uri? licenseUrl = image.LicenseUrl is null ? null : new Uri(image.LicenseUrl, UriKind.Absolute);
+        return new RecipeImageMetadata(
+            image.Id,
+            image.OwnerUserId,
+            image.RecipeId,
+            image.Scope,
+            image.StepNumber,
+            image.BucketName,
+            image.ObjectKey,
+            image.ContentType,
+            image.SizeBytes,
+            image.OriginalFileName,
+            image.AltText,
+            sourceUrl,
+            image.AuthorName,
+            image.LicenseName,
+            licenseUrl,
+            image.CreatedAt);
+    }
+
     public async Task<IReadOnlyCollection<RecipeImageObjectReference>> MarkActiveImagesDeletedAsync(
         Guid recipeId,
         UserId ownerUserId,

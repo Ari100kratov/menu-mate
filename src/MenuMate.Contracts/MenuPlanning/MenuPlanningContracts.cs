@@ -55,7 +55,6 @@ public sealed record MenuCalendarItemResponse(
 /// <param name="MealSlotId">Идентификатор приема пищи.</param>
 /// <param name="RecipeId">Идентификатор рецепта для позиции на основе рецепта.</param>
 /// <param name="RecipeRevisionId">Идентификатор immutable revision рецепта.</param>
-/// <param name="RecipeTitle">Снимок названия рецепта.</param>
 /// <param name="Text">Свободный текст для позиции без рецепта.</param>
 /// <param name="Servings">Количество порций.</param>
 /// <param name="Comment">Необязательный комментарий.</param>
@@ -64,7 +63,6 @@ public sealed record CreateMenuCalendarItemRequest(
     Guid MealSlotId,
     Guid? RecipeId,
     Guid? RecipeRevisionId,
-    string? RecipeTitle,
     string? Text,
     int Servings,
     string? Comment);
@@ -74,18 +72,12 @@ public sealed record CreateMenuCalendarItemRequest(
 /// </summary>
 /// <param name="Date">Дата приема пищи.</param>
 /// <param name="MealSlotId">Идентификатор приема пищи.</param>
-/// <param name="RecipeId">Идентификатор рецепта для позиции на основе рецепта.</param>
-/// <param name="RecipeRevisionId">Идентификатор immutable revision рецепта.</param>
-/// <param name="RecipeTitle">Снимок названия рецепта.</param>
-/// <param name="Text">Свободный текст для позиции без рецепта.</param>
+/// <param name="Text">Новое значение свободного текста; для позиции рецепта игнорируется.</param>
 /// <param name="Servings">Количество порций.</param>
 /// <param name="Comment">Необязательный комментарий.</param>
 public sealed record UpdateMenuCalendarItemRequest(
     DateOnly Date,
     Guid MealSlotId,
-    Guid? RecipeId,
-    Guid? RecipeRevisionId,
-    string? RecipeTitle,
     string? Text,
     int Servings,
     string? Comment);

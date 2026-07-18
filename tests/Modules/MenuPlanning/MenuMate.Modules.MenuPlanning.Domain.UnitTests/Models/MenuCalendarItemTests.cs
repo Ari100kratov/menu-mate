@@ -94,23 +94,34 @@ public sealed class MenuCalendarItemTests
     }
 
     [Fact]
-    public void UpdateShouldRejectRecipeWithoutRevision()
+    public void UpdateShouldPreservePinnedRecipeRevision()
     {
-        MenuCalendarItem item = CreateTextItem("Овсянка");
+        var recipeId = RecipeId.Create();
+        var revisionId = RecipeRevisionId.Create();
+        MenuCalendarItem item = MenuCalendarItem.ForRecipe(
+            Guid.CreateVersion7(),
+            UserId.Create(),
+            Date,
+            Guid.CreateVersion7(),
+            0,
+            recipeId,
+            revisionId,
+            MenuServings.Create(2).Value,
+            FixedNow,
+            "Овсянка").Value;
 
         Result result = item.Update(
             Date,
             item.MealSlotId,
-            RecipeId.Create(),
-            null,
-            "Рецепт",
-            null,
+            "Подменить текстом",
             MenuServings.Create(2).Value,
             FixedNow.AddMinutes(1));
 
-        Assert.True(result.IsFailure);
-        Assert.Equal(MenuCalendarErrors.InvalidItemPayload, result.Error);
-        Assert.Equal("Овсянка", item.Text);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipeId, item.RecipeId);
+        Assert.Equal(revisionId, item.RecipeRevisionId);
+        Assert.Equal("Овсянка", item.RecipeTitle);
+        Assert.Null(item.Text);
     }
 
     [Fact]

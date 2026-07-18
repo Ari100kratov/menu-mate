@@ -67,6 +67,15 @@ export function AppShell() {
 }
 
 function getPageChrome(pathname: string): PageChrome {
+  const recipeCopyMatch = matchPath({ path: "/recipes/:recipeId/copy", end: true }, pathname)
+  if (recipeCopyMatch?.params.recipeId) {
+    return {
+      title: "Копия рецепта",
+      description: "Копия будет создана только после сохранения",
+      backTo: `/recipes/${recipeCopyMatch.params.recipeId}`,
+    }
+  }
+
   const recipeEditMatch = matchPath({ path: "/recipes/:recipeId/edit", end: true }, pathname)
   if (recipeEditMatch?.params.recipeId) {
     return {

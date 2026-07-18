@@ -1,15 +1,109 @@
-import { apiClient } from "@/shared/api/client"
-import { unwrapApiResponse, unwrapEmptyApiResponse } from "@/shared/api/unwrap"
-import type { components, paths } from "@/shared/api/generated/schema"
+import { apiClient, apiFetchJson } from "@/shared/api/client"
+import { unwrapApiResponse } from "@/shared/api/unwrap"
+import type { paths } from "@/shared/api/generated/schema"
 import { optimizeRecipeImageForUpload } from "@/features/recipes/model/recipe-image-optimization"
 
-export type RecipeListItem = components["schemas"]["RecipeListItemResponse"] & {
-  activeTimeMinutes?: null | number | string
+export type RecipeRevisionState = "Current" | "UpdateAvailable" | "Historical" | "SourceUnavailable"
+
+export interface RecipeImage {
+  id: string
+  scope: string
+  stepNumber: number | string | null
+  bucketName: string
+  objectKey: string
+  contentType: string
+  sizeBytes: number | string
+  altText: string | null
+  readUrl: string | null
+  sourceUrl: string | null
+  authorName: string | null
+  licenseName: string | null
+  licenseUrl: string | null
 }
-export type Recipe = components["schemas"]["RecipeResponse"]
-export type RecipeImage = components["schemas"]["RecipeImageResponse"]
-export type CreateRecipeRequest = components["schemas"]["CreateRecipeRequest"]
-export type UpdateRecipeRequest = components["schemas"]["UpdateRecipeRequest"]
+
+export interface RecipeIngredient {
+  ingredientId: string | null
+  productName: string
+  amount: number | null
+  unit: string
+  comment: string | null
+  isOptional: boolean
+  category: string
+}
+
+export interface RecipeStep {
+  number: number
+  text: string
+}
+
+interface RecipeRevisionSummary {
+  id: string
+  revisionId: string
+  currentRevisionId: string | null
+  revisionNumber: number
+  isOwnedByCurrentUser: boolean
+  isFavorite: boolean
+  isDisplayedRevisionSaved: boolean
+  revisionState: RecipeRevisionState
+  title: string
+  description: string | null
+  servings: number
+  category: string
+  visibility: string
+  totalTimeMinutes: number | null
+  activeTimeMinutes: number | null
+  tags: string[]
+}
+
+export interface RecipeListItem extends RecipeRevisionSummary {
+  coverImage: RecipeImage | null
+}
+
+export interface Recipe extends RecipeRevisionSummary {
+  savedRevisionId: string | null
+  sourceRecipeId: string | null
+  sourceRevisionId: string | null
+  sourceUrl: string | null
+  images: RecipeImage[]
+  ingredients: RecipeIngredient[]
+  steps: RecipeStep[]
+}
+
+export interface RecipeIngredientRequest {
+  ingredientId: string | null
+  productName: string
+  amount: number | null
+  unit: string
+  category: string
+  comment: string | null
+  isOptional: boolean
+}
+
+export interface PreparationStepRequest {
+  text: string
+}
+
+export interface CreateRecipeRequest {
+  title: string
+  description: string | null
+  servings: number
+  category: string
+  visibility: string
+  totalTimeMinutes: number | null
+  activeTimeMinutes: number | null
+  sourceUrl: string | null
+  ingredients: RecipeIngredientRequest[]
+  steps: PreparationStepRequest[]
+  tags: string[]
+}
+
+export type UpdateRecipeRequest = CreateRecipeRequest
+
+export interface CopyRecipeRequest {
+  sourceRevisionId: string
+  recipe: CreateRecipeRequest
+  copySourceCover: boolean
+}
 
 type UploadRecipeImageBody =
   paths["/api/recipes/{recipeId}/images"]["post"]["requestBody"]["content"]["multipart/form-data"]
@@ -27,128 +121,76 @@ export interface RecipeListFilters {
   tagIds?: string[]
   category?: string
   favoritesOnly?: boolean
+  availableOnly?: boolean
   page?: number
   pageSize?: number
 }
 
 export async function getRecipes(filters: RecipeListFilters) {
-  return unwrapApiResponse<RecipeListItem[]>(
-    apiClient.GET("/api/recipes", {
-      params: {
-        query: {
-          scope: filters.scope ?? "library",
-          search: normalizeQueryValue(filters.search),
-          tagIds: normalizeQueryValues(filters.tagIds),
-          category: normalizeQueryValue(filters.category),
-          favoritesOnly: filters.favoritesOnly ?? false,
-          page: filters.page ?? 1,
-          pageSize: filters.pageSize ?? 20,
-        },
-      },
-    }),
-  )
+  const searchParams = new URLSearchParams({
+    scope: filters.scope ?? "library",
+    favoritesOnly: String(filters.favoritesOnly ?? false),
+    availableOnly: String(filters.availableOnly ?? false),
+    page: String(filters.page ?? 1),
+    pageSize: String(filters.pageSize ?? 20),
+  })
+  appendQueryValue(searchParams, "search", filters.search)
+  appendQueryValue(searchParams, "category", filters.category)
+  for (const tagId of normalizeQueryValues(filters.tagIds) ?? []) {
+    searchParams.append("tagIds", tagId)
+  }
+
+  return apiFetchJson<RecipeListItem[]>(`/api/recipes?${searchParams.toString()}`)
 }
 
-export async function getRecipe(recipeId: string) {
-  return unwrapApiResponse<Recipe>(
-    apiClient.GET("/api/recipes/{recipeId}", {
-      params: {
-        path: {
-          recipeId,
-        },
-      },
-    }),
-  )
+export async function getRecipe(recipeId: string, revisionId?: string) {
+  const search = revisionId ? `?revisionId=${encodeURIComponent(revisionId)}` : ""
+  return apiFetchJson<Recipe>(`/api/recipes/${encodeURIComponent(recipeId)}${search}`)
 }
 
 export async function createRecipe(request: CreateRecipeRequest) {
-  return unwrapApiResponse<Recipe>(
-    apiClient.POST("/api/recipes", {
-      body: request,
-    }),
-  )
+  return apiFetchJson<Recipe>("/api/recipes", {
+    method: "POST",
+    body: JSON.stringify(request),
+  })
 }
 
 export async function updateRecipe(recipeId: string, request: UpdateRecipeRequest) {
-  await unwrapEmptyApiResponse(
-    apiClient.PUT("/api/recipes/{recipeId}", {
-      params: {
-        path: {
-          recipeId,
-        },
-      },
-      body: request,
-    }),
-  )
+  await apiFetchJson<unknown>(`/api/recipes/${encodeURIComponent(recipeId)}`, {
+    method: "PUT",
+    body: JSON.stringify(request),
+  })
 }
 
 export async function deleteRecipe(recipeId: string) {
-  await unwrapEmptyApiResponse(
-    apiClient.DELETE("/api/recipes/{recipeId}", {
-      params: {
-        path: {
-          recipeId,
-        },
-      },
-    }),
-  )
+  await apiFetchJson<unknown>(`/api/recipes/${encodeURIComponent(recipeId)}`, {
+    method: "DELETE",
+  })
 }
 
 export async function deleteRecipeImage(recipeId: string, imageId: string) {
-  await unwrapEmptyApiResponse(
-    apiClient.DELETE("/api/recipes/{recipeId}/images/{imageId}", {
-      params: {
-        path: {
-          recipeId,
-          imageId,
-        },
-      },
-    }),
+  await apiFetchJson<unknown>(
+    `/api/recipes/${encodeURIComponent(recipeId)}/images/${encodeURIComponent(imageId)}`,
+    { method: "DELETE" },
   )
 }
 
-export async function setRecipeFavorite(recipeId: string, isFavorite: boolean) {
-  const requestOptions = {
-    params: {
-      path: {
-        recipeId,
-      },
-    },
-  }
-
-  await unwrapEmptyApiResponse(
-    isFavorite
-      ? apiClient.POST("/api/recipes/{recipeId}/favorite", requestOptions)
-      : apiClient.DELETE("/api/recipes/{recipeId}/favorite", requestOptions),
-  )
+export async function setRecipeFavorite(
+  recipeId: string,
+  isFavorite: boolean,
+  revisionId?: string,
+) {
+  const query = isFavorite && revisionId ? `?revisionId=${encodeURIComponent(revisionId)}` : ""
+  await apiFetchJson<unknown>(`/api/recipes/${encodeURIComponent(recipeId)}/favorite${query}`, {
+    method: isFavorite ? "POST" : "DELETE",
+  })
 }
 
-export async function setRecipeSaved(recipeId: string, isSaved: boolean) {
-  const requestOptions = {
-    params: {
-      path: {
-        recipeId,
-      },
-    },
-  }
-
-  await unwrapEmptyApiResponse(
-    isSaved
-      ? apiClient.POST("/api/recipes/{recipeId}/library", requestOptions)
-      : apiClient.DELETE("/api/recipes/{recipeId}/library", requestOptions),
-  )
-}
-
-export async function copyRecipe(recipeId: string) {
-  return unwrapApiResponse<Recipe>(
-    apiClient.POST("/api/recipes/{recipeId}/copy", {
-      params: {
-        path: {
-          recipeId,
-        },
-      },
-    }),
-  )
+export async function copyRecipe(recipeId: string, request: CopyRecipeRequest) {
+  return apiFetchJson<Recipe>(`/api/recipes/${encodeURIComponent(recipeId)}/copy`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  })
 }
 
 export async function uploadRecipeImage(recipeId: string, request: UploadRecipeImageRequest) {
@@ -179,14 +221,16 @@ export async function uploadRecipeImage(recipeId: string, request: UploadRecipeI
   )
 }
 
+function appendQueryValue(params: URLSearchParams, key: string, value: string | undefined) {
+  const normalized = normalizeQueryValue(value)
+  if (normalized) {
+    params.set(key, normalized)
+  }
+}
+
 function normalizeQueryValue(value: string | undefined) {
   const normalized = value?.trim()
-
-  if (!normalized) {
-    return undefined
-  }
-
-  return normalized
+  return normalized === "" ? undefined : normalized
 }
 
 function normalizeQueryValues(values: string[] | undefined) {

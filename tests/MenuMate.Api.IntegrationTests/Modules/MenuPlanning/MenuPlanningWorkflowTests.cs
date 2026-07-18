@@ -34,9 +34,6 @@ public sealed class MenuPlanningWorkflowTests : IAsyncLifetime, IDisposable
             new UpdateMenuCalendarItemRequest(
                 new DateOnly(2026, 6, 2),
                 breakfast.Id,
-                null,
-                null,
-                null,
                 "Овсянка с ягодами",
                 2,
                 "Без сахара"));
@@ -178,7 +175,6 @@ public sealed class MenuPlanningWorkflowTests : IAsyncLifetime, IDisposable
             new CreateMenuCalendarItemRequest(
                 StartDate,
                 mealSlotId,
-                null,
                 null,
                 null,
                 "Овсянка",

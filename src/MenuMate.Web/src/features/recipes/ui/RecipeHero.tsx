@@ -39,14 +39,14 @@ export function RecipeHero({ recipe, actions }: RecipeHeroProps) {
             <RecipeMeta
               icon={Clock3}
               label="Общее время"
-              value={formatMinutes(Number(recipe.totalTimeMinutes))}
+          value={formatMinutes(recipe.totalTimeMinutes)}
             />
           )}
           {recipe.activeTimeMinutes === null ? null : (
             <RecipeMeta
               icon={Timer}
               label="Активное время"
-              value={formatMinutes(Number(recipe.activeTimeMinutes))}
+          value={formatMinutes(recipe.activeTimeMinutes)}
             />
           )}
           <RecipeMeta

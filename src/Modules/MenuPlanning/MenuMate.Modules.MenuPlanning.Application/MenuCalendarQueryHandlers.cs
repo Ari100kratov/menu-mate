@@ -33,7 +33,7 @@ internal sealed class GetMenuCalendarQueryHandler(
                 .Distinct()
         ];
         IReadOnlyDictionary<Guid, Uri> imageUrls =
-            await recipeCoverImageReader.GetReadUrlsAsync(recipeIds, cancellationToken);
+            await recipeCoverImageReader.GetReadUrlsAsync(userContext.UserId, recipeIds, cancellationToken);
 
         return calendar with
         {

@@ -41,6 +41,7 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
     category,
     tagIds: selectedTags.map((tag) => tag.id),
     favoritesOnly,
+    availableOnly: true,
   })
   const recipes = recipesQuery.data?.pages.flat() ?? []
 
@@ -113,9 +114,9 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
             onClick={() => {
               onSelect({
                 id: recipe.id,
-                currentRevisionId: recipe.currentRevisionId,
+                revisionId: recipe.revisionId,
                 title: recipe.title,
-                servings: Number(recipe.servings),
+        servings: recipe.servings,
               })
             }}
           >

@@ -63,7 +63,7 @@ export function useConfirmRecipeImportDraftMutation(draftId: string) {
   return useMutation({
     mutationFn: (recipe: CreateRecipeRequest) => confirmRecipeImportDraft(draftId, recipe),
     onSuccess: (recipe) => {
-      queryClient.setQueryData(recipeQueryKeys.detail(recipe.id), recipe)
+      queryClient.setQueryData(recipeQueryKeys.detail(recipe.id, recipe.revisionId), recipe)
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
       void queryClient.invalidateQueries({ queryKey: tagQueryKeys.lists() })
       void queryClient.invalidateQueries({ queryKey: recipeImportQueryKeys.all })

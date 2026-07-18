@@ -16,10 +16,16 @@ internal sealed class RecipeLibraryEntryRecordConfiguration : IEntityTypeConfigu
         builder.Property(entry => entry.UserId)
             .HasConversion(userId => userId.Value, value => UserId.From(value))
             .IsRequired();
-        builder.HasIndex(entry => new { entry.UserId, entry.IsFavorite });
+        builder.Property(entry => entry.SavedRevisionId).ValueGeneratedNever().IsRequired();
+        builder.HasIndex(entry => entry.UserId);
+        builder.HasIndex(entry => entry.SavedRevisionId);
         builder.HasOne<RecipeRecord>()
             .WithMany(recipe => recipe.LibraryEntries)
             .HasForeignKey(entry => entry.RecipeId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<RecipeRevisionRecord>()
+            .WithMany()
+            .HasForeignKey(entry => entry.SavedRevisionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

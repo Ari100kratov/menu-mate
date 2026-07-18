@@ -7,7 +7,7 @@ export interface MenuDateRange {
 
 export interface PlacementRecipe {
   id: string
-  currentRevisionId: string
+  revisionId: string
   title: string
   servings: number
 }

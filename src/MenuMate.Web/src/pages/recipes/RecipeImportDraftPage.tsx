@@ -94,8 +94,8 @@ export default function RecipeImportDraftPage() {
         scope: "Cover",
         altText: title,
       })
-      queryClient.setQueryData<Recipe>(recipeQueryKeys.detail(recipeId), (recipe) =>
-        recipe
+      queryClient.setQueriesData<Recipe>({ queryKey: recipeQueryKeys.details() }, (recipe) =>
+        recipe?.id === recipeId
           ? {
               ...recipe,
               images: [

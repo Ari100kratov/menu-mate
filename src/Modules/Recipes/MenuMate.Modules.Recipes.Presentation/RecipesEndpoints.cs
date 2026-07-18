@@ -8,7 +8,6 @@ using MenuMate.Modules.Recipes.Application.DeleteRecipeImage;
 using MenuMate.Modules.Recipes.Application.GetRecipeById;
 using MenuMate.Modules.Recipes.Application.GetRecipes;
 using MenuMate.Modules.Recipes.Application.SetRecipeFavorite;
-using MenuMate.Modules.Recipes.Application.SetRecipeLibrary;
 using MenuMate.Modules.Recipes.Application.UpdateRecipe;
 using MenuMate.Modules.Recipes.Application.UploadRecipeImage;
 using MenuMate.SharedKernel;
@@ -68,20 +67,9 @@ public static class RecipesEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("/{recipeId:guid}/library", SaveRecipeToLibraryAsync)
-            .WithName("SaveRecipeToLibrary")
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
-
-        group.MapDelete("/{recipeId:guid}/library", RemoveRecipeFromLibraryAsync)
-            .WithName("RemoveRecipeFromLibrary")
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
-
         group.MapPost("/{recipeId:guid}/copy", CopyRecipeAsync)
             .WithName("CopyRecipe")
+            .Accepts<CopyRecipeRequest>("application/json")
             .Produces<RecipeResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
@@ -117,6 +105,7 @@ public static class RecipesEndpoints
         Guid[]? tagIds,
         string? category,
         bool? favoritesOnly,
+        bool? availableOnly,
         int? page,
         int? pageSize,
         IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>> handler,
@@ -130,6 +119,7 @@ public static class RecipesEndpoints
                 tagIds ?? [],
                 category,
                 favoritesOnly ?? false,
+                availableOnly ?? false,
                 page ?? 1,
                 pageSize ?? 20),
             cancellationToken);
@@ -139,11 +129,14 @@ public static class RecipesEndpoints
 
     private static async Task<IResult> GetRecipeByIdAsync(
         Guid recipeId,
+        Guid? revisionId,
         IQueryHandler<GetRecipeByIdQuery, RecipeResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<RecipeResponse> result = await handler.Handle(new GetRecipeByIdQuery(recipeId), cancellationToken);
+        Result<RecipeResponse> result = await handler.Handle(
+            new GetRecipeByIdQuery(recipeId, revisionId),
+            cancellationToken);
         return result.ToHttpResult(httpContext);
     }
 
@@ -182,64 +175,44 @@ public static class RecipesEndpoints
 
     private static Task<IResult> MarkRecipeAsFavoriteAsync(
         Guid recipeId,
+        Guid? revisionId,
         ICommandHandler<SetRecipeFavoriteCommand> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken) =>
-        SetFavoriteAsync(recipeId, isFavorite: true, handler, httpContext, cancellationToken);
+        SetFavoriteAsync(recipeId, isFavorite: true, revisionId, handler, httpContext, cancellationToken);
 
     private static Task<IResult> UnmarkRecipeAsFavoriteAsync(
         Guid recipeId,
         ICommandHandler<SetRecipeFavoriteCommand> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken) =>
-        SetFavoriteAsync(recipeId, isFavorite: false, handler, httpContext, cancellationToken);
+        SetFavoriteAsync(recipeId, isFavorite: false, revisionId: null, handler, httpContext, cancellationToken);
 
     private static async Task<IResult> SetFavoriteAsync(
         Guid recipeId,
         bool isFavorite,
+        Guid? revisionId,
         ICommandHandler<SetRecipeFavoriteCommand> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         Result result = await handler.Handle(
-            new SetRecipeFavoriteCommand(recipeId, isFavorite),
+            new SetRecipeFavoriteCommand(recipeId, isFavorite, revisionId),
             cancellationToken);
 
         return result.ToHttpResult(httpContext);
     }
 
-    private static Task<IResult> SaveRecipeToLibraryAsync(
-        Guid recipeId,
-        ICommandHandler<SetRecipeLibraryCommand> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken) =>
-        SetLibraryAsync(recipeId, isSaved: true, handler, httpContext, cancellationToken);
-
-    private static Task<IResult> RemoveRecipeFromLibraryAsync(
-        Guid recipeId,
-        ICommandHandler<SetRecipeLibraryCommand> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken) =>
-        SetLibraryAsync(recipeId, isSaved: false, handler, httpContext, cancellationToken);
-
-    private static async Task<IResult> SetLibraryAsync(
-        Guid recipeId,
-        bool isSaved,
-        ICommandHandler<SetRecipeLibraryCommand> handler,
-        HttpContext httpContext,
-        CancellationToken cancellationToken)
-    {
-        Result result = await handler.Handle(new SetRecipeLibraryCommand(recipeId, isSaved), cancellationToken);
-        return result.ToHttpResult(httpContext);
-    }
-
     private static async Task<IResult> CopyRecipeAsync(
         Guid recipeId,
+        CopyRecipeRequest request,
         ICommandHandler<CopyRecipeCommand, RecipeResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<RecipeResponse> result = await handler.Handle(new CopyRecipeCommand(recipeId), cancellationToken);
+        Result<RecipeResponse> result = await handler.Handle(
+            new CopyRecipeCommand(recipeId, request),
+            cancellationToken);
         return result.IsSuccess
             ? Results.Created($"/api/recipes/{result.Value.Id}", result.Value)
             : result.ToHttpResult(httpContext);

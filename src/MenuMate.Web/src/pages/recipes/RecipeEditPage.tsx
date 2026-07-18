@@ -44,7 +44,7 @@ export default function RecipeEditPage() {
           void uploadCover(normalizedRecipeId, values.title, coverFile)
         }
 
-        toast.success("Рецепт сохранён")
+        toast.success("Рецепт сохранен")
         void navigate(`/recipes/${normalizedRecipeId}`, {
           replace: true,
           state: getParentBackState(location.state),
@@ -60,10 +60,10 @@ export default function RecipeEditPage() {
         scope: "Cover",
         altText: title,
       })
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.detail(recipeId) })
+      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.details() })
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
     } catch {
-      toast.warning("Рецепт сохранён, но обложку загрузить не удалось")
+      toast.warning("Рецепт сохранен, но обложку загрузить не удалось")
     }
   }
 

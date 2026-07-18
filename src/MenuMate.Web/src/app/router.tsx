@@ -9,6 +9,7 @@ import MenuPage from "@/pages/menu/MenuPage"
 import NotFoundPage from "@/pages/NotFoundPage"
 import ProfilePage from "@/pages/profile/ProfilePage"
 import RecipeCreatePage from "@/pages/recipes/RecipeCreatePage"
+import RecipeCopyPage from "@/pages/recipes/RecipeCopyPage"
 import RecipeDetailsPage from "@/pages/recipes/RecipeDetailsPage"
 import RecipeEditPage from "@/pages/recipes/RecipeEditPage"
 import RecipeImportDraftPage from "@/pages/recipes/RecipeImportDraftPage"
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
           {
             path: "recipes/:recipeId",
             element: <RecipeDetailsPage />,
+          },
+          {
+            path: "recipes/:recipeId/copy",
+            element: <RecipeCopyPage />,
           },
           {
             path: "recipes/:recipeId/edit",

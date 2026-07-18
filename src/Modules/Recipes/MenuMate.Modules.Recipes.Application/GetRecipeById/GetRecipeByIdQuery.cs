@@ -7,5 +7,5 @@ namespace MenuMate.Modules.Recipes.Application.GetRecipeById;
 /// Запрос рецепта по идентификатору.
 /// </summary>
 /// <param name="RecipeId">Идентификатор рецепта.</param>
-public sealed record GetRecipeByIdQuery(Guid RecipeId) : IQuery<RecipeResponse>;
-
+/// <param name="RevisionId">Необязательная точная ревизия для просмотра.</param>
+public sealed record GetRecipeByIdQuery(Guid RecipeId, Guid? RevisionId = null) : IQuery<RecipeResponse>;

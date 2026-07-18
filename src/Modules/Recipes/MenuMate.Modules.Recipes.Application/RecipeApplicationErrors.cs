@@ -22,6 +22,13 @@ public static class RecipeApplicationErrors
         "Current user cannot access this recipe.");
 
     /// <summary>
+    /// Указанная ревизия не является актуальной ревизией доступного рецепта.
+    /// </summary>
+    public static AppError InvalidRevision(Guid recipeId, Guid revisionId) => AppError.Validation(
+        "Recipes.InvalidRevision",
+        $"Revision '{revisionId}' is not the current revision of recipe '{recipeId}'.");
+
+    /// <summary>
     /// Область привязки изображения указана в неизвестном формате.
     /// </summary>
     public static readonly AppError InvalidImageScope = AppError.Validation(

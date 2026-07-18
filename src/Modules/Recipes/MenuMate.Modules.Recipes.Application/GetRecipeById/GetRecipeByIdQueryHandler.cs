@@ -21,6 +21,7 @@ internal sealed class GetRecipeByIdQueryHandler(
     {
         RecipeReadModel? readModel = await dbContext.GetRecipeAsync(
             query.RecipeId,
+            query.RevisionId,
             userContext.UserId,
             cancellationToken);
 

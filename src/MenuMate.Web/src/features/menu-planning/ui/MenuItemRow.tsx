@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom"
 import type {
   MealSlot,
   MenuCalendarItem,
-  MenuCalendarItemRequest,
+  UpdateMenuCalendarItemRequest,
 } from "@/features/menu-planning/api/menu-calendar.api"
 import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { Button } from "@/shared/ui/button"
@@ -16,7 +16,7 @@ interface MenuItemRowProps {
   item: MenuCalendarItem
   mealSlots: readonly MealSlot[]
   isPending: boolean
-  onUpdate: (request: MenuCalendarItemRequest) => void
+  onUpdate: (request: UpdateMenuCalendarItemRequest) => void
   onRemove: () => void
 }
 
@@ -38,9 +38,6 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
           onUpdate({
             date: item.date,
             mealSlotId,
-            recipeId: item.recipeId,
-            recipeRevisionId: item.recipeRevisionId,
-            recipeTitle: item.recipeTitle,
             text: item.recipeId ? null : text.trim(),
             servings: Number(servings),
             comment: comment.trim() || null,
@@ -126,7 +123,7 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
       <div className="min-w-0 flex-1">
         {item.recipeId ? (
           <Link
-            to={`/recipes/${item.recipeId}`}
+            to={`/recipes/${item.recipeId}?revisionId=${encodeURIComponent(item.recipeRevisionId ?? "")}`}
             state={createBackNavigationState(location)}
             className="type-label hover:text-primary block truncate hover:underline"
           >

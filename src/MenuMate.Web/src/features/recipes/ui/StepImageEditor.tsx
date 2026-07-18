@@ -62,7 +62,7 @@ export function StepImageEditor({
             onUpload({
               ...values,
               scope: "Step",
-              stepNumber: Number(step.number),
+              stepNumber: step.number,
             })
           }}
         />

@@ -4,9 +4,11 @@ namespace MenuMate.Modules.MenuPlanning.Application.Abstractions;
 
 internal interface IRecipeRevisionAccessReader
 {
-    Task<bool> CanUseAsync(
+    Task<RecipeRevisionMenuSnapshot?> GetAccessibleAsync(
         UserId userId,
         RecipeId recipeId,
         RecipeRevisionId recipeRevisionId,
         CancellationToken cancellationToken);
 }
+
+internal sealed record RecipeRevisionMenuSnapshot(string Title);

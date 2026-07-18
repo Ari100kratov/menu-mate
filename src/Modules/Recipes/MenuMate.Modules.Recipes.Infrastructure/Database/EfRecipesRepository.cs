@@ -51,11 +51,25 @@ internal sealed class EfRecipesRepository(RecipesDbContext dbContext, ITagCatalo
             return;
         }
 
+        Guid previousRevisionId = record.CurrentRevisionId;
         record.Apply(recipe);
+
+        if (previousRevisionId != recipe.CurrentRevisionId.Value)
+        {
+            RecipeLibraryEntryRecord? ownerEntry = await dbContext.RecipeLibraryEntries
+                .SingleOrDefaultAsync(
+                    entry => entry.RecipeId == recipe.Id && entry.UserId == recipe.OwnerUserId,
+                    cancellationToken);
+            if (ownerEntry is not null)
+            {
+                ownerEntry.SavedRevisionId = recipe.CurrentRevisionId.Value;
+            }
+        }
     }
 
     public async Task SaveToLibraryAsync(
         Guid recipeId,
+        RecipeRevisionId recipeRevisionId,
         UserId userId,
         DateTimeOffset savedAt,
         CancellationToken cancellationToken)
@@ -72,11 +86,15 @@ internal sealed class EfRecipesRepository(RecipesDbContext dbContext, ITagCatalo
                 {
                     RecipeId = recipeId,
                     UserId = userId,
-                    IsFavorite = false,
+                    SavedRevisionId = recipeRevisionId.Value,
                     SavedAt = savedAt
                 },
                 cancellationToken);
+
+            return;
         }
+
+        entry.SavedRevisionId = recipeRevisionId.Value;
     }
 
     public async Task RemoveFromLibraryAsync(
@@ -93,32 +111,6 @@ internal sealed class EfRecipesRepository(RecipesDbContext dbContext, ITagCatalo
         {
             dbContext.RecipeLibraryEntries.Remove(entry);
         }
-    }
-
-    public async Task SetFavoriteAsync(
-        Guid recipeId,
-        UserId userId,
-        bool isFavorite,
-        DateTimeOffset savedAt,
-        CancellationToken cancellationToken)
-    {
-        RecipeLibraryEntryRecord? entry = await dbContext.RecipeLibraryEntries
-            .SingleOrDefaultAsync(
-                existing => existing.RecipeId == recipeId && existing.UserId == userId,
-                cancellationToken);
-
-        if (entry is null)
-        {
-            entry = new RecipeLibraryEntryRecord
-            {
-                RecipeId = recipeId,
-                UserId = userId,
-                SavedAt = savedAt
-            };
-            await dbContext.RecipeLibraryEntries.AddAsync(entry, cancellationToken);
-        }
-
-        entry.IsFavorite = isFavorite;
     }
 
     private IQueryable<RecipeRecord> Query() =>

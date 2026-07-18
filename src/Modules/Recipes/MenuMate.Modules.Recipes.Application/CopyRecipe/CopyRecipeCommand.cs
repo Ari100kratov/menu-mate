@@ -4,7 +4,8 @@ using MenuMate.Contracts.Recipes;
 namespace MenuMate.Modules.Recipes.Application.CopyRecipe;
 
 /// <summary>
-/// Creates a new private owned recipe from the accessible current revision.
+/// Creates a new owned recipe from an accessible exact revision when the edited draft is saved.
 /// </summary>
 /// <param name="RecipeId">Source recipe identifier.</param>
-public sealed record CopyRecipeCommand(Guid RecipeId) : ICommand<RecipeResponse>;
+/// <param name="Request">Edited copy content and exact source revision.</param>
+public sealed record CopyRecipeCommand(Guid RecipeId, CopyRecipeRequest Request) : ICommand<RecipeResponse>;

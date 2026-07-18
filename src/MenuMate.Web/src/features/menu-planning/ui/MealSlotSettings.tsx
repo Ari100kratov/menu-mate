@@ -101,7 +101,7 @@ export function MealSlotSettings({
         <DialogHeader>
           <DialogTitle>Приемы пищи</DialogTitle>
           <DialogDescription>
-            Порядок и состав сохраняются сразу. Изменённое название сохраните кнопкой справа; при
+            Порядок и состав сохраняются сразу. Измененное название сохраните кнопкой справа; при
             закрытии черновик будет сброшен.
           </DialogDescription>
         </DialogHeader>

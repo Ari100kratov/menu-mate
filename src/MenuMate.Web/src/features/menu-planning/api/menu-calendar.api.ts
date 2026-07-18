@@ -27,12 +27,19 @@ export interface MenuCalendar {
   items: MenuCalendarItem[]
 }
 
-export interface MenuCalendarItemRequest {
+export interface CreateMenuCalendarItemRequest {
   date: string
   mealSlotId: string
   recipeId: string | null
   recipeRevisionId: string | null
-  recipeTitle: string | null
+  text: string | null
+  servings: number
+  comment: string | null
+}
+
+export interface UpdateMenuCalendarItemRequest {
+  date: string
+  mealSlotId: string
   text: string | null
   servings: number
   comment: string | null
@@ -48,14 +55,17 @@ export async function getMealSlots() {
   return apiFetchJson<MealSlot[]>("/api/menu-calendar/meal-slots")
 }
 
-export async function addMenuCalendarItem(request: MenuCalendarItemRequest) {
+export async function addMenuCalendarItem(request: CreateMenuCalendarItemRequest) {
   return apiFetchJson<MenuCalendarItem>("/api/menu-calendar/items", {
     method: "POST",
     body: JSON.stringify(request),
   })
 }
 
-export async function updateMenuCalendarItem(itemId: string, request: MenuCalendarItemRequest) {
+export async function updateMenuCalendarItem(
+  itemId: string,
+  request: UpdateMenuCalendarItemRequest,
+) {
   return apiFetchJson<MenuCalendarItem>(`/api/menu-calendar/items/${itemId}`, {
     method: "PUT",
     body: JSON.stringify(request),

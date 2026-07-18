@@ -53,6 +53,32 @@ internal sealed class UpdateRecipeCommandHandler(
             return Result.Failure(tags.Error);
         }
 
+        bool contentChanged = !recipe.HasSameVersionedContent(
+            draft.Value.Title,
+            draft.Value.Servings,
+            draft.Value.Category,
+            draft.Value.TotalTimeMinutes,
+            draft.Value.ActiveTimeMinutes,
+            draft.Value.Description,
+            draft.Value.SourceUrl,
+            ingredients.Value,
+            draft.Value.Steps,
+            tags.Value);
+        bool visibilityChanged = recipe.Visibility != draft.Value.Visibility;
+
+        if (!contentChanged && !visibilityChanged)
+        {
+            return Result.Success();
+        }
+
+        if (!contentChanged)
+        {
+            recipe.ChangeVisibility(draft.Value.Visibility, now);
+            await repository.UpdateAsync(recipe, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Success();
+        }
+
         recipe.UpdateDetails(
             draft.Value.Title,
             draft.Value.Servings,

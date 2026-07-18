@@ -33,11 +33,7 @@ internal sealed class CreateRecipeCommandHandler(
                     return Result.Failure<RecipeResponse>(RecipeApplicationErrors.AccessDenied);
                 }
 
-                return RecipeMapping.ToResponse(
-                    existingRecipe,
-                    userContext.UserId,
-                    isSaved: true,
-                    isFavorite: false);
+                return RecipeMapping.ToResponse(existingRecipe, userContext.UserId);
             }
         }
 
@@ -88,13 +84,8 @@ internal sealed class CreateRecipeCommandHandler(
         recipe.ReplaceTags(tags.Value, now);
 
         await repository.AddAsync(recipe, cancellationToken);
-        await repository.SaveToLibraryAsync(
-            recipe.Id,
-            userContext.UserId,
-            now,
-            cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return RecipeMapping.ToResponse(recipe, userContext.UserId, isSaved: true, isFavorite: false);
+        return RecipeMapping.ToResponse(recipe, userContext.UserId);
     }
 }

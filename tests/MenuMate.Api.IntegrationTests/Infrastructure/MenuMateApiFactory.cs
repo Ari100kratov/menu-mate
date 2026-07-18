@@ -1,3 +1,4 @@
+using MenuMate.Common.Application.Storage;
 using MenuMate.Modules.Auth.Infrastructure.Database;
 using MenuMate.Modules.RecipeImports.Infrastructure.Database;
 using MenuMate.Modules.MenuPlanning.Infrastructure.Database;
@@ -7,8 +8,10 @@ using MenuMate.Modules.ShoppingLists.Infrastructure.Database;
 using MenuMate.Modules.Tags.Infrastructure.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 
 namespace MenuMate.Api.IntegrationTests;
@@ -22,6 +25,7 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
 
     private readonly PostgreSqlContainer _postgres = CreatePostgresContainer();
     private readonly Dictionary<string, string?> _previousEnvironmentValues = [];
+    internal InMemoryObjectStorageService ObjectStorage { get; } = new();
     private InnerFactory? _factory;
 
     public async Task InitializeAsync()
@@ -30,7 +34,7 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
 
         ConfigureEnvironment(_postgres.GetConnectionString());
 
-        _factory = new InnerFactory();
+        _factory = new InnerFactory(ObjectStorage);
 
         using IServiceScope scope = _factory.Services.CreateScope();
         IServiceProvider services = scope.ServiceProvider;
@@ -124,13 +128,19 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
         _previousEnvironmentValues.Clear();
     }
 
-    private sealed class InnerFactory : WebApplicationFactory<Program>
+    private sealed class InnerFactory(InMemoryObjectStorageService objectStorage)
+        : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
 
             builder.UseEnvironment("IntegrationTests");
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<IObjectStorageService>();
+                services.AddSingleton<IObjectStorageService>(objectStorage);
+            });
         }
     }
 }

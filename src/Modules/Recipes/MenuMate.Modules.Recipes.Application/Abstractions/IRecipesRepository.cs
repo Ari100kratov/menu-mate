@@ -26,6 +26,7 @@ public interface IRecipesRepository
     /// <summary>Saves a recipe to a user's library and sets its favorite state.</summary>
     Task SaveToLibraryAsync(
         Guid recipeId,
+        RecipeRevisionId recipeRevisionId,
         UserId userId,
         DateTimeOffset savedAt,
         CancellationToken cancellationToken);
@@ -33,11 +34,4 @@ public interface IRecipesRepository
     /// <summary>Removes a recipe from a user's library.</summary>
     Task RemoveFromLibraryAsync(Guid recipeId, UserId userId, CancellationToken cancellationToken);
 
-    /// <summary>Sets per-user favorite state, saving the recipe when needed.</summary>
-    Task SetFavoriteAsync(
-        Guid recipeId,
-        UserId userId,
-        bool isFavorite,
-        DateTimeOffset savedAt,
-        CancellationToken cancellationToken);
 }

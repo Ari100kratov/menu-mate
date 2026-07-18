@@ -37,19 +37,30 @@ internal sealed class AddMenuCalendarItemCommandHandler(
             command.Request.Date,
             command.Request.MealSlotId,
             cancellationToken);
+        RecipeRevisionMenuSnapshot? recipeSnapshot = null;
+        if (command.Request.RecipeId.HasValue && command.Request.RecipeRevisionId.HasValue)
+        {
+            recipeSnapshot = await recipeRevisionAccessReader.GetAccessibleAsync(
+                userContext.UserId,
+                RecipeId.From(command.Request.RecipeId.Value),
+                RecipeRevisionId.From(command.Request.RecipeRevisionId.Value),
+                cancellationToken);
+        }
+
         DateTimeOffset now = timeProvider.GetUtcNow();
         Result<MenuCalendarItem> item = MenuCalendarItemRequestMapper.Map(
             Guid.CreateVersion7(),
             userContext.UserId,
             position,
             command.Request,
+            recipeSnapshot?.Title,
             now);
         if (item.IsFailure)
         {
             return Result.Failure<MenuCalendarItemResponse>(item.Error);
         }
 
-        if (!await CanUseRecipeAsync(item.Value, recipeRevisionAccessReader, userContext.UserId, cancellationToken))
+        if (item.Value.IsRecipeItem && recipeSnapshot is null)
         {
             return Result.Failure<MenuCalendarItemResponse>(MenuPlanningApplicationErrors.AccessDenied);
         }
@@ -63,7 +74,6 @@ internal sealed class AddMenuCalendarItemCommandHandler(
 
 internal sealed class UpdateMenuCalendarItemCommandHandler(
     IMenuCalendarRepository repository,
-    IRecipeRevisionAccessReader recipeRevisionAccessReader,
     IMenuCalendarUnitOfWork unitOfWork,
     IUserContext userContext,
     TimeProvider timeProvider)
@@ -101,21 +111,12 @@ internal sealed class UpdateMenuCalendarItemCommandHandler(
             return Result.Failure<MenuCalendarItemResponse>(servings.Error);
         }
 
-        RecipeId? recipeId = command.Request.RecipeId.HasValue
-            ? RecipeId.From(command.Request.RecipeId.Value)
-            : null;
-        RecipeRevisionId? revisionId = command.Request.RecipeRevisionId.HasValue
-            ? RecipeRevisionId.From(command.Request.RecipeRevisionId.Value)
-            : null;
         bool placementChanged = item.Date != command.Request.Date || item.MealSlotId != command.Request.MealSlotId;
         DateTimeOffset now = timeProvider.GetUtcNow();
 
         Result update = item.Update(
             command.Request.Date,
             command.Request.MealSlotId,
-            recipeId,
-            revisionId,
-            command.Request.RecipeTitle,
             command.Request.Text,
             servings.Value,
             now,
@@ -123,11 +124,6 @@ internal sealed class UpdateMenuCalendarItemCommandHandler(
         if (update.IsFailure)
         {
             return Result.Failure<MenuCalendarItemResponse>(update.Error);
-        }
-
-        if (!await CanUseRecipeAsync(item, recipeRevisionAccessReader, userContext.UserId, cancellationToken))
-        {
-            return Result.Failure<MenuCalendarItemResponse>(MenuPlanningApplicationErrors.AccessDenied);
         }
 
         if (placementChanged)
@@ -382,16 +378,4 @@ internal static class MenuCalendarCommandHandlerHelpers
             : Result.Failure<MealSlot>(MenuPlanningApplicationErrors.AccessDenied);
     }
 
-    public static Task<bool> CanUseRecipeAsync(
-        MenuCalendarItem item,
-        IRecipeRevisionAccessReader recipeRevisionAccessReader,
-        UserId userId,
-        CancellationToken cancellationToken) =>
-        !item.IsRecipeItem
-            ? Task.FromResult(true)
-            : recipeRevisionAccessReader.CanUseAsync(
-                userId,
-                item.RecipeId!.Value,
-                item.RecipeRevisionId!.Value,
-                cancellationToken);
 }

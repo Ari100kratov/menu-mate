@@ -3,7 +3,7 @@ import { LoaderCircle, Plus } from "lucide-react"
 import type {
   MealSlot,
   MenuCalendarItem,
-  MenuCalendarItemRequest,
+  UpdateMenuCalendarItemRequest,
 } from "@/features/menu-planning/api/menu-calendar.api"
 import {
   formatDayHeading,
@@ -21,7 +21,7 @@ interface MenuCalendarViewProps {
   isPending: boolean
   isItemsLoading: boolean
   onAdd: (date: string, mealSlotId: string) => void
-  onUpdate: (itemId: string, request: MenuCalendarItemRequest) => void
+  onUpdate: (itemId: string, request: UpdateMenuCalendarItemRequest) => void
   onRemove: (itemId: string) => void
 }
 

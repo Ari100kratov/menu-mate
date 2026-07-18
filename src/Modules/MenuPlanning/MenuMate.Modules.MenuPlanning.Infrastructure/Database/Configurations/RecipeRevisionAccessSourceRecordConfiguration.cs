@@ -17,5 +17,6 @@ internal sealed class RecipeRevisionAccessSourceRecordConfiguration
             .HasConversion(revisionId => revisionId.Value, value => RecipeRevisionId.From(value));
         builder.Property(revision => revision.RecipeId)
             .HasConversion(recipeId => recipeId.Value, value => RecipeId.From(value));
+        builder.Property(revision => revision.Title).HasMaxLength(160).IsRequired();
     }
 }

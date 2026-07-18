@@ -3,6 +3,7 @@ using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.Modules.Recipes.Domain.Models;
 using MenuMate.SharedKernel;
+using MenuMate.SharedKernel.Identifiers;
 
 namespace MenuMate.Modules.Recipes.Application.SetRecipeFavorite;
 
@@ -15,6 +16,13 @@ internal sealed class SetRecipeFavoriteCommandHandler(
 {
     public async Task<Result> Handle(SetRecipeFavoriteCommand command, CancellationToken cancellationToken)
     {
+        if (!command.IsFavorite)
+        {
+            await repository.RemoveFromLibraryAsync(command.RecipeId, userContext.UserId, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Success();
+        }
+
         Recipe? recipe = await repository.GetByIdAsync(command.RecipeId, cancellationToken);
         if (recipe is null)
         {
@@ -27,12 +35,19 @@ internal sealed class SetRecipeFavoriteCommandHandler(
             return Result.Failure(RecipeApplicationErrors.AccessDenied);
         }
 
-        DateTimeOffset now = timeProvider.GetUtcNow();
-        await repository.SetFavoriteAsync(
+        RecipeRevisionId revisionId = command.RevisionId.HasValue
+            ? RecipeRevisionId.From(command.RevisionId.Value)
+            : recipe.CurrentRevisionId;
+        if (revisionId != recipe.CurrentRevisionId)
+        {
+            return Result.Failure(RecipeApplicationErrors.InvalidRevision(command.RecipeId, revisionId.Value));
+        }
+
+        await repository.SaveToLibraryAsync(
             recipe.Id,
+            revisionId,
             userContext.UserId,
-            command.IsFavorite,
-            now,
+            timeProvider.GetUtcNow(),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

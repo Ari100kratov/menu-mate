@@ -11,6 +11,7 @@ namespace MenuMate.Modules.Recipes.Application.GetRecipes;
 /// <param name="TagIds">Фильтр по идентификаторам глобальных тегов с логикой «или».</param>
 /// <param name="Category">Фильтр по категории рецепта.</param>
 /// <param name="FavoritesOnly">Возвращать только избранные рецепты.</param>
+/// <param name="AvailableOnly">Исключить скрытые и удаленные источники.</param>
 /// <param name="Page">Номер страницы, начиная с единицы.</param>
 /// <param name="PageSize">Количество рецептов на странице.</param>
 public sealed record GetRecipesQuery(
@@ -19,5 +20,6 @@ public sealed record GetRecipesQuery(
     IReadOnlyCollection<Guid> TagIds,
     string? Category,
     bool FavoritesOnly,
+    bool AvailableOnly,
     int Page,
     int PageSize) : IQuery<IReadOnlyCollection<RecipeListItemResponse>>;

@@ -14,6 +14,16 @@ internal interface IRecipesReadDbContext
     /// </summary>
     Task<RecipeReadModel?> GetRecipeAsync(
         Guid recipeId,
+        Guid? revisionId,
+        UserId currentUserId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает доступ к точной ревизии для операций, не требующих полной проекции.
+    /// </summary>
+    Task<RecipeRevisionAccessReadModel?> GetRevisionAccessAsync(
+        Guid recipeId,
+        Guid revisionId,
         UserId currentUserId,
         CancellationToken cancellationToken);
 
@@ -27,6 +37,7 @@ internal interface IRecipesReadDbContext
         IReadOnlyCollection<Guid> tagIds,
         RecipeCategory? category,
         bool favoritesOnly,
+        bool availableOnly,
         int skip,
         int take,
         CancellationToken cancellationToken);

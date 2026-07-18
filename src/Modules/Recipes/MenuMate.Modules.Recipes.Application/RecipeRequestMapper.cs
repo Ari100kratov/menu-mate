@@ -113,7 +113,7 @@ internal static class RecipeRequestMapper
 
         return new RecipeDraft(
             title.Value,
-            description,
+            NormalizeOptionalText(description),
             servings.Value,
             category.Value,
             visibility.Value,
@@ -167,7 +167,7 @@ internal static class RecipeRequestMapper
                 name.Value,
                 quantity.Value,
                 category.Value,
-                ingredient.Comment,
+                NormalizeOptionalText(ingredient.Comment),
                 ingredient.IsOptional));
         }
 
@@ -333,6 +333,9 @@ internal static class RecipeRequestMapper
             _ => Enum.TryParse(value, ignoreCase: true, out MeasurementUnit unit) ? unit : null
         };
     }
+
+    private static string? NormalizeOptionalText(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
 
 internal sealed record RecipeDraft(

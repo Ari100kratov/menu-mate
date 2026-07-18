@@ -1,4 +1,4 @@
-import { Bookmark, CalendarPlus, Copy, Heart, Pencil, Trash2 } from "lucide-react"
+import { CalendarPlus, Copy, Heart, Pencil, Trash2 } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link, useLocation } from "react-router-dom"
 
@@ -21,11 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip"
 interface RecipeDetailsActionsProps {
   recipe: Recipe
   isFavoritePending: boolean
-  isSavedPending: boolean
-  isCopyPending: boolean
   isDeletePending: boolean
   onToggleFavorite: () => void
-  onToggleSaved: () => void
   onCopy: () => void
   onDelete: () => void
 }
@@ -33,27 +30,33 @@ interface RecipeDetailsActionsProps {
 export function RecipeDetailsActions({
   recipe,
   isFavoritePending,
-  isSavedPending,
-  isCopyPending,
   isDeletePending,
   onToggleFavorite,
-  onToggleSaved,
   onCopy,
   onDelete,
 }: RecipeDetailsActionsProps) {
   const location = useLocation()
+  const isCurrent = recipe.revisionState === "Current"
+  const isHistorical = recipe.revisionState === "Historical"
+  const sourceUnavailable = recipe.revisionState === "SourceUnavailable"
+  const canFavoriteDisplayedRevision = isCurrent || recipe.isDisplayedRevisionSaved
+  const showFavorite =
+    !isHistorical && (recipe.isFavorite || (!sourceUnavailable && canFavoriteDisplayedRevision))
+  const showCopy = !recipe.isOwnedByCurrentUser || sourceUnavailable || isHistorical
 
   return (
     <div className="flex shrink-0 flex-wrap justify-end gap-1">
-      <ActionTooltip label="Добавить в меню">
-        <Button asChild variant="ghost" size="icon">
-          <Link to={getMenuPlacementUrl(recipe)} aria-label="Добавить в меню">
-            <CalendarPlus className="size-4" />
-          </Link>
-        </Button>
-      </ActionTooltip>
+      {!sourceUnavailable && !isHistorical ? (
+        <ActionTooltip label="Добавить в меню">
+          <Button asChild variant="ghost" size="icon">
+            <Link to={getMenuPlacementUrl(recipe)} aria-label="Добавить в меню">
+              <CalendarPlus className="size-4" />
+            </Link>
+          </Button>
+        </ActionTooltip>
+      ) : null}
 
-      {recipe.isOwnedByCurrentUser ? (
+      {recipe.isOwnedByCurrentUser && isCurrent ? (
         <ActionTooltip label="Изменить рецепт">
           <Button asChild variant="ghost" size="icon">
             <Link
@@ -67,51 +70,36 @@ export function RecipeDetailsActions({
         </ActionTooltip>
       ) : null}
 
-      <ActionTooltip label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}
-          disabled={isFavoritePending}
-          onClick={onToggleFavorite}
-        >
-          <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
-        </Button>
-      </ActionTooltip>
-
-      {!recipe.isOwnedByCurrentUser ? (
-        <>
-          <ActionTooltip label={recipe.isSaved ? "Убрать из библиотеки" : "Сохранить в библиотеку"}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={recipe.isSaved ? "Убрать из библиотеки" : "Сохранить в библиотеку"}
-              disabled={isSavedPending}
-              onClick={onToggleSaved}
-            >
-              <Bookmark
-                className={recipe.isSaved ? "fill-primary text-primary size-4" : "size-4"}
-              />
-            </Button>
-          </ActionTooltip>
-          <ActionTooltip label="Создать свою копию">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Создать свою копию"
-              disabled={isCopyPending}
-              onClick={onCopy}
-            >
-              <Copy className="size-4" />
-            </Button>
-          </ActionTooltip>
-        </>
+      {showFavorite ? (
+        <ActionTooltip label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}
+            disabled={isFavoritePending}
+            onClick={onToggleFavorite}
+          >
+            <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
+          </Button>
+        </ActionTooltip>
       ) : null}
 
-      {recipe.isOwnedByCurrentUser ? (
+      {showCopy ? (
+        <ActionTooltip label="Создать свою копию">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Создать свою копию"
+            onClick={onCopy}
+          >
+            <Copy className="size-4" />
+          </Button>
+        </ActionTooltip>
+      ) : null}
+
+      {recipe.isOwnedByCurrentUser && isCurrent ? (
         <AlertDialog>
           <ActionTooltip label="Удалить рецепт">
             <AlertDialogTrigger asChild>
@@ -131,7 +119,8 @@ export function RecipeDetailsActions({
             <AlertDialogHeader>
               <AlertDialogTitle>Удалить рецепт?</AlertDialogTitle>
               <AlertDialogDescription>
-                «{recipe.title}» будет удалён без возможности восстановления.
+                «{recipe.title}» будет скрыт. Пользователи, сохранившие точную версию в избранном
+                или меню, смогут открыть ее только для копирования.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -150,7 +139,7 @@ export function RecipeDetailsActions({
 function getMenuPlacementUrl(recipe: Recipe) {
   const params = new URLSearchParams({
     recipeId: recipe.id,
-    revisionId: recipe.currentRevisionId,
+    revisionId: recipe.revisionId,
     title: recipe.title,
     servings: String(recipe.servings),
   })

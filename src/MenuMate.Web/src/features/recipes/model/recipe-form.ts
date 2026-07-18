@@ -3,7 +3,6 @@ import { z } from "zod"
 import type {
   CreateRecipeRequest,
   Recipe,
-  UpdateRecipeRequest,
 } from "@/features/recipes/api/recipes.api"
 import { parseTagValues } from "@/features/tags/model/tag-values"
 
@@ -213,7 +212,7 @@ export function recipeRequestToFormValues(recipe: CreateRecipeRequest): RecipeFo
 
 export function toRecipeRequest(
   values: RecipeFormValues,
-): CreateRecipeRequest | UpdateRecipeRequest {
+): CreateRecipeRequest {
   return {
     title: values.title.trim(),
     description: normalizeOptionalString(values.description),

@@ -7,5 +7,5 @@ namespace MenuMate.Modules.Recipes.Application.SetRecipeFavorite;
 /// </summary>
 /// <param name="RecipeId">Идентификатор рецепта.</param>
 /// <param name="IsFavorite">Новый признак избранного.</param>
-public sealed record SetRecipeFavoriteCommand(Guid RecipeId, bool IsFavorite) : ICommand;
-
+/// <param name="RevisionId">Ревизия, которую следует закрепить при добавлении.</param>
+public sealed record SetRecipeFavoriteCommand(Guid RecipeId, bool IsFavorite, Guid? RevisionId = null) : ICommand;

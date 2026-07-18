@@ -50,7 +50,7 @@ export function RecipeInfiniteScrollStatus({
       {isFetchingNextPage ? (
         <p className="type-supporting text-muted-foreground flex items-center gap-2" role="status">
           <LoaderCircle className="size-4 animate-spin" />
-          Загружаем ещё рецепты…
+          Загружаем еще рецепты…
         </p>
       ) : hasError ? (
         <Button

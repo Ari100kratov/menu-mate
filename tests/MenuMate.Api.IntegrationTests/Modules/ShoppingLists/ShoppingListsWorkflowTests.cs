@@ -26,7 +26,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
 
         RecipeResponse recipe = await CreateRecipeAsync(httpClient);
         Guid dinnerSlotId = await GetDinnerSlotIdAsync(httpClient);
-        await AddRecipeToMenuAsync(httpClient, dinnerSlotId, recipe.Id, recipe.CurrentRevisionId);
+        await AddRecipeToMenuAsync(httpClient, dinnerSlotId, recipe.Id, recipe.RevisionId);
         await UpdateRecipeAfterPlanningAsync(httpClient, recipe.Id);
 
         ShoppingListResponse shoppingList = await GenerateShoppingListAsync(httpClient);
@@ -161,7 +161,6 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
                 mealSlotId,
                 recipeId,
                 recipeRevisionId,
-                "Rice bowl",
                 null,
                 4,
                 null));

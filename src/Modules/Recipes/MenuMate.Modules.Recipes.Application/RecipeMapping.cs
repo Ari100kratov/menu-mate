@@ -9,14 +9,18 @@ internal static class RecipeMapping
     public static RecipeResponse ToResponse(
         Recipe recipe,
         UserId currentUserId,
-        bool isSaved,
-        bool isFavorite) =>
+        bool isFavorite = false,
+        Guid? savedRevisionId = null) =>
         new(
             recipe.Id,
             recipe.CurrentRevisionId.Value,
+            recipe.CurrentRevisionId.Value,
+            savedRevisionId,
             recipe.RevisionNumber,
             recipe.OwnerUserId == currentUserId,
-            isSaved,
+            isFavorite,
+            savedRevisionId == recipe.CurrentRevisionId.Value,
+            "Current",
             recipe.SourceRecipeId,
             recipe.SourceRevisionId?.Value,
             recipe.Title.Value,
@@ -26,7 +30,6 @@ internal static class RecipeMapping
             recipe.Visibility.ToString(),
             recipe.TotalTimeMinutes,
             recipe.ActiveTimeMinutes,
-            isFavorite,
             recipe.SourceUrl,
             recipe.Tags.Select(tag => tag.Value).ToArray(),
             [],

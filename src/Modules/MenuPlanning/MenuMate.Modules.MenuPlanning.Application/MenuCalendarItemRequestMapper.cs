@@ -14,6 +14,7 @@ internal static class MenuCalendarItemRequestMapper
         UserId ownerUserId,
         int position,
         CreateMenuCalendarItemRequest request,
+        string? recipeTitle,
         DateTimeOffset now) =>
         CreateItem(
             itemId,
@@ -23,7 +24,7 @@ internal static class MenuCalendarItemRequestMapper
             position,
             request.RecipeId,
             request.RecipeRevisionId,
-            request.RecipeTitle,
+            recipeTitle,
             request.Text,
             request.Servings,
             request.Comment,

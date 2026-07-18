@@ -136,6 +136,31 @@ public sealed class RecipeTests
         Assert.Equal(FixedNow.AddMinutes(2), recipe.UpdatedAt);
     }
 
+    [Fact]
+    public void SameVersionedContentAndVisibilityChangeShouldNotRequireNewRevision()
+    {
+        Recipe recipe = CreateRecipe();
+        RecipeRevisionId initialRevisionId = recipe.CurrentRevisionId;
+
+        bool sameContent = recipe.HasSameVersionedContent(
+            recipe.Title,
+            recipe.Servings,
+            recipe.Category,
+            recipe.TotalTimeMinutes,
+            recipe.ActiveTimeMinutes,
+            "  ",
+            recipe.SourceUrl,
+            recipe.Ingredients,
+            recipe.Steps,
+            recipe.Tags);
+        recipe.ChangeVisibility(RecipeVisibility.Public, FixedNow.AddMinutes(1));
+
+        Assert.True(sameContent);
+        Assert.Equal(initialRevisionId, recipe.CurrentRevisionId);
+        Assert.Equal(1, recipe.RevisionNumber);
+        Assert.Equal(RecipeVisibility.Public, recipe.Visibility);
+    }
+
     private static Recipe CreateRecipe(
         Guid? sourceRecipeId = null,
         RecipeRevisionId? sourceRevisionId = null) =>

@@ -78,7 +78,7 @@ export function RecipeSteps({ recipe }: RecipeDetailsSectionsProps) {
       <h3 className="type-section-title">Приготовление</h3>
       <div className="space-y-3">
         {recipe.steps.map((step) => {
-          const image = findStepImage(recipe.images, Number(step.number))
+          const image = findStepImage(recipe.images, step.number)
 
           return (
             <article key={step.number} className="grid grid-cols-[2.25rem_1fr] gap-3">

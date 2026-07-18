@@ -8,7 +8,7 @@ internal sealed class RecipeLibraryEntryRecord
 
     public Guid RecipeId { get; set; }
 
-    public bool IsFavorite { get; set; }
+    public Guid SavedRevisionId { get; set; }
 
     public DateTimeOffset SavedAt { get; set; }
 }

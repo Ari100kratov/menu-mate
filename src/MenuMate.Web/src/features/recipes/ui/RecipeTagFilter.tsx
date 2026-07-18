@@ -70,7 +70,7 @@ export function RecipeTagFilter({ selectedTags, onChange }: RecipeTagFilterProps
               type="search"
               className="h-8 border-0 pl-8 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
               value={draft}
-              placeholder={selectedTags.length > 0 ? "Добавить ещё тег" : "Найти тег для фильтра"}
+              placeholder={selectedTags.length > 0 ? "Добавить еще тег" : "Найти тег для фильтра"}
               aria-label="Поиск тегов для фильтра рецептов"
               aria-busy={isSearchPending}
               autoComplete="off"

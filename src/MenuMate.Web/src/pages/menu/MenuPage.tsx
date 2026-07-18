@@ -15,7 +15,7 @@ import {
   useUpdateMealSlotMutation,
   useUpdateMenuCalendarItemMutation,
 } from "@/features/menu-planning/api/menu-calendar.queries"
-import type { MenuCalendarItemRequest } from "@/features/menu-planning/api/menu-calendar.api"
+import type { CreateMenuCalendarItemRequest } from "@/features/menu-planning/api/menu-calendar.api"
 import {
   getRange,
   shiftRange,
@@ -306,31 +306,32 @@ export default function MenuPage() {
 
 function getPlacementRecipe(searchParams: URLSearchParams): PlacementRecipe | null {
   const id = searchParams.get("recipeId")
-  const currentRevisionId = searchParams.get("revisionId")
+  const revisionId = searchParams.get("revisionId")
   const title = searchParams.get("title")
   const servings = Number(searchParams.get("servings"))
-  if (!id || !currentRevisionId || !title || !Number.isFinite(servings) || servings < 1) return null
-  return { id, currentRevisionId, title, servings }
+  if (!id || !revisionId || !title || !Number.isFinite(servings) || servings < 1) return null
+  return { id, revisionId, title, servings }
 }
 
-function toRecipeRequest(target: PickerTarget, recipe: PlacementRecipe): MenuCalendarItemRequest {
+function toRecipeRequest(
+  target: PickerTarget,
+  recipe: PlacementRecipe,
+): CreateMenuCalendarItemRequest {
   return {
     ...target,
     recipeId: recipe.id,
-    recipeRevisionId: recipe.currentRevisionId,
-    recipeTitle: recipe.title,
+    recipeRevisionId: recipe.revisionId,
     text: null,
     servings: recipe.servings,
     comment: null,
   }
 }
 
-function toTextRequest(target: PickerTarget, text: string): MenuCalendarItemRequest {
+function toTextRequest(target: PickerTarget, text: string): CreateMenuCalendarItemRequest {
   return {
     ...target,
     recipeId: null,
     recipeRevisionId: null,
-    recipeTitle: null,
     text,
     servings: 1,
     comment: null,
