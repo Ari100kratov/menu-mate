@@ -12,6 +12,7 @@ import {
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
 import { createBackNavigationState, getBackNavigationState } from "@/shared/lib/back-navigation"
 import { cn } from "@/shared/lib/utils"
+import { AppMark } from "@/shared/ui/app-mark"
 import { Button } from "@/shared/ui/button"
 import { ThemeToggle } from "@/shared/ui/theme-toggle"
 
@@ -38,7 +39,7 @@ export function AppShell() {
   return (
     <div className="bg-background min-h-svh">
       <DesktopSidebar
-        displayName={currentUserQuery.data?.displayName ?? "MenuMate"}
+        displayName={currentUserQuery.data?.displayName ?? "Пользователь"}
         accountBackState={accountBackState}
         onLogout={() => {
           logoutMutation.mutate()
@@ -112,7 +113,7 @@ function getPageChrome(pathname: string): PageChrome {
   if (matchPath({ path: "/recipes/:recipeId", end: true }, pathname)) {
     return {
       title: "Рецепт",
-      description: "Ингредиенты, готовка и меню",
+      description: "Состав, ингредиенты и шаги",
       backTo: "/recipes",
     }
   }
@@ -120,14 +121,14 @@ function getPageChrome(pathname: string): PageChrome {
   if (matchPath({ path: "/menu", end: false }, pathname)) {
     return {
       title: "Меню",
-      description: "Календарь питания и приемы пищи",
+      description: "Планирование блюд по дням и приемам пищи",
     }
   }
 
   if (matchPath({ path: "/shopping", end: false }, pathname)) {
     return {
       title: "Покупки",
-      description: "Единый список для похода в магазин",
+      description: "Продукты, сгруппированные по категориям",
       backTo: pathname.startsWith("/shopping/preview") ? "/menu" : undefined,
     }
   }
@@ -135,14 +136,14 @@ function getPageChrome(pathname: string): PageChrome {
   if (matchPath({ path: "/profile", end: false }, pathname)) {
     return {
       title: "Профиль",
-      description: "Аккаунт, тема и локальные настройки",
+      description: "Информация и настройки аккаунта",
       backTo: getLastWorkspaceSection(),
     }
   }
 
   return {
     title: "Рецепты",
-    description: "Рабочий список и быстрый поиск",
+    description: "Личная библиотека и каталог рецептов",
   }
 }
 
@@ -171,9 +172,7 @@ function AppTopBar({
             </Link>
           </Button>
         ) : (
-          <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-semibold md:hidden">
-            M
-          </div>
+          <AppMark className="size-9 md:hidden" alt="План есть" />
         )}
 
         <div className="min-w-0">
@@ -218,15 +217,18 @@ function DesktopSidebar({ displayName, accountBackState, onLogout }: DesktopSide
         state={accountBackState}
         className={({ isActive }) =>
           cn(
-            "block border-b px-5 py-5 transition-colors",
+            "flex items-center gap-3 border-b px-5 py-4 transition-colors",
             isActive
               ? "bg-sidebar-accent text-sidebar-accent-foreground"
               : "hover:bg-sidebar-accent",
           )
         }
       >
-        <div className="text-lg font-semibold tracking-normal">MenuMate</div>
-        <div className="text-muted-foreground truncate text-sm">{displayName}</div>
+        <AppMark className="size-11" />
+        <div className="min-w-0">
+          <div className="text-lg font-semibold tracking-normal">План есть</div>
+          <div className="text-muted-foreground truncate text-sm">{displayName}</div>
+        </div>
       </NavLink>
 
       <nav className="flex-1 space-y-1 px-3 py-4">

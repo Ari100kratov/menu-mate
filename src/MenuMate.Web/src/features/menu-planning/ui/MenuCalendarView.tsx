@@ -1,4 +1,4 @@
-import { LoaderCircle, Plus } from "lucide-react"
+import { LoaderCircle, Plus, Settings2, Utensils } from "lucide-react"
 
 import type {
   MealSlot,
@@ -11,6 +11,7 @@ import {
   type MenuDateRange,
 } from "@/features/menu-planning/model/menu-calendar"
 import { Button } from "@/shared/ui/button"
+import { EmptyState } from "@/shared/ui/page"
 import { MenuItemRow } from "./MenuItemRow"
 
 interface MenuCalendarViewProps {
@@ -20,6 +21,7 @@ interface MenuCalendarViewProps {
   isPlacementMode: boolean
   isPending: boolean
   isItemsLoading: boolean
+  onEditMealSlots: () => void
   onAdd: (date: string, mealSlotId: string) => void
   onUpdate: (itemId: string, request: UpdateMenuCalendarItemRequest) => void
   onRemove: (itemId: string) => void
@@ -32,10 +34,27 @@ export function MenuCalendarView({
   isPlacementMode,
   isPending,
   isItemsLoading,
+  onEditMealSlots,
   onAdd,
   onUpdate,
   onRemove,
 }: MenuCalendarViewProps) {
+  if (mealSlots.length === 0) {
+    return (
+      <EmptyState
+        icon={Utensils}
+        title="Добавьте приемы пищи"
+        description="Настройте хотя бы один прием пищи, чтобы добавлять блюда в календарь."
+        action={
+          <Button type="button" variant="outline" onClick={onEditMealSlots}>
+            <Settings2 />
+            Настроить приемы пищи
+          </Button>
+        }
+      />
+    )
+  }
+
   return (
     <section className="space-y-3">
       {isItemsLoading ? (
@@ -70,6 +89,11 @@ export function MenuCalendarView({
                         type="button"
                         variant={isPlacementMode ? "secondary" : "ghost"}
                         size={isPlacementMode ? "sm" : "icon-sm"}
+                        className={
+                          isPlacementMode
+                            ? undefined
+                            : "border-border bg-background hover:bg-accent sm:w-auto sm:border sm:px-2.5 sm:shadow-xs"
+                        }
                         aria-label={
                           isPlacementMode ? undefined : `Добавить блюдо в ${mealSlot.name}`
                         }
@@ -80,7 +104,11 @@ export function MenuCalendarView({
                         }}
                       >
                         <Plus />
-                        {isPlacementMode ? "Добавить сюда" : null}
+                        {isPlacementMode ? (
+                          "Добавить сюда"
+                        ) : (
+                          <span className="hidden sm:inline">Добавить</span>
+                        )}
                       </Button>
                     </header>
                     {slotItems.length > 0 ? (

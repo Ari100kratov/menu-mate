@@ -4,9 +4,12 @@ export function AppShellSkeleton() {
   return (
     <div className="bg-background min-h-svh" role="status" aria-label="Загружаем приложение">
       <aside className="bg-sidebar fixed inset-y-0 left-0 hidden w-64 border-r md:block">
-        <div className="space-y-2 border-b px-5 py-5">
-          <Skeleton className="h-6 w-28" />
-          <Skeleton className="h-4 w-40" />
+        <div className="flex items-center gap-3 border-b px-5 py-4">
+          <Skeleton className="size-11 shrink-0 rounded-lg" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-4 w-32" />
+          </div>
         </div>
         <div className="space-y-2 px-3 py-4">
           {Array.from({ length: 4 }, (_, index) => (

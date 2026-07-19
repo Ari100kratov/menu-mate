@@ -21,6 +21,7 @@ interface DragGesture {
   type: "drag"
   startPoint: Point
   startTransform: ImageTransform
+  startedOutsideImage: boolean
 }
 
 interface PinchGesture {
@@ -37,18 +38,34 @@ const maxScale = 4
 const doubleClickScale = 2.5
 
 export function RecipeImageLightbox({ imageUrl, imageAlt, children }: RecipeImageLightboxProps) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="inset-0 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 rounded-none border-0 bg-black/90 p-0 text-white shadow-none sm:inset-0 sm:top-0 sm:left-0 sm:h-svh sm:w-screen sm:max-w-none sm:translate-x-0 sm:translate-y-0 sm:rounded-none [&>[data-slot=dialog-close]]:z-20 [&>[data-slot=dialog-close]]:bg-black/55 [&>[data-slot=dialog-close]]:text-white [&>[data-slot=dialog-close]]:opacity-100 [&>[data-slot=dialog-close]]:hover:bg-black/75">
         <DialogTitle className="sr-only">{imageAlt}</DialogTitle>
-        <ZoomableImage imageUrl={imageUrl} imageAlt={imageAlt} />
+        <ZoomableImage
+          imageUrl={imageUrl}
+          imageAlt={imageAlt}
+          onRequestClose={() => {
+            setOpen(false)
+          }}
+        />
       </DialogContent>
     </Dialog>
   )
 }
 
-function ZoomableImage({ imageUrl, imageAlt }: { imageUrl: string; imageAlt: string }) {
+function ZoomableImage({
+  imageUrl,
+  imageAlt,
+  onRequestClose,
+}: {
+  imageUrl: string
+  imageAlt: string
+  onRequestClose: () => void
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const pointersRef = useRef(new Map<number, Point>())
@@ -67,11 +84,12 @@ function ZoomableImage({ imageUrl, imageAlt }: { imageUrl: string; imageAlt: str
     setTransform(boundedTransform)
   }
 
-  function beginDrag(point: Point) {
+  function beginDrag(point: Point, startedOutsideImage = false) {
     gestureRef.current = {
       type: "drag",
       startPoint: point,
       startTransform: transformRef.current,
+      startedOutsideImage,
     }
   }
 
@@ -103,7 +121,7 @@ function ZoomableImage({ imageUrl, imageAlt }: { imageUrl: string; imageAlt: str
       return
     }
 
-    beginDrag(point)
+    beginDrag(point, event.target === event.currentTarget)
   }
 
   function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
@@ -156,6 +174,14 @@ function ZoomableImage({ imageUrl, imageAlt }: { imageUrl: string; imageAlt: str
   }
 
   function handlePointerEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    const gesture = gestureRef.current
+    const endPoint = getPointerPoint(event, event.currentTarget)
+    const shouldClose =
+      pointersRef.current.size === 1 &&
+      gesture?.type === "drag" &&
+      gesture.startedOutsideImage &&
+      getDistance(gesture.startPoint, endPoint) < 8
+
     pointersRef.current.delete(event.pointerId)
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -168,6 +194,9 @@ function ZoomableImage({ imageUrl, imageAlt }: { imageUrl: string; imageAlt: str
     }
 
     gestureRef.current = undefined
+    if (shouldClose) {
+      onRequestClose()
+    }
   }
 
   function handleDoubleClick(event: ReactPointerEvent<HTMLDivElement>) {

@@ -38,9 +38,9 @@ export default function RegisterPage() {
   })
 
   return (
-    <AuthFormLayout title="Регистрация" description="Создайте рабочее пространство для меню.">
+    <AuthFormLayout title="Регистрация">
       <form
-        className="space-y-4"
+        className="space-y-5"
         noValidate
         onSubmit={(event) => {
           event.preventDefault()
@@ -130,7 +130,7 @@ export default function RegisterPage() {
           {registerMutation.isPending ? "Создаем..." : "Создать аккаунт"}
         </Button>
 
-        <p className="text-muted-foreground text-center text-sm">
+        <p className="text-muted-foreground border-t pt-5 text-center text-sm">
           Уже есть аккаунт?{" "}
           <Link className="text-primary font-medium underline-offset-4 hover:underline" to="/login">
             Войти

@@ -35,7 +35,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
@@ -97,13 +96,10 @@ export function MealSlotSettings({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex flex-col sm:max-w-2xl">
+      <DialogContent className="flex max-h-[92svh] flex-col gap-0 p-0 sm:w-[calc(100%-2rem)] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Приемы пищи</DialogTitle>
-          <DialogDescription>
-            Порядок и состав сохраняются сразу. Измененное название сохраните кнопкой справа; при
-            закрытии черновик будет сброшен.
-          </DialogDescription>
+          <DialogDescription>Изменения применяются ко всему календарю.</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
@@ -116,31 +112,40 @@ export function MealSlotSettings({
               items={orderedSlots.map((slot) => slot.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2">
-                {orderedSlots.map((slot) => (
-                  <SortableMealSlot
-                    key={slot.id}
-                    slot={slot}
-                    name={names[slot.id] ?? slot.name}
-                    canDelete={mealSlots.length > 1}
-                    isPending={isPending}
-                    onNameChange={(name) => {
-                      setNames((current) => ({ ...current, [slot.id]: name }))
-                    }}
-                    onRename={() => {
-                      onRename(slot.id, (names[slot.id] ?? slot.name).trim())
-                    }}
-                    onDelete={() => {
-                      onDelete(slot.id)
-                    }}
-                  />
-                ))}
-              </div>
+              {orderedSlots.length > 0 ? (
+                <div className="space-y-2">
+                  {orderedSlots.map((slot) => (
+                    <SortableMealSlot
+                      key={slot.id}
+                      slot={slot}
+                      name={names[slot.id] ?? slot.name}
+                      canDelete={mealSlots.length > 1}
+                      isPending={isPending}
+                      onNameChange={(name) => {
+                        setNames((current) => ({ ...current, [slot.id]: name }))
+                      }}
+                      onRename={() => {
+                        onRename(slot.id, (names[slot.id] ?? slot.name).trim())
+                      }}
+                      onDelete={() => {
+                        onDelete(slot.id)
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-muted/60 rounded-xl border border-dashed p-4">
+                  <p className="type-label">Приемы пищи еще не настроены</p>
+                  <p className="type-supporting text-muted-foreground mt-1">
+                    Добавьте первый прием пищи с помощью поля ниже.
+                  </p>
+                </div>
+              )}
             </SortableContext>
           </DndContext>
 
           <form
-            className="flex items-center gap-2 border-t pt-4"
+            className="grid grid-cols-1 gap-2 border-t pt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
             onSubmit={(event) => {
               event.preventDefault()
               const normalized = newName.trim()
@@ -156,24 +161,16 @@ export function MealSlotSettings({
                 setNewName(event.target.value)
               }}
             />
-            <Button type="submit" className="h-10" disabled={isPending || !newName.trim()}>
+            <Button
+              type="submit"
+              className="h-10 w-full sm:w-auto"
+              disabled={isPending || !newName.trim()}
+            >
               <Plus />
               Добавить
             </Button>
           </form>
         </div>
-
-        <DialogFooter className="border-t px-5 py-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              handleOpenChange(false)
-            }}
-          >
-            Закрыть
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

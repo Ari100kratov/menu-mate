@@ -11,7 +11,7 @@ export default function NotFoundPage() {
           Страница не найдена
         </h1>
         <p className="text-muted-foreground text-sm">
-          Такого раздела в MenuMate нет или он еще не подключен.
+          Такого раздела в приложении «План есть» нет или он еще не подключен.
         </p>
         <Button asChild>
           <Link to="/recipes">К рецептам</Link>

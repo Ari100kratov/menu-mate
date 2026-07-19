@@ -112,7 +112,7 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
   }
 
   return (
-    <article className="bg-background/85 group flex items-center gap-3 rounded-lg border p-2.5">
+    <article className="bg-background/85 grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border p-2.5">
       {item.imageUrl ? (
         <img src={item.imageUrl} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
       ) : (
@@ -138,12 +138,13 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
           {item.comment ? <span className="truncate">· {item.comment}</span> : null}
         </div>
       </div>
-      <div className="flex shrink-0">
+      <div className="flex shrink-0 items-center gap-1">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           aria-label="Редактировать блюдо"
+          title="Редактировать блюдо"
           disabled={isPending}
           onClick={() => {
             setIsEditing(true)
@@ -157,6 +158,7 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
           size="icon-sm"
           className="text-destructive hover:text-destructive"
           aria-label="Убрать блюдо"
+          title="Убрать блюдо"
           disabled={isPending}
           onClick={onRemove}
         >

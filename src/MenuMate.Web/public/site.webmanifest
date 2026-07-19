@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "План есть",
+  "short_name": "План есть",
+  "description": "Рецепты, планирование меню и список покупок",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FCFCF9",
+  "theme_color": "#00642F",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/app-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

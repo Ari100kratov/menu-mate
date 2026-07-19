@@ -47,10 +47,6 @@ export default function RecipesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="hidden justify-end sm:flex">
-        <RecipeCreateMenu />
-      </div>
-
       <RecipeFiltersSection
         scope={scope}
         search={search}
@@ -121,9 +117,9 @@ export default function RecipesPage() {
 
       <RecipeCreateMenu
         iconOnly
-        className="fixed right-4 bottom-20 z-30 rounded-full shadow-lg sm:hidden"
+        className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
       />
-      <ScrollToTopButton className="fixed right-4 bottom-[10rem] z-30 rounded-full shadow-lg sm:right-6 sm:bottom-6" />
+      <ScrollToTopButton className="fixed right-4 bottom-36 z-30 rounded-full shadow-lg md:right-6 md:bottom-20" />
     </div>
   )
 }

@@ -60,7 +60,7 @@ export function RecipeTagFilter({ selectedTags, onChange }: RecipeTagFilterProps
 
   return (
     <div className="space-y-2">
-      <div className="border-input bg-background focus-within:ring-ring rounded-md border p-2 transition-colors focus-within:ring-2 focus-within:ring-offset-2">
+      <div className="border-input bg-background focus-within:ring-ring rounded-xl border p-1.5 transition-colors focus-within:ring-2 focus-within:ring-offset-2">
         <div className="flex flex-wrap gap-2">
           <SelectedTagChips tags={selectedTags.map((tag) => tag.name)} onRemove={removeTag} />
 
@@ -68,7 +68,7 @@ export function RecipeTagFilter({ selectedTags, onChange }: RecipeTagFilterProps
             <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2" />
             <Input
               type="search"
-              className="h-8 border-0 pl-8 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="h-8 rounded-lg border-0 pl-8 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
               value={draft}
               placeholder={selectedTags.length > 0 ? "Добавить еще тег" : "Найти тег для фильтра"}
               aria-label="Поиск тегов для фильтра рецептов"

@@ -267,6 +267,9 @@ export default function MenuPage() {
           isPlacementMode={Boolean(placementRecipe)}
           isPending={isCalendarMutationPending}
           isItemsLoading={calendarQuery.isFetching}
+          onEditMealSlots={() => {
+            setShowMealSlotSettings(true)
+          }}
           onAdd={(date, mealSlotId) => {
             const target = { date, mealSlotId }
             if (placementRecipe) {

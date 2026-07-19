@@ -32,9 +32,9 @@ export default function LoginPage() {
   })
 
   return (
-    <AuthFormLayout title="Вход" description="Продолжите работу с рецептами и меню.">
+    <AuthFormLayout title="Вход">
       <form
-        className="space-y-4"
+        className="space-y-5"
         noValidate
         onSubmit={(event) => {
           event.preventDefault()
@@ -100,7 +100,7 @@ export default function LoginPage() {
           {loginMutation.isPending ? "Входим..." : "Войти"}
         </Button>
 
-        <p className="text-muted-foreground text-center text-sm">
+        <p className="text-muted-foreground border-t pt-5 text-center text-sm">
           Нет аккаунта?{" "}
           <Link
             className="text-primary font-medium underline-offset-4 hover:underline"
