@@ -75,6 +75,32 @@ public sealed class RecipeImportTextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeShouldDiscardModelDefaultOneWhenSourceHasNoQuantityOrUnit()
+    {
+        CreateRecipeRequest recipe = CreateRecipe(
+            [new(null, "Соль", 1m, "Unknown", "Spices", null, false)]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe, ["Соль"]);
+
+        RecipeIngredientRequest ingredient = Assert.Single(normalized.Ingredients);
+        Assert.Null(ingredient.Amount);
+        Assert.Equal("ToTaste", ingredient.Unit);
+    }
+
+    [Fact]
+    public void NormalizeShouldKeepUnknownUnitAmountWhenSourceContainsANumber()
+    {
+        CreateRecipeRequest recipe = CreateRecipe(
+            [new(null, "Сахар", 100m, "Unknown", "Other", null, false)]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe, ["Сахар — 100"]);
+
+        RecipeIngredientRequest ingredient = Assert.Single(normalized.Ingredients);
+        Assert.Equal(100m, ingredient.Amount);
+        Assert.Equal("Unknown", ingredient.Unit);
+    }
+
+    [Fact]
     public void NormalizeShouldUsePinchAsIngredientQuantityWhenItIsTheOnlyComment()
     {
         var recipe = new CreateRecipeRequest(
@@ -119,6 +145,24 @@ public sealed class RecipeImportTextNormalizerTests
         Assert.Equal(expectedAmount, ingredient.Amount);
         Assert.Equal(expectedUnit, ingredient.Unit);
         Assert.Null(ingredient.Comment);
+    }
+
+    [Theory]
+    [InlineData("Соль — 1/3 ст. л.", 33)]
+    [InlineData("Соль — 2/3 ст. л.", 67)]
+    [InlineData("Соль — 1 1/2 ст. л.", 150)]
+    public void NormalizeShouldConvertFractionsInsteadOfUsingTheirDenominator(
+        string sourceText,
+        int expectedHundredths)
+    {
+        CreateRecipeRequest recipe = CreateRecipe(
+            [new(null, "Соль", 3m, "Tablespoon", "Spices", null, false)]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe, [sourceText]);
+
+        RecipeIngredientRequest ingredient = Assert.Single(normalized.Ingredients);
+        Assert.Equal(expectedHundredths / 100m, ingredient.Amount);
+        Assert.Equal("Tablespoon", ingredient.Unit);
     }
 
     [Fact]

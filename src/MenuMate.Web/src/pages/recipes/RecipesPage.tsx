@@ -14,6 +14,7 @@ import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
+import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
 import { ScrollToTopButton } from "@/shared/ui/scroll-to-top-button"
 
 export default function RecipesPage() {
@@ -115,11 +116,10 @@ export default function RecipesPage() {
         />
       )}
 
-      <RecipeCreateMenu
-        iconOnly
-        className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
-      />
-      <ScrollToTopButton className="fixed right-4 bottom-36 z-30 rounded-full shadow-lg md:right-6 md:bottom-20" />
+      <PageFloatingActions>
+        <RecipeCreateMenu iconOnly className="size-12 rounded-full shadow-lg" />
+        <ScrollToTopButton className="size-12 rounded-full shadow-lg" />
+      </PageFloatingActions>
     </div>
   )
 }

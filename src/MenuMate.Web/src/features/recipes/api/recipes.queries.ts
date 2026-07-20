@@ -81,6 +81,7 @@ export function useCreateRecipeMutation() {
   return useMutation({
     mutationFn: (request: CreateRecipeRequest) => createRecipe(request),
     onSuccess: (recipe) => {
+      queryClient.setQueryData(recipeQueryKeys.detail(recipe.id), recipe)
       queryClient.setQueryData(recipeQueryKeys.detail(recipe.id, recipe.revisionId), recipe)
       void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
       void queryClient.invalidateQueries({ queryKey: tagQueryKeys.lists() })

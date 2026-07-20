@@ -41,6 +41,8 @@ import {
 } from "@/shared/ui/alert-dialog"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
+import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
+import { ScrollToTopButton } from "@/shared/ui/scroll-to-top-button"
 
 interface PickerTarget {
   date: string
@@ -288,21 +290,27 @@ export default function MenuPage() {
         />
       )}
 
-      <Button
-        type="button"
-        size="icon-lg"
-        className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
-        aria-label="Создать список покупок по выбранному диапазону"
-        title="Создать список покупок"
-        onClick={() => {
-          const query = new URLSearchParams({ startDate: range.startDate, endDate: range.endDate })
-          void navigate(`/shopping/preview?${query.toString()}`, {
-            state: createBackNavigationState(location),
-          })
-        }}
-      >
-        <ShoppingCart className="size-5" />
-      </Button>
+      <PageFloatingActions>
+        <Button
+          type="button"
+          size="icon-lg"
+          className="size-12 rounded-full shadow-lg"
+          aria-label="Создать список покупок по выбранному диапазону"
+          title="Создать список покупок"
+          onClick={() => {
+            const query = new URLSearchParams({
+              startDate: range.startDate,
+              endDate: range.endDate,
+            })
+            void navigate(`/shopping/preview?${query.toString()}`, {
+              state: createBackNavigationState(location),
+            })
+          }}
+        >
+          <ShoppingCart className="size-5" />
+        </Button>
+        <ScrollToTopButton className="size-12 rounded-full shadow-lg" />
+      </PageFloatingActions>
     </div>
   )
 }

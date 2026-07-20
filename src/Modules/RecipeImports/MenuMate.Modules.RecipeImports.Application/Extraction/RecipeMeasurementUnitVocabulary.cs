@@ -8,7 +8,7 @@ namespace MenuMate.Modules.RecipeImports.Application.Extraction;
 /// </summary>
 internal static partial class RecipeMeasurementUnitVocabulary
 {
-    private const string NumberPattern = @"\d+(?:[.,]\d+)?";
+    private const string NumberPattern = @"(?:(?:\d+\s+)?\d+\s*/\s*\d+|\d+(?:[.,]\d+)?)";
 
     public static IReadOnlyList<RecipeMeasurementUnitDescriptor> All { get; } =
     [
@@ -195,12 +195,39 @@ internal static partial class RecipeMeasurementUnitVocabulary
         params string[] aliases) =>
         new(value, displayName, isPrecise, defaultAmountOne, aliases);
 
-    private static bool TryParseDecimal(string value, out decimal result) =>
-        decimal.TryParse(
+    private static bool TryParseDecimal(string value, out decimal result)
+    {
+        Match fraction = FractionRegex().Match(value);
+        if (fraction.Success &&
+            decimal.TryParse(
+                fraction.Groups["numerator"].Value,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out decimal numerator) &&
+            decimal.TryParse(
+                fraction.Groups["denominator"].Value,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out decimal denominator) &&
+            denominator != 0)
+        {
+            decimal whole = decimal.TryParse(
+                fraction.Groups["whole"].Value,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out decimal parsedWhole)
+                ? parsedWhole
+                : 0m;
+            result = Math.Round(whole + numerator / denominator, 2, MidpointRounding.AwayFromZero);
+            return true;
+        }
+
+        return decimal.TryParse(
             value.Replace(',', '.'),
             NumberStyles.AllowDecimalPoint,
             CultureInfo.InvariantCulture,
             out result);
+    }
 
     private static string FormatRange(decimal minimum, decimal maximum, string unit) =>
         $"{minimum.ToString(CultureInfo.InvariantCulture)}–{maximum.ToString(CultureInfo.InvariantCulture)} {unit}";
@@ -209,9 +236,14 @@ internal static partial class RecipeMeasurementUnitVocabulary
         match.Index < candidate.Index + candidate.Length && candidate.Index < match.Index + match.Length;
 
     [GeneratedRegex(
-        @"(?<![\d.,])(?<min>\d+(?:[.,]\d+)?)\s*[-–—]\s*(?<max>\d+(?:[.,]\d+)?)(?!\s*%)",
+        @"(?<![\d.,/])(?<min>(?:(?:\d+\s+)?\d+\s*/\s*\d+|\d+(?:[.,]\d+)?))\s*[-–—]\s*(?<max>(?:(?:\d+\s+)?\d+\s*/\s*\d+|\d+(?:[.,]\d+)?))(?!\s*%)",
         RegexOptions.CultureInvariant)]
     private static partial Regex ImplicitRangeRegex();
+
+    [GeneratedRegex(
+        @"^\s*(?:(?<whole>\d+)\s+)?(?<numerator>\d+)\s*/\s*(?<denominator>\d+)\s*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex FractionRegex();
 
     private sealed record QuantityCandidate(
         RecipeMeasurementUnitDescriptor Descriptor,

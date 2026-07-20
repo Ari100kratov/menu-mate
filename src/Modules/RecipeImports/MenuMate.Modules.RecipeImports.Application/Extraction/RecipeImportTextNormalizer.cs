@@ -112,6 +112,16 @@ public static partial class RecipeImportTextNormalizer
                 Comment = MergeQuantityComments(normalizedIngredient.Comment, sourceQuantity.RangeComments)
             };
         }
+        else if (!string.IsNullOrWhiteSpace(sourceText) &&
+                 normalizedIngredient.Unit.Equals("Unknown", StringComparison.OrdinalIgnoreCase) &&
+                 !NumericValueRegex().IsMatch(sourceText))
+        {
+            normalizedIngredient = normalizedIngredient with
+            {
+                Amount = null,
+                Unit = "ToTaste"
+            };
+        }
         else if (normalizedIngredient.Amount is null &&
                  RecipeMeasurementUnitVocabulary.ShouldDefaultToOne(normalizedIngredient.Unit))
         {
@@ -268,6 +278,9 @@ public static partial class RecipeImportTextNormalizer
         @"\d+(?:[.,]\d+)?\s*[-–—]\s*\d+(?:[.,]\d+)?",
         RegexOptions.CultureInvariant)]
     private static partial Regex RangeValueRegex();
+
+    [GeneratedRegex(@"\d", RegexOptions.CultureInvariant)]
+    private static partial Regex NumericValueRegex();
 
     [GeneratedRegex(
         @"^соль\s*(?:,|и|/|\+)\s*(?<pepper>(?:(?:черный|белый|душистый|молотый)\s+){0,2}перец)$",

@@ -28,6 +28,8 @@ import {
 } from "@/shared/ui/dialog"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { EmptyState } from "@/shared/ui/page"
+import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
+import { ScrollToTopButton } from "@/shared/ui/scroll-to-top-button"
 import { ShoppingListItemForm } from "./ShoppingListItemForm"
 import { ShoppingListItemRow } from "./ShoppingListItemRow"
 
@@ -155,15 +157,18 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         </div>
       )}
 
-      <Button
-        type="button"
-        size="icon-lg"
-        className="fixed right-4 bottom-20 z-30 size-12 rounded-full shadow-lg md:right-6 md:bottom-6"
-        aria-label="Добавить покупку"
-        onClick={openCreateDialog}
-      >
-        <Plus className="size-5" />
-      </Button>
+      <PageFloatingActions>
+        <Button
+          type="button"
+          size="icon-lg"
+          className="size-12 rounded-full shadow-lg"
+          aria-label="Добавить покупку"
+          onClick={openCreateDialog}
+        >
+          <Plus className="size-5" />
+        </Button>
+        <ScrollToTopButton className="size-12 rounded-full shadow-lg" />
+      </PageFloatingActions>
 
       <Dialog
         open={dialogOpen}
