@@ -326,6 +326,7 @@ public sealed class RecipeImportTextNormalizerTests
         IReadOnlyCollection<string> normalized = RecipeImportWarningNormalizer.Normalize(
         [
             "1. Проверьте количество соли: текст на изображении размыт.",
+            "Количество порций рассчитано приблизительно — проверьте его.",
             "recipe.ingredients[0].amount is null because confidence=0.42",
             "JSON schema returned enum Other",
             "  "
@@ -334,6 +335,9 @@ public sealed class RecipeImportTextNormalizerTests
         Assert.Collection(
             normalized,
             warning => Assert.Equal("Проверьте количество соли: текст на изображении размыт.", warning),
+            warning => Assert.Equal(
+                "Количество порций рассчитано приблизительно — проверьте его.",
+                warning),
             warning => Assert.Equal(
                 "Проверьте распознанные данные: часть информации на изображении прочитана неуверенно.",
                 warning));

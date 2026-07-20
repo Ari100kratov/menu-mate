@@ -64,7 +64,10 @@ internal sealed class OpenAiRecipeImageExtractor(
                     - «зуб.», «зуб» и «зубчик» = Clove.
                     - Если в исходной строке нет ни количества, ни единицы, верни amount=null и unit="ToTaste". Никогда не подставляй в этом случае amount=1 и unit="Unknown". Если прямо написано «по вкусу», также используй ToTaste. Если есть число, диапазон или единица, ToTaste запрещён.
                     - Неизвестную единицу указывай как Unknown, неизвестную категорию — как Other.
-                    - servings=1 используй только если число порций отсутствует.
+                    - Если количество порций явно указано в рецепте, перенеси его в servings без изменений.
+                    - Если количество порций не указано, оцени его по типу блюда, общему объёму и массе ингредиентов и обычному размеру взрослой порции. Верни наиболее правдоподобное целое число от 1 до 100, а не фиксированное значение по умолчанию.
+                    - servings=1 используй только для очевидно индивидуального блюда. Для кастрюли супа, целой формы выпечки, салата или основного блюда на несколько человек оцени фактическое число порций по составу.
+                    - Если servings рассчитан, а не прочитан из исходника, добавь предупреждение «Количество порций рассчитано приблизительно — проверьте его.».
                     """),
                 ChatMessageContentPart.CreateTextPart(
                     $"""
@@ -167,7 +170,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                   "properties": {
                     "title": { "type": "string" },
                     "description": { "type": ["string", "null"] },
-                    "servings": { "type": "integer", "minimum": 1 },
+                    "servings": { "type": "integer", "minimum": 1, "maximum": 100 },
                     "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
                     "visibility": { "type": "string", "enum": ["Public"] },
                     "totalTimeMinutes": { "type": ["integer", "null"], "minimum": 0 },
