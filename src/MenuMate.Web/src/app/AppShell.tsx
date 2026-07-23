@@ -141,6 +141,14 @@ function getPageChrome(pathname: string): PageChrome {
     }
   }
 
+  if (matchPath({ path: "/admin", end: false }, pathname)) {
+    return {
+      title: "Администрирование",
+      description: "Зарегистрированные пользователи и их активность",
+      backTo: "/profile",
+    }
+  }
+
   return {
     title: "Рецепты",
     description: "Личная библиотека и каталог рецептов",

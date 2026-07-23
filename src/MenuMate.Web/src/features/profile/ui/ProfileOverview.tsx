@@ -1,7 +1,8 @@
 import { Clock3, KeyRound, Mail, UserRound } from "lucide-react"
 
 import type { UserProfile } from "@/features/auth/api/auth.api"
-import { formatDateTime, formatRole } from "@/features/profile/ui/profile-format"
+import { formatRole } from "@/features/auth/model/roles"
+import { formatDateTime } from "@/features/profile/ui/profile-format"
 import { PageSection } from "@/shared/ui/page"
 import { ProfileField } from "./ProfileField"
 

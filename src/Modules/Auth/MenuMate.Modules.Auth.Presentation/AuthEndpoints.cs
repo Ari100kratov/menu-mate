@@ -3,11 +3,13 @@ using MenuMate.Common.Presentation;
 using MenuMate.Contracts.Auth;
 using MenuMate.Modules.Auth.Application;
 using MenuMate.Modules.Auth.Application.GetCurrentUser;
+using MenuMate.Modules.Auth.Application.GetAdminUsers;
 using MenuMate.Modules.Auth.Application.LoginUser;
 using MenuMate.Modules.Auth.Application.LogoutUser;
 using MenuMate.Modules.Auth.Application.RefreshUserToken;
 using MenuMate.Modules.Auth.Application.RegisterUser;
 using MenuMate.Modules.Auth.Domain.Models;
+using MenuMate.Modules.Auth.Domain.ValueObjects;
 using MenuMate.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -58,6 +60,16 @@ public static class AuthEndpoints
             .RequireAuthorization()
             .WithName("LogoutUser")
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        RouteGroupBuilder adminGroup = app.MapGroup("/api/admin")
+            .WithTags("Administration")
+            .RequireAuthorization(policy => policy.RequireRole(AuthRoleNames.Admin));
+
+        adminGroup.MapGet("/users", GetAdminUsersAsync)
+            .WithName("GetAdminUsers")
+            .Produces<AdminUsersPageResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -124,6 +136,20 @@ public static class AuthEndpoints
         CancellationToken cancellationToken)
     {
         Result<UserProfileResponse> result = await handler.Handle(new GetCurrentUserQuery(), cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> GetAdminUsersAsync(
+        string? search,
+        int? page,
+        int? pageSize,
+        IQueryHandler<GetAdminUsersQuery, AdminUsersPageResponse> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<AdminUsersPageResponse> result = await handler.Handle(
+            new GetAdminUsersQuery(search, page ?? 1, pageSize ?? 20),
+            cancellationToken);
         return result.ToHttpResult(httpContext);
     }
 

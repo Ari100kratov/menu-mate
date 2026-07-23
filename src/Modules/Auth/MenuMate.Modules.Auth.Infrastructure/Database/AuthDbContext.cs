@@ -39,6 +39,44 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
+    async Task<AdminUsersPageReadModel> IAuthReadDbContext.GetAdminUsersAsync(
+        string? search,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        string? normalizedSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+        IQueryable<UserRecord> query = Users.AsNoTracking();
+
+        if (normalizedSearch is not null)
+        {
+            string pattern = $"%{normalizedSearch}%";
+            query = query.Where(user =>
+                EF.Functions.ILike(user.Email, pattern) ||
+                EF.Functions.ILike(user.DisplayName, pattern));
+        }
+
+        int totalCount = await query.CountAsync(cancellationToken);
+        AdminUserReadModel[] users = await query
+            .OrderByDescending(user => user.CreatedAt)
+            .ThenBy(user => user.Id)
+            .Skip(skip)
+            .Take(take)
+            .Select(user => new AdminUserReadModel(
+                user.Id,
+                user.Email,
+                user.DisplayName,
+                user.CreatedAt,
+                user.Roles
+                    .OrderBy(role => role.Role!.Name)
+                    .Select(role => role.Role!.Name)
+                    .ToArray()))
+            .ToArrayAsync(cancellationToken);
+
+        return new AdminUsersPageReadModel(totalCount, users);
+    }
+
     /// <summary>
     /// Возвращает идентификатор существующего администратора по адресу электронной почты.
     /// </summary>

@@ -1,6 +1,8 @@
 import { LogOut } from "lucide-react"
 
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
+import { isAdministrator } from "@/features/auth/model/roles"
+import { AdminEntryCard } from "@/features/admin/ui/AdminEntryCard"
 import { ProfileOverview } from "@/features/profile/ui/ProfileOverview"
 import { ProfileSkeleton } from "@/features/profile/ui/ProfileSkeleton"
 import { ProfileSettings } from "@/features/profile/ui/ProfileSettings"
@@ -34,6 +36,7 @@ export default function ProfilePage() {
       {logoutMutation.error ? <ErrorAlert error={logoutMutation.error} /> : null}
 
       <ProfileOverview user={currentUserQuery.data} accessTokenExpiresAt={accessTokenExpiresAt} />
+      {isAdministrator(currentUserQuery.data.roles) ? <AdminEntryCard /> : null}
       <ProfileSettings />
     </div>
   )

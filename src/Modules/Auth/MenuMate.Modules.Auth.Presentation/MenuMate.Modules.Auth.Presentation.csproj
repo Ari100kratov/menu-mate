@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\..\MenuMate.Common.Presentation\MenuMate.Common.Presentation.csproj" />
     <ProjectReference Include="..\..\..\MenuMate.Contracts\MenuMate.Contracts.csproj" />
     <ProjectReference Include="..\MenuMate.Modules.Auth.Application\MenuMate.Modules.Auth.Application.csproj" />
+    <ProjectReference Include="..\MenuMate.Modules.Auth.Domain\MenuMate.Modules.Auth.Domain.csproj" />
   </ItemGroup>
 
 </Project>

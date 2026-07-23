@@ -1,15 +1,3 @@
-export function formatRole(role: string) {
-  if (role === "Admin") {
-    return "Администратор"
-  }
-
-  if (role === "User") {
-    return "Пользователь"
-  }
-
-  return role
-}
-
 export function formatDateTime(value: string | null) {
   if (!value) {
     return "Не активен"

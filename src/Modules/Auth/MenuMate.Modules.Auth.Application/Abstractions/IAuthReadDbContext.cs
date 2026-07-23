@@ -12,4 +12,30 @@ internal interface IAuthReadDbContext
     /// Возвращает публичный профиль пользователя.
     /// </summary>
     Task<UserProfileResponse?> GetUserProfileAsync(UserId userId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает страницу зарегистрированных пользователей для административного просмотра.
+    /// </summary>
+    Task<AdminUsersPageReadModel> GetAdminUsersAsync(
+        string? search,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Страница пользователей, полученная из хранилища Auth.
+/// </summary>
+internal sealed record AdminUsersPageReadModel(
+    int TotalCount,
+    IReadOnlyCollection<AdminUserReadModel> Users);
+
+/// <summary>
+/// Данные пользователя без статистики из смежных модулей.
+/// </summary>
+internal sealed record AdminUserReadModel(
+    Guid Id,
+    string Email,
+    string DisplayName,
+    DateTimeOffset RegisteredAt,
+    IReadOnlyCollection<string> Roles);

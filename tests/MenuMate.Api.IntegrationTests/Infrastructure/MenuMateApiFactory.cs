@@ -80,6 +80,9 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
     public HttpClient CreateClient() =>
         (_factory ?? throw new InvalidOperationException("API factory is not initialized.")).CreateClient();
 
+    internal IServiceProvider Services =>
+        (_factory ?? throw new InvalidOperationException("API factory is not initialized.")).Services;
+
     private static PostgreSqlContainer CreatePostgresContainer()
     {
         string dockerConfig = Path.Combine(Path.GetTempPath(), "menumate-docker-config");

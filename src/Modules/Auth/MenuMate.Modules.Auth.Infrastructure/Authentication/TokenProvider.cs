@@ -18,14 +18,17 @@ internal sealed class TokenProvider(IConfiguration configuration, TimeProvider t
         DateTimeOffset expiresAt = timeProvider.GetUtcNow().AddMinutes(
             configuration.GetValue("Jwt:ExpirationInMinutes", AuthDefaults.AccessTokenExpirationInMinutes));
 
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Name, user.DisplayName)
+        };
+        claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role.RoleName)));
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.DisplayName)
-            ]),
+            Subject = new ClaimsIdentity(claims),
             Expires = expiresAt.UtcDateTime,
             SigningCredentials = credentials,
             Issuer = configuration["Jwt:Issuer"] ?? AuthDefaults.JwtIssuer,

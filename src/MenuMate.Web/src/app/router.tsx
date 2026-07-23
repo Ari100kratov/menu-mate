@@ -1,10 +1,12 @@
 import { Navigate, createBrowserRouter } from "react-router-dom"
 
 import { AppShell } from "@/app/AppShell"
+import { AdminRoute } from "@/app/AdminRoute"
 import { ProtectedRoute } from "@/app/ProtectedRoute"
 import { getLastWorkspaceSection } from "@/app/navigation"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
+import AdminUsersPage from "@/pages/admin/AdminUsersPage"
 import MenuPage from "@/pages/menu/MenuPage"
 import NotFoundPage from "@/pages/NotFoundPage"
 import ProfilePage from "@/pages/profile/ProfilePage"
@@ -81,6 +83,16 @@ export const router = createBrowserRouter([
           {
             path: "profile",
             element: <ProfilePage />,
+          },
+          {
+            path: "admin",
+            element: <AdminRoute />,
+            children: [
+              {
+                index: true,
+                element: <AdminUsersPage />,
+              },
+            ],
           },
         ],
       },
