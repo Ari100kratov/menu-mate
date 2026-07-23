@@ -12,8 +12,8 @@ namespace MenuMate.Contracts.ShoppingLists;
 /// <param name="Text">Текстовая версия для копирования.</param>
 public sealed record ShoppingListResponse(
     Guid Id,
-    DateOnly SourceStartDate,
-    DateOnly SourceEndDate,
+    DateOnly? SourceStartDate,
+    DateOnly? SourceEndDate,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyCollection<ShoppingListCategoryResponse> Categories,

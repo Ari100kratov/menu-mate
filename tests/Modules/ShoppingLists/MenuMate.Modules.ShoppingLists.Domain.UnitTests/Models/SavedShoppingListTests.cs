@@ -25,6 +25,8 @@ public sealed class SavedShoppingListTests
         Assert.True(list.RemoveItem(item.Id, FixedNow.AddMinutes(4)));
         Assert.Empty(list.Items);
         Assert.Equal(FixedNow.AddMinutes(4), list.UpdatedAt);
+        Assert.Null(list.SourceStartDate);
+        Assert.Null(list.SourceEndDate);
     }
 
     [Fact]
@@ -58,6 +60,23 @@ public sealed class SavedShoppingListTests
         SavedShoppingListItem item = Assert.Single(list.Items);
         Assert.Equal("Молоко", item.Name);
         Assert.False(item.IsPurchased);
+    }
+
+    [Fact]
+    public void CreateManualListShouldNotHaveMenuSourcePeriod()
+    {
+        SavedShoppingList list = SavedShoppingList.Create(
+            Guid.CreateVersion7(),
+            UserId.Create(),
+            null,
+            null,
+            [],
+            FixedNow).Value;
+
+        list.AddItem(CreateSavedItem("Рис", 500m), FixedNow.AddMinutes(1));
+
+        Assert.Null(list.SourceStartDate);
+        Assert.Null(list.SourceEndDate);
     }
 
     private static SavedShoppingList CreateList(IEnumerable<ShoppingListItem> items) =>

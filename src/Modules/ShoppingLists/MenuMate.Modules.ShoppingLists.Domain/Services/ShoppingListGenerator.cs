@@ -34,10 +34,8 @@ public static class ShoppingListGenerator
         ShoppingListItem[] mergedItems =
         [
             .. items
-                .Where(item => item.CanMerge)
                 .GroupBy(item => new MergeKey(item.ProductId, item.Unit))
                 .Select(Merge)
-                .Concat(items.Where(item => !item.CanMerge))
         ];
 
         return ShoppingList.FromItems(mergedItems);
@@ -81,9 +79,12 @@ public static class ShoppingListGenerator
 
     private static ShoppingListItem Merge(IGrouping<MergeKey, ShoppingListItem> group)
     {
-        ShoppingListItem first = group.First();
-        decimal amount = group.Sum(item => item.Amount.GetValueOrDefault());
-        string? comment = JoinComments(group.Select(item => item.Comment).Where(comment => !string.IsNullOrWhiteSpace(comment)));
+        ShoppingListItem[] items = [.. group];
+        ShoppingListItem first = items[0];
+        decimal? amount = first.Unit == ShoppingUnit.ToTaste
+            ? null
+            : items.Sum(item => item.Amount.GetValueOrDefault());
+        string? comment = items.Length == 1 ? first.Comment : null;
 
         return new ShoppingListItem(
             first.ProductId,
@@ -95,9 +96,7 @@ public static class ShoppingListGenerator
             comment);
     }
 
-    private static string? JoinComments(params string?[] comments) => JoinComments(comments.AsEnumerable());
-
-    private static string? JoinComments(IEnumerable<string?> comments)
+    private static string? JoinComments(params string?[] comments)
     {
         string[] nonEmptyComments =
         [

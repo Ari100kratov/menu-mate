@@ -9,9 +9,9 @@ internal sealed class ShoppingListRecord
 
     public UserId OwnerUserId { get; set; }
 
-    public DateOnly SourceStartDate { get; set; }
+    public DateOnly? SourceStartDate { get; set; }
 
-    public DateOnly SourceEndDate { get; set; }
+    public DateOnly? SourceEndDate { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

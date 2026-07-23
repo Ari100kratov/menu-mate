@@ -3,6 +3,7 @@ using System;
 using MenuMate.Modules.ShoppingLists.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MenuMate.Modules.ShoppingLists.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ShoppingListsDbContext))]
-    partial class ShoppingListsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723192124_MakeShoppingListSourcePeriodOptional")]
+    partial class MakeShoppingListSourcePeriodOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -30,7 +30,15 @@ export function ShoppingListItemRow({
           onCheckedChange(checked === true)
         }}
       />
-      <button type="button" className="min-w-0 flex-1 text-left" onClick={onEdit}>
+      <button
+        type="button"
+        className="hover:bg-muted/60 min-w-0 flex-1 rounded-md px-1 py-0.5 text-left transition-colors"
+        disabled={isPending}
+        aria-label={`${item.isPurchased ? "Снять отметку с" : "Отметить"} «${item.name}»`}
+        onClick={() => {
+          onCheckedChange(!item.isPurchased)
+        }}
+      >
         <span
           className={cn(
             "type-body block",

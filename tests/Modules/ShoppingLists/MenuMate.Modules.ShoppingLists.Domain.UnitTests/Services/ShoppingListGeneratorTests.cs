@@ -45,22 +45,52 @@ public sealed class ShoppingListGeneratorTests
     }
 
     [Fact]
-    public void GenerateShouldKeepToTasteLinesSeparateAndMarkOptionalComment()
+    public void GenerateShouldMergeSameProductForEveryMeasurementUnitAndDiscardRecipeComments()
+    {
+        foreach (ShoppingUnit unit in Enum.GetValues<ShoppingUnit>())
+        {
+            var productId = Guid.CreateVersion7();
+            decimal? amount = unit == ShoppingUnit.ToTaste ? null : 1m;
+            ShoppingRecipe recipe = CreateRecipe(
+                1,
+                1,
+                [
+                    CreateIngredient(productId, amount, unit, "для подачи", true),
+                    CreateIngredient(productId, amount, unit)
+                ]);
+
+            ShoppingListItem item = Assert.Single(Assert.Single(ShoppingListGenerator.Generate([recipe]).Categories).Items);
+
+            ShoppingUnit expectedUnit = unit switch
+            {
+                ShoppingUnit.Kilogram => ShoppingUnit.Gram,
+                ShoppingUnit.Liter => ShoppingUnit.Milliliter,
+                _ => unit
+            };
+            decimal? expectedAmount = unit switch
+            {
+                ShoppingUnit.Kilogram or ShoppingUnit.Liter => 2000m,
+                ShoppingUnit.ToTaste => null,
+                _ => 2m
+            };
+
+            Assert.Equal(expectedUnit, item.Unit);
+            Assert.Equal(expectedAmount, item.Amount);
+            Assert.Null(item.Comment);
+        }
+    }
+
+    [Fact]
+    public void GenerateShouldKeepCommentForIngredientWithoutDuplicates()
     {
         ShoppingRecipe recipe = CreateRecipe(
-            2,
-            4,
-            [
-                CreateIngredient(Guid.CreateVersion7(), null, ShoppingUnit.ToTaste, "для подачи", true),
-                CreateIngredient(Guid.CreateVersion7(), null, ShoppingUnit.ToTaste, "по вкусу", false)
-            ]);
+            1,
+            1,
+            [CreateIngredient(Guid.CreateVersion7(), 1m, ShoppingUnit.Clove, "очистить")]);
 
-        ShoppingList list = ShoppingListGenerator.Generate([recipe]);
+        ShoppingListItem item = Assert.Single(Assert.Single(ShoppingListGenerator.Generate([recipe]).Categories).Items);
 
-        ShoppingListItem[] items = [.. Assert.Single(list.Categories).Items];
-        Assert.Equal(2, items.Length);
-        Assert.Contains(items, item => item.Comment == "для подачи; необязательно");
-        Assert.All(items, item => Assert.False(item.CanMerge));
+        Assert.Equal("очистить", item.Comment);
     }
 
     [Fact]

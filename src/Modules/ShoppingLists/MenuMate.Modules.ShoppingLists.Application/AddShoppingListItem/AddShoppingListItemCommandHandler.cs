@@ -24,12 +24,11 @@ internal sealed class AddShoppingListItemCommandHandler(
         if (shoppingList is null)
         {
             DateTimeOffset now = timeProvider.GetUtcNow();
-            var today = DateOnly.FromDateTime(now.UtcDateTime);
             Result<SavedShoppingList> created = SavedShoppingList.Create(
                 Guid.CreateVersion7(),
                 userContext.UserId,
-                today,
-                today,
+                null,
+                null,
                 [],
                 now);
             if (created.IsFailure)

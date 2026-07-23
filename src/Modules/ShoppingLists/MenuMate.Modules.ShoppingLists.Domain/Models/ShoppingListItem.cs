@@ -71,13 +71,6 @@ public sealed record ShoppingListItem
     public bool IsPurchased { get; init; }
 
     /// <summary>
-    /// Возвращает true, если позицию можно безопасно объединять с похожими позициями.
-    /// </summary>
-    public bool CanMerge =>
-        Amount.HasValue &&
-        Unit is ShoppingUnit.Gram or ShoppingUnit.Milliliter or ShoppingUnit.Piece;
-
-    /// <summary>
     /// Возвращает позицию, отмеченную как купленная.
     /// </summary>
     public ShoppingListItem MarkPurchased() => this with { IsPurchased = true };

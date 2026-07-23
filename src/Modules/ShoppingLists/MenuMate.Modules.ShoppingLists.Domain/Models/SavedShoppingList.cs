@@ -13,8 +13,8 @@ public sealed class SavedShoppingList : Entity<Guid>
     private SavedShoppingList(
         Guid id,
         UserId ownerUserId,
-        DateOnly sourceStartDate,
-        DateOnly sourceEndDate,
+        DateOnly? sourceStartDate,
+        DateOnly? sourceEndDate,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt)
         : base(id)
@@ -34,12 +34,12 @@ public sealed class SavedShoppingList : Entity<Guid>
     /// <summary>
     /// Дата начала диапазона меню, по которому был создан список.
     /// </summary>
-    public DateOnly SourceStartDate { get; private set; }
+    public DateOnly? SourceStartDate { get; private set; }
 
     /// <summary>
     /// Дата окончания диапазона меню, по которому был создан список.
     /// </summary>
-    public DateOnly SourceEndDate { get; private set; }
+    public DateOnly? SourceEndDate { get; private set; }
 
     /// <summary>
     /// Момент создания списка.
@@ -62,8 +62,8 @@ public sealed class SavedShoppingList : Entity<Guid>
     public static Result<SavedShoppingList> Create(
         Guid id,
         UserId ownerUserId,
-        DateOnly sourceStartDate,
-        DateOnly sourceEndDate,
+        DateOnly? sourceStartDate,
+        DateOnly? sourceEndDate,
         IEnumerable<ShoppingListItem> generatedItems,
         DateTimeOffset now)
     {
@@ -120,8 +120,8 @@ public sealed class SavedShoppingList : Entity<Guid>
     public static SavedShoppingList Rehydrate(
         Guid id,
         UserId ownerUserId,
-        DateOnly sourceStartDate,
-        DateOnly sourceEndDate,
+        DateOnly? sourceStartDate,
+        DateOnly? sourceEndDate,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         IEnumerable<SavedShoppingListItem> items)
@@ -177,6 +177,12 @@ public sealed class SavedShoppingList : Entity<Guid>
         if (removed == 0)
         {
             return false;
+        }
+
+        if (_items.Count == 0)
+        {
+            SourceStartDate = null;
+            SourceEndDate = null;
         }
 
         UpdatedAt = now;

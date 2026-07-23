@@ -19,8 +19,8 @@ export interface ShoppingListCategory {
 
 export interface ShoppingList {
   id: string
-  sourceStartDate: string
-  sourceEndDate: string
+  sourceStartDate: string | null
+  sourceEndDate: string | null
   createdAt: string
   updatedAt: string
   categories: ShoppingListCategory[]

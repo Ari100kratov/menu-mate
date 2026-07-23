@@ -1,4 +1,4 @@
-import { Plus, ShoppingBasket } from "lucide-react"
+import { CheckCircle2, ChevronDown, Plus, ShoppingBasket } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -19,6 +19,7 @@ import {
   type ShoppingItemFormValues,
 } from "@/features/shopping-lists/model/shopping-list-ui"
 import { Button } from "@/shared/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
   const removeItemMutation = useRemoveShoppingListItemMutation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogItem, setDialogItem] = useState<ShoppingDialogItem>("new")
+  const [collapsedCategoryNames, setCollapsedCategoryNames] = useState<Set<string>>(() => new Set())
   const itemCount = useMemo(
     () => shoppingList.categories.reduce((total, category) => total + category.items.length, 0),
     [shoppingList.categories],
@@ -59,6 +61,8 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
     [shoppingList.categories],
   )
   const isFormSubmitting = addItemMutation.isPending || updateItemMutation.isPending
+  const sourcePeriod = formatSourcePeriod(shoppingList.sourceStartDate, shoppingList.sourceEndDate)
+  const isAllPurchased = itemCount > 0 && purchasedCount === itemCount
 
   const initialValues =
     dialogItem === "new"
@@ -77,6 +81,20 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
 
   function closeDialog() {
     setDialogOpen(false)
+  }
+
+  function setCategoryExpanded(categoryName: string, isExpanded: boolean) {
+    setCollapsedCategoryNames((current) => {
+      const next = new Set(current)
+
+      if (isExpanded) {
+        next.delete(categoryName)
+      } else {
+        next.add(categoryName)
+      }
+
+      return next
+    })
   }
 
   function submitItem(values: ShoppingItemFormValues) {
@@ -105,9 +123,22 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
     <div className="space-y-5">
       {itemCount > 0 ? (
         <section className="bg-primary/5 border-primary/15 rounded-xl border p-4">
-          <p className="type-supporting text-muted-foreground">
-            {String(purchasedCount)} из {String(itemCount)} отмечено
+          <p className="type-label flex items-center gap-2">
+            {isAllPurchased ? (
+              <CheckCircle2
+                className="text-primary size-5 shrink-0 self-center"
+                aria-hidden="true"
+              />
+            ) : null}
+            <span>
+              Отмечено {String(purchasedCount)} из {String(itemCount)}
+            </span>
           </p>
+          {sourcePeriod ? (
+            <p className="type-supporting text-muted-foreground mt-1">
+              Список по меню: {sourcePeriod}
+            </p>
+          ) : null}
         </section>
       ) : null}
 
@@ -124,36 +155,87 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         />
       ) : (
         <div className="space-y-4">
-          {shoppingList.categories.map((category) => (
-            <section key={category.name} className="bg-card rounded-xl border p-2 shadow-xs">
-              <h2 className="type-label px-2 py-2">{category.name}</h2>
-              <div className="divide-y">
-                {category.items.map((item) => (
-                  <ShoppingListItemRow
-                    key={item.id}
-                    item={item}
-                    isPending={
-                      (stateMutation.isPending && stateMutation.variables.itemId === item.id) ||
-                      (removeItemMutation.isPending && removeItemMutation.variables === item.id)
-                    }
-                    onCheckedChange={(isPurchased) => {
-                      stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
-                    }}
-                    onEdit={() => {
-                      openEditDialog(item)
-                    }}
-                    onRemove={() => {
-                      removeItemMutation.mutate(item.id, {
-                        onSuccess: () => {
-                          toast.success("Покупка удалена")
-                        },
-                      })
-                    }}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+          {shoppingList.categories.map((category) => {
+            const purchasedInCategory = category.items.filter((item) => item.isPurchased).length
+            const isExpanded = !collapsedCategoryNames.has(category.name)
+            const isCategoryPurchased = purchasedInCategory === category.items.length
+
+            return (
+              <section key={category.name} className="bg-card rounded-xl border p-2 shadow-xs">
+                <Collapsible
+                  open={isExpanded}
+                  onOpenChange={(open) => {
+                    setCategoryExpanded(category.name, open)
+                  }}
+                >
+                  <h2>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="hover:bg-muted/60 focus-visible:ring-ring/50 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+                        aria-label={`${isExpanded ? "Свернуть" : "Развернуть"} категорию ${category.name}`}
+                      >
+                        <span className="type-label min-w-0 flex-1 truncate">{category.name}</span>
+                        <span className="type-supporting text-muted-foreground flex shrink-0 items-center gap-1">
+                          {isCategoryPurchased ? (
+                            <CheckCircle2
+                              className="text-primary size-4 shrink-0 self-center"
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                          <span className="sr-only">
+                            Отмечено {String(purchasedInCategory)} из{" "}
+                            {String(category.items.length)}
+                          </span>
+                          <span className="sm:hidden" aria-hidden="true">
+                            {String(purchasedInCategory)}/{String(category.items.length)}
+                          </span>
+                          <span className="hidden sm:inline" aria-hidden="true">
+                            Отмечено {String(purchasedInCategory)} из{" "}
+                            {String(category.items.length)}
+                          </span>
+                        </span>
+                        <ChevronDown
+                          className={`text-muted-foreground size-4 shrink-0 transition-transform ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    </CollapsibleTrigger>
+                  </h2>
+                  <CollapsibleContent>
+                    <div className="divide-y border-t">
+                      {category.items.map((item) => (
+                        <ShoppingListItemRow
+                          key={item.id}
+                          item={item}
+                          isPending={
+                            (stateMutation.isPending &&
+                              stateMutation.variables.itemId === item.id) ||
+                            (removeItemMutation.isPending &&
+                              removeItemMutation.variables === item.id)
+                          }
+                          onCheckedChange={(isPurchased) => {
+                            stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
+                          }}
+                          onEdit={() => {
+                            openEditDialog(item)
+                          }}
+                          onRemove={() => {
+                            removeItemMutation.mutate(item.id, {
+                              onSuccess: () => {
+                                toast.success("Покупка удалена")
+                              },
+                            })
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </section>
+            )
+          })}
         </div>
       )}
 
@@ -197,4 +279,29 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
       </Dialog>
     </div>
   )
+}
+
+function formatSourcePeriod(startDate: string | null, endDate: string | null) {
+  if (!startDate || !endDate) {
+    return null
+  }
+
+  const start = toLocalDate(startDate)
+  const end = toLocalDate(endDate)
+  const dayFormatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric" })
+  const monthFormatter = new Intl.DateTimeFormat("ru-RU", { month: "long" })
+  const dateFormatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" })
+
+  if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
+    return start.getDate() === end.getDate()
+      ? dateFormatter.format(start)
+      : `${dayFormatter.format(start)}–${dayFormatter.format(end)} ${monthFormatter.format(end)}`
+  }
+
+  return `${dateFormatter.format(start)} – ${dateFormatter.format(end)}`
+}
+
+function toLocalDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, month - 1, day)
 }
