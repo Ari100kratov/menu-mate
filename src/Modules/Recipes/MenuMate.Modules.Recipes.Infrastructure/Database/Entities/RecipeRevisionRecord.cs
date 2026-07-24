@@ -15,6 +15,8 @@ internal sealed class RecipeRevisionRecord
 
     public string? Description { get; set; }
 
+    public string? Advice { get; set; }
+
     public int Servings { get; set; }
 
     public RecipeCategory Category { get; set; }
@@ -42,6 +44,7 @@ internal sealed class RecipeRevisionRecord
             RevisionNumber = recipe.RevisionNumber,
             Title = recipe.Title.Value,
             Description = recipe.Description,
+            Advice = recipe.Advice,
             Servings = recipe.Servings.Value,
             Category = recipe.Category,
             TotalTimeMinutes = recipe.TotalTimeMinutes,

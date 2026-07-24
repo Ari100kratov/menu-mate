@@ -60,6 +60,7 @@ export interface RecipeListItem extends RecipeRevisionSummary {
 }
 
 export interface Recipe extends RecipeRevisionSummary {
+  advice: string | null
   savedRevisionId: string | null
   sourceRecipeId: string | null
   sourceRevisionId: string | null
@@ -86,6 +87,7 @@ export interface PreparationStepRequest {
 export interface CreateRecipeRequest {
   title: string
   description: string | null
+  advice: string | null
   servings: number
   category: string
   visibility: string

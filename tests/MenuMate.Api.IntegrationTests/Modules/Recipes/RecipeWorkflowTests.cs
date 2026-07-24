@@ -84,6 +84,37 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
     }
 
     [Fact]
+    public async Task RecipeAdviceShouldBeVersionedAndAvailableInRecipeDetails()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("recipe-advice"));
+
+        const string initialAdvice = "Дайте блюду настояться 10 минут.\nПодавайте горячим.";
+        RecipeResponse created = await CreateRecipeAsync(
+            httpClient,
+            CreateRequest("Паста", "Private", advice: initialAdvice));
+
+        Assert.Equal(initialAdvice, created.Advice);
+
+        const string updatedAdvice = "Добавьте зелень перед подачей.";
+        HttpResponseMessage updateResponse = await httpClient.PutAsJsonAsync(
+            $"/api/recipes/{created.Id}",
+            CreateRequest("Паста", "Private", advice: updatedAdvice));
+        updateResponse.EnsureSuccessStatusCode();
+
+        RecipeResponse? updated = await httpClient.GetFromJsonAsync<RecipeResponse>($"/api/recipes/{created.Id}");
+        Assert.NotNull(updated);
+        Assert.Equal(2, updated.RevisionNumber);
+        Assert.Equal(updatedAdvice, updated.Advice);
+
+        RecipeResponse? initialRevision = await httpClient.GetFromJsonAsync<RecipeResponse>(
+            $"/api/recipes/{created.Id}?revisionId={created.RevisionId}");
+        Assert.NotNull(initialRevision);
+        Assert.Equal(initialAdvice, initialRevision.Advice);
+    }
+
+    [Fact]
     public async Task RecipeListShouldFilterAndPaginate()
     {
         using HttpClient httpClient = _factory.CreateClient();
@@ -142,7 +173,8 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         string title,
         string visibility,
         IReadOnlyCollection<string>? tags = null,
-        string category = "MainCourse") =>
+        string category = "MainCourse",
+        string? advice = null) =>
         new(
             title,
             "Описание рецепта",
@@ -163,7 +195,8 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
                     false)
             ],
             [new PreparationStepRequest("Приготовить")],
-            tags ?? []);
+            tags ?? [],
+            advice);
 
     private static Uri RelativeUri(string path) => new(path, UriKind.Relative);
 }

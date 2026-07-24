@@ -24,6 +24,7 @@ internal sealed class RecipeRecordConfiguration : IEntityTypeConfiguration<Recip
             .IsRequired();
         builder.Property(recipe => recipe.Title).HasMaxLength(160).IsRequired();
         builder.Property(recipe => recipe.Description).HasMaxLength(2000);
+        builder.Property(recipe => recipe.Advice).HasColumnType("text");
         builder.Property(recipe => recipe.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(recipe => recipe.Visibility).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(recipe => recipe.CurrentRevisionId).ValueGeneratedNever().IsRequired();

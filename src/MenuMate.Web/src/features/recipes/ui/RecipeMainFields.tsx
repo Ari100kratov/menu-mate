@@ -47,6 +47,24 @@ export function RecipeMainFields({ form, showValidationErrors }: RecipeMainField
           }}
         </form.Field>
 
+        <form.Field name="description">
+          {(field) => (
+            <Field className="md:col-span-2">
+              <FieldLabel htmlFor={field.name}>Описание</FieldLabel>
+              <Textarea
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                placeholder="Что важно знать об этом блюде"
+                onBlur={field.handleBlur}
+                onChange={(event) => {
+                  field.handleChange(event.target.value)
+                }}
+              />
+            </Field>
+          )}
+        </form.Field>
+
         <form.Field name="category">
           {(field) => (
             <Field>
@@ -165,36 +183,16 @@ export function RecipeMainFields({ form, showValidationErrors }: RecipeMainField
               form={form}
               name="totalTimeMinutes"
               label="Общее время"
-              hint="до подачи"
               showValidationErrors={showValidationErrors}
             />
             <RecipeDurationField
               form={form}
               name="activeTimeMinutes"
               label="Активное время"
-              hint="ваша работа"
               showValidationErrors={showValidationErrors}
             />
           </div>
         </div>
-
-        <form.Field name="description">
-          {(field) => (
-            <Field className="md:col-span-2">
-              <FieldLabel htmlFor={field.name}>Описание</FieldLabel>
-              <Textarea
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
-                placeholder="Что важно знать об этом блюде"
-                onBlur={field.handleBlur}
-                onChange={(event) => {
-                  field.handleChange(event.target.value)
-                }}
-              />
-            </Field>
-          )}
-        </form.Field>
       </FieldGroup>
     </PageSection>
   )

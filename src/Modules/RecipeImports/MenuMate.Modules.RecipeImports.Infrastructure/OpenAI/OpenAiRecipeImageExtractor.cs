@@ -36,6 +36,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                     - Распознавай дубли и перекрывающиеся фрагменты страниц: используй их для сверки, но не повторяй ингредиенты, шаги или текст.
                     - Сохрани язык исходного рецепта и не выдумывай отсутствующие данные.
                     - В тексте шагов не оставляй порядковые номера, слова «Шаг» или «Step».
+                    - Если на изображениях есть отдельные советы, примечания, варианты, предупреждения, рекомендации по подаче, хранению или замене ингредиентов, перенеси их в recipe.advice. Сохраняй абзацы и переносы строк. Не дублируй в советы описание блюда, ингредиенты или шаги и не придумывай информацию. Если таких данных нет, верни advice=null.
                     - Для каждого элемента recipe.ingredients верни в ingredientSourceTexts точную исходную строку ингредиента. Порядок и количество строк должны совпадать с recipe.ingredients. Если одна строка разделена на два продукта, повтори исходную строку для обоих.
                     """),
                 ChatMessageContentPart.CreateTextPart(
@@ -170,6 +171,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                   "properties": {
                     "title": { "type": "string" },
                     "description": { "type": ["string", "null"] },
+                    "advice": { "type": ["string", "null"] },
                     "servings": { "type": "integer", "minimum": 1, "maximum": 100 },
                     "category": { "type": "string", "enum": ["Breakfast","Soup","MainCourse","SideDish","Salad","Appetizer","Dessert","Baking","Drink","Sauce","Spread","Other"] },
                     "visibility": { "type": "string", "enum": ["Public"] },
@@ -204,7 +206,7 @@ internal sealed class OpenAiRecipeImageExtractor(
                     },
                     "tags": { "type": "array", "items": { "type": "string" } }
                   },
-                  "required": ["title","description","servings","category","visibility","totalTimeMinutes","activeTimeMinutes","sourceUrl","ingredients","steps","tags"],
+                  "required": ["title","description","advice","servings","category","visibility","totalTimeMinutes","activeTimeMinutes","sourceUrl","ingredients","steps","tags"],
                   "additionalProperties": false
                 },
                 "ingredientSourceTexts": {

@@ -44,6 +44,29 @@ public sealed class RecipeImportTextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeShouldPreserveMultilineAdvice()
+    {
+        const string advice = "Накройте крышкой.\n\nПодавайте горячим.";
+        var recipe = new CreateRecipeRequest(
+            "Суп",
+            null,
+            2,
+            "Soup",
+            "Public",
+            null,
+            null,
+            null,
+            [],
+            [],
+            [],
+            advice);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe);
+
+        Assert.Equal(advice, normalized.Advice);
+    }
+
+    [Fact]
     public void NormalizeShouldSetToTasteWhenIngredientAmountIsMissing()
     {
         var recipe = new CreateRecipeRequest(

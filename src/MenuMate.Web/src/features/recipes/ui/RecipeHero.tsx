@@ -24,7 +24,9 @@ export function RecipeHero({ recipe, actions }: RecipeHeroProps) {
           <h2 className="type-recipe-title min-w-0">{recipe.title}</h2>
           <div className="justify-self-end">{actions}</div>
           {recipe.description ? (
-            <p className="type-body text-muted-foreground col-span-2">{recipe.description}</p>
+            <p className="type-body text-muted-foreground col-span-2 whitespace-pre-line">
+              {recipe.description}
+            </p>
           ) : null}
         </div>
 

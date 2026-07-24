@@ -82,6 +82,7 @@ internal sealed class CopyRecipeCommandHandler(
             draft.Value.TotalTimeMinutes,
             draft.Value.ActiveTimeMinutes,
             draft.Value.Description,
+            draft.Value.Advice,
             draft.Value.SourceUrl,
             now);
         copy.ReplaceIngredients(ingredients.Value, now);

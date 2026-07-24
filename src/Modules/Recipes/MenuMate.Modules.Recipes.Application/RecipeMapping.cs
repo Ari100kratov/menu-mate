@@ -34,7 +34,8 @@ internal static class RecipeMapping
             recipe.Tags.Select(tag => tag.Value).ToArray(),
             [],
             recipe.Ingredients.Select(ToIngredientResponse).ToArray(),
-            recipe.Steps.Select(step => new PreparationStepResponse(step.Number, step.Text)).ToArray());
+            recipe.Steps.Select(step => new PreparationStepResponse(step.Number, step.Text)).ToArray(),
+            recipe.Advice);
 
     private static IngredientResponse ToIngredientResponse(RecipeIngredient ingredient) =>
         new(

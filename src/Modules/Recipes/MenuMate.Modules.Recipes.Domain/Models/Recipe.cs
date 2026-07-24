@@ -50,6 +50,9 @@ public sealed class Recipe : Entity<Guid>
     /// <summary>Gets the current description.</summary>
     public string? Description { get; private set; }
 
+    /// <summary>Gets the optional cooking tips and notes.</summary>
+    public string? Advice { get; private set; }
+
     /// <summary>Gets the base serving count.</summary>
     public Servings Servings { get; private set; }
 
@@ -137,6 +140,7 @@ public sealed class Recipe : Entity<Guid>
         int? totalTimeMinutes,
         int? activeTimeMinutes,
         string? description,
+        string? advice,
         Uri? sourceUrl,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
@@ -165,6 +169,7 @@ public sealed class Recipe : Entity<Guid>
             TotalTimeMinutes = totalTimeMinutes,
             ActiveTimeMinutes = activeTimeMinutes,
             Description = description,
+            Advice = advice,
             SourceUrl = sourceUrl,
             UpdatedAt = updatedAt,
             IsDeleted = isDeleted
@@ -186,6 +191,7 @@ public sealed class Recipe : Entity<Guid>
         int? totalTimeMinutes,
         int? activeTimeMinutes,
         string? description,
+        string? advice,
         Uri? sourceUrl,
         DateTimeOffset now)
     {
@@ -195,7 +201,8 @@ public sealed class Recipe : Entity<Guid>
         Visibility = visibility;
         TotalTimeMinutes = totalTimeMinutes;
         ActiveTimeMinutes = activeTimeMinutes;
-        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        Description = NormalizeOptionalText(description);
+        Advice = NormalizeOptionalText(advice);
         SourceUrl = sourceUrl;
         UpdatedAt = now;
     }
@@ -220,6 +227,7 @@ public sealed class Recipe : Entity<Guid>
         int? totalTimeMinutes,
         int? activeTimeMinutes,
         string? description,
+        string? advice,
         Uri? sourceUrl,
         IReadOnlyCollection<RecipeIngredient> ingredients,
         IReadOnlyCollection<PreparationStep> steps,
@@ -235,6 +243,7 @@ public sealed class Recipe : Entity<Guid>
             TotalTimeMinutes == totalTimeMinutes &&
             ActiveTimeMinutes == activeTimeMinutes &&
             string.Equals(NormalizeOptionalText(Description), NormalizeOptionalText(description), StringComparison.Ordinal) &&
+            string.Equals(NormalizeOptionalText(Advice), NormalizeOptionalText(advice), StringComparison.Ordinal) &&
             Equals(SourceUrl, sourceUrl) &&
             _ingredients.SequenceEqual(ingredients, RecipeIngredientContentComparer.Instance) &&
             _steps.SequenceEqual(steps) &&

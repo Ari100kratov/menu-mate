@@ -607,6 +607,8 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
+            /** @description Советы и примечания к рецепту. */
+            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.
@@ -1088,6 +1090,8 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
+            /** @description Советы и примечания к рецепту. */
+            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.
@@ -1315,6 +1319,8 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
+            /** @description Советы и примечания к рецепту. */
+            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.

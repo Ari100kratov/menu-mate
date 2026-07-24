@@ -60,6 +60,7 @@ internal sealed class UpdateRecipeCommandHandler(
             draft.Value.TotalTimeMinutes,
             draft.Value.ActiveTimeMinutes,
             draft.Value.Description,
+            draft.Value.Advice,
             draft.Value.SourceUrl,
             ingredients.Value,
             draft.Value.Steps,
@@ -87,6 +88,7 @@ internal sealed class UpdateRecipeCommandHandler(
             draft.Value.TotalTimeMinutes,
             draft.Value.ActiveTimeMinutes,
             draft.Value.Description,
+            draft.Value.Advice,
             draft.Value.SourceUrl,
             now);
         recipe.ReplaceIngredients(ingredients.Value, now);

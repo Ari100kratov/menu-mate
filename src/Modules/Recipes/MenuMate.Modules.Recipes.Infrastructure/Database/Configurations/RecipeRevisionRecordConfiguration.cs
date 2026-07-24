@@ -15,6 +15,7 @@ internal sealed class RecipeRevisionRecordConfiguration : IEntityTypeConfigurati
         builder.Property(revision => revision.Id).ValueGeneratedNever();
         builder.Property(revision => revision.Title).HasMaxLength(160).IsRequired();
         builder.Property(revision => revision.Description).HasMaxLength(2000);
+        builder.Property(revision => revision.Advice).HasColumnType("text");
         builder.Property(revision => revision.Category).HasConversion<string>().HasMaxLength(64).IsRequired();
         builder.Property(revision => revision.SourceUrl).HasMaxLength(2048);
         builder.HasIndex(revision => new { revision.RecipeId, revision.RevisionNumber }).IsUnique();

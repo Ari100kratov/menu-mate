@@ -33,7 +33,6 @@ export function RecipeIngredientsFields({
           <div>
             <PageSection
               title="Ингредиенты"
-              description="Добавляйте продукты по одному. Категория каталога подставится автоматически."
               className="rounded-none border-0 border-b p-4 md:p-6"
               data-recipe-form-field="ingredients"
             >

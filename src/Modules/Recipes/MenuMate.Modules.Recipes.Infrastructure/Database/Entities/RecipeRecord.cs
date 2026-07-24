@@ -12,6 +12,7 @@ internal sealed class RecipeRecord
     public UserId OwnerUserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? Advice { get; set; }
     public int Servings { get; set; }
     public RecipeCategory Category { get; set; }
     public RecipeVisibility Visibility { get; set; }
@@ -44,6 +45,7 @@ internal sealed class RecipeRecord
         OwnerUserId = recipe.OwnerUserId;
         Title = recipe.Title.Value;
         Description = recipe.Description;
+        Advice = recipe.Advice;
         Servings = recipe.Servings.Value;
         Category = recipe.Category;
         Visibility = recipe.Visibility;
@@ -108,6 +110,7 @@ internal sealed class RecipeRecord
             TotalTimeMinutes,
             ActiveTimeMinutes,
             Description,
+            Advice,
             sourceUrl,
             CreatedAt,
             UpdatedAt,

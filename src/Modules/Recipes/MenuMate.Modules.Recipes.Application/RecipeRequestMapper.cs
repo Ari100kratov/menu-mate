@@ -15,6 +15,7 @@ internal static class RecipeRequestMapper
         return Map(
             request.Title,
             request.Description,
+            request.Advice,
             request.Servings,
             request.Category,
             request.Visibility,
@@ -33,6 +34,7 @@ internal static class RecipeRequestMapper
         return Map(
             request.Title,
             request.Description,
+            request.Advice,
             request.Servings,
             request.Category,
             request.Visibility,
@@ -47,6 +49,7 @@ internal static class RecipeRequestMapper
     private static Result<RecipeDraft> Map(
         string titleValue,
         string? description,
+        string? advice,
         int servingsValue,
         string categoryValue,
         string visibilityValue,
@@ -114,6 +117,7 @@ internal static class RecipeRequestMapper
         return new RecipeDraft(
             title.Value,
             NormalizeOptionalText(description),
+            NormalizeOptionalText(advice),
             servings.Value,
             category.Value,
             visibility.Value,
@@ -341,6 +345,7 @@ internal static class RecipeRequestMapper
 internal sealed record RecipeDraft(
     RecipeTitle Title,
     string? Description,
+    string? Advice,
     Servings Servings,
     RecipeCategory Category,
     RecipeVisibility Visibility,

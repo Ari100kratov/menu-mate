@@ -95,6 +95,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                 item.RevisionNumber,
                 item.Title,
                 item.Description,
+                item.Advice,
                 item.Servings,
                 item.Category,
                 item.TotalTimeMinutes,
@@ -178,7 +179,8 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             [],
             images.Select(ToResponse).ToArray(),
             revision.Ingredients,
-            revision.Steps);
+            revision.Steps,
+            revision.Advice);
 
         return new RecipeReadModel(response, revision.TagIds);
     }
@@ -598,6 +600,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         int RevisionNumber,
         string Title,
         string? Description,
+        string? Advice,
         int Servings,
         RecipeCategory Category,
         int? TotalTimeMinutes,

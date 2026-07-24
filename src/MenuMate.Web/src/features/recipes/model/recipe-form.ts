@@ -45,6 +45,7 @@ export const recipeFormSchema = z
   .object({
     title: z.string().trim().min(1, "Введите название.").max(160, "Название слишком длинное."),
     description: z.string().trim(),
+    advice: z.string().trim(),
     category: z.string().trim().min(1, "Выберите категорию блюда."),
     visibility: z.enum(["Private", "Public"]),
     servings: z
@@ -98,6 +99,7 @@ export function createEmptyRecipeFormValues(): RecipeFormValues {
   return {
     title: "",
     description: "",
+    advice: "",
     category: "MainCourse",
     visibility: "Public",
     servings: "2",
@@ -157,6 +159,7 @@ export function recipeToFormValues(recipe: Recipe): RecipeFormValues {
   return {
     title: recipe.title,
     description: recipe.description ?? "",
+    advice: recipe.advice ?? "",
     category: recipe.category,
     visibility: recipe.visibility as "Private" | "Public",
     servings: String(recipe.servings),
@@ -184,6 +187,7 @@ export function recipeRequestToFormValues(recipe: CreateRecipeRequest): RecipeFo
   return {
     title: recipe.title,
     description: recipe.description ?? "",
+    advice: recipe.advice ?? "",
     category: recipe.category,
     visibility: recipe.visibility as "Private" | "Public",
     servings: String(recipe.servings),
@@ -211,6 +215,7 @@ export function toRecipeRequest(values: RecipeFormValues): CreateRecipeRequest {
   return {
     title: values.title.trim(),
     description: normalizeOptionalString(values.description),
+    advice: normalizeOptionalString(values.advice),
     servings: Number(values.servings),
     category: values.category,
     visibility: values.visibility,

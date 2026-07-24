@@ -25,7 +25,7 @@ public sealed class RecipeTests
     }
 
     [Fact]
-    public void UpdateDetailsShouldReplaceScalarContentAndTrimDescription()
+    public void UpdateDetailsShouldReplaceScalarContentAndTrimTextFields()
     {
         Recipe recipe = CreateRecipe();
         DateTimeOffset updatedAt = FixedNow.AddMinutes(1);
@@ -39,6 +39,7 @@ public sealed class RecipeTests
             45,
             20,
             "  Быстрый ужин  ",
+            "  Дайте пасте отдохнуть\nперед подачей.  ",
             sourceUrl,
             updatedAt);
 
@@ -48,6 +49,7 @@ public sealed class RecipeTests
         Assert.Equal(45, recipe.TotalTimeMinutes);
         Assert.Equal(20, recipe.ActiveTimeMinutes);
         Assert.Equal("Быстрый ужин", recipe.Description);
+        Assert.Equal("Дайте пасте отдохнуть\nперед подачей.", recipe.Advice);
         Assert.Equal(sourceUrl, recipe.SourceUrl);
         Assert.Equal(updatedAt, recipe.UpdatedAt);
     }
@@ -149,6 +151,7 @@ public sealed class RecipeTests
             recipe.TotalTimeMinutes,
             recipe.ActiveTimeMinutes,
             "  ",
+            "  ",
             recipe.SourceUrl,
             recipe.Ingredients,
             recipe.Steps,
@@ -159,6 +162,27 @@ public sealed class RecipeTests
         Assert.Equal(initialRevisionId, recipe.CurrentRevisionId);
         Assert.Equal(1, recipe.RevisionNumber);
         Assert.Equal(RecipeVisibility.Public, recipe.Visibility);
+    }
+
+    [Fact]
+    public void AdviceChangeShouldChangeVersionedContent()
+    {
+        Recipe recipe = CreateRecipe();
+
+        bool sameContent = recipe.HasSameVersionedContent(
+            recipe.Title,
+            recipe.Servings,
+            recipe.Category,
+            recipe.TotalTimeMinutes,
+            recipe.ActiveTimeMinutes,
+            recipe.Description,
+            "Подавайте сразу.",
+            recipe.SourceUrl,
+            recipe.Ingredients,
+            recipe.Steps,
+            recipe.Tags);
+
+        Assert.False(sameContent);
     }
 
     private static Recipe CreateRecipe(

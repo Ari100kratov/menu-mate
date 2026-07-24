@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { recipeFormSchema, type RecipeFormValues } from "@/features/recipes/model/recipe-form"
 import { RecipeAdditionalFields } from "@/features/recipes/ui/RecipeAdditionalFields"
+import { RecipeAdviceField } from "@/features/recipes/ui/RecipeAdviceField"
 import {
   RecipeCoverPicker,
   type RecipeCoverSuggestion,
@@ -143,6 +144,7 @@ export function RecipeForm({
         />
         <RecipeMainFields form={form} showValidationErrors={showValidationErrors} />
         <RecipeIngredientsFields form={form} showValidationErrors={showValidationErrors} />
+        <RecipeAdviceField form={form} />
         <RecipeStepsFields form={form} showValidationErrors={showValidationErrors} />
         <RecipeAdditionalFields form={form} showValidationErrors={showValidationErrors} />
       </div>

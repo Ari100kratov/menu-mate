@@ -14,6 +14,7 @@ namespace MenuMate.Contracts.Recipes;
 /// <param name="Ingredients">Ингредиенты рецепта.</param>
 /// <param name="Steps">Шаги приготовления.</param>
 /// <param name="Tags">Теги рецепта.</param>
+/// <param name="Advice">Советы и примечания к рецепту.</param>
 public sealed record CreateRecipeRequest(
     string Title,
     string? Description,
@@ -25,7 +26,8 @@ public sealed record CreateRecipeRequest(
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredientRequest> Ingredients,
     IReadOnlyCollection<PreparationStepRequest> Steps,
-    IReadOnlyCollection<string> Tags);
+    IReadOnlyCollection<string> Tags,
+    string? Advice = null);
 
 /// <summary>
 /// Запрос на обновление рецепта.
@@ -41,6 +43,7 @@ public sealed record CreateRecipeRequest(
 /// <param name="Ingredients">Ингредиенты рецепта.</param>
 /// <param name="Steps">Шаги приготовления.</param>
 /// <param name="Tags">Теги рецепта.</param>
+/// <param name="Advice">Советы и примечания к рецепту.</param>
 public sealed record UpdateRecipeRequest(
     string Title,
     string? Description,
@@ -52,7 +55,8 @@ public sealed record UpdateRecipeRequest(
     Uri? SourceUrl,
     IReadOnlyCollection<RecipeIngredientRequest> Ingredients,
     IReadOnlyCollection<PreparationStepRequest> Steps,
-    IReadOnlyCollection<string> Tags);
+    IReadOnlyCollection<string> Tags,
+    string? Advice = null);
 
 /// <summary>
 /// Запрос на создание независимой копии выбранной ревизии рецепта.
@@ -155,6 +159,7 @@ public sealed record RecipeListItemResponse(
 /// <param name="Images">Изображения, привязанные к рецепту.</param>
 /// <param name="Ingredients">Ингредиенты рецепта.</param>
 /// <param name="Steps">Шаги приготовления.</param>
+/// <param name="Advice">Советы и примечания к рецепту.</param>
 public sealed record RecipeResponse(
     Guid Id,
     Guid RevisionId,
@@ -178,7 +183,8 @@ public sealed record RecipeResponse(
     IReadOnlyCollection<string> Tags,
     IReadOnlyCollection<RecipeImageResponse> Images,
     IReadOnlyCollection<IngredientResponse> Ingredients,
-    IReadOnlyCollection<PreparationStepResponse> Steps);
+    IReadOnlyCollection<PreparationStepResponse> Steps,
+    string? Advice = null);
 
 /// <summary>
 /// Изображение, привязанное к рецепту или его части.

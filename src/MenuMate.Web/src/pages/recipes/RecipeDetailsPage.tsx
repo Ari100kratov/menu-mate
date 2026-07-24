@@ -1,3 +1,5 @@
+import { Lightbulb } from "lucide-react"
+import { useState } from "react"
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom"
 
 import {
@@ -13,6 +15,15 @@ import {
   getParentBackState,
 } from "@/shared/lib/back-navigation"
 import { ErrorAlert } from "@/shared/ui/feedback"
+import { Button } from "@/shared/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog"
+import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
 
 export default function RecipeDetailsPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
@@ -23,6 +34,7 @@ export default function RecipeDetailsPage() {
   const recipeQuery = useRecipeQuery(recipeId, revisionId)
   const deleteRecipeMutation = useDeleteRecipeMutation()
   const favoriteMutation = useSetRecipeFavoriteMutation()
+  const [isAdviceOpen, setIsAdviceOpen] = useState(false)
 
   if (!recipeId) {
     return <Navigate to="/recipes" replace />
@@ -112,15 +124,44 @@ export default function RecipeDetailsPage() {
       {favoriteMutation.error ? <ErrorAlert error={favoriteMutation.error} /> : null}
 
       {recipe ? (
-        <RecipeDetailsContent
-          recipe={recipe}
-          isFavoritePending={favoriteMutation.isPending}
-          isDeletePending={deleteRecipeMutation.isPending}
-          onToggleFavorite={toggleFavorite}
-          onUpdateSavedRevision={updateSavedRevision}
-          onCopy={openCopyDraft}
-          onDelete={handleDelete}
-        />
+        <>
+          <RecipeDetailsContent
+            recipe={recipe}
+            isFavoritePending={favoriteMutation.isPending}
+            isDeletePending={deleteRecipeMutation.isPending}
+            onToggleFavorite={toggleFavorite}
+            onUpdateSavedRevision={updateSavedRevision}
+            onCopy={openCopyDraft}
+            onDelete={handleDelete}
+          />
+          {recipe.advice ? (
+            <Dialog open={isAdviceOpen} onOpenChange={setIsAdviceOpen}>
+              <PageFloatingActions>
+                <Button
+                  type="button"
+                  size="icon-lg"
+                  className="size-12 rounded-full shadow-lg"
+                  aria-label="Показать советы"
+                  title="Советы"
+                  onClick={() => {
+                    setIsAdviceOpen(true)
+                  }}
+                >
+                  <Lightbulb />
+                </Button>
+              </PageFloatingActions>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Советы</DialogTitle>
+                  <DialogDescription>Дополнительные рекомендации к рецепту.</DialogDescription>
+                </DialogHeader>
+                <div className="max-h-[60svh] overflow-y-auto px-5 pb-5">
+                  <p className="type-body break-words whitespace-pre-wrap">{recipe.advice}</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : null}
+        </>
       ) : null}
     </div>
   )
