@@ -18,6 +18,11 @@ import {
   toShoppingListItemRequest,
   type ShoppingItemFormValues,
 } from "@/features/shopping-lists/model/shopping-list-ui"
+import {
+  isCollapsedShoppingCategoriesByList,
+  shoppingCategoryCollapseStorageKey,
+} from "@/features/shopping-lists/model/shopping-category-collapse-state"
+import { usePersistentState } from "@/shared/lib/persistent-state"
 import { Button } from "@/shared/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible"
 import {
@@ -47,7 +52,12 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
   const removeItemMutation = useRemoveShoppingListItemMutation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogItem, setDialogItem] = useState<ShoppingDialogItem>("new")
-  const [collapsedCategoryNames, setCollapsedCategoryNames] = useState<Set<string>>(() => new Set())
+  const [collapsedCategoryNamesByList, setCollapsedCategoryNamesByList] = usePersistentState(
+    shoppingCategoryCollapseStorageKey,
+    {},
+    isCollapsedShoppingCategoriesByList,
+  )
+  const collapsedCategoryNames = new Set(collapsedCategoryNamesByList[shoppingList.id] ?? [])
   const itemCount = useMemo(
     () => shoppingList.categories.reduce((total, category) => total + category.items.length, 0),
     [shoppingList.categories],
@@ -84,16 +94,39 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
   }
 
   function setCategoryExpanded(categoryName: string, isExpanded: boolean) {
-    setCollapsedCategoryNames((current) => {
-      const next = new Set(current)
-
+    updateCollapsedCategoryNames((current) => {
       if (isExpanded) {
-        next.delete(categoryName)
+        current.delete(categoryName)
       } else {
-        next.add(categoryName)
+        current.add(categoryName)
       }
+    })
+  }
 
-      return next
+  function clearCollapsedCategory(categoryName: string) {
+    updateCollapsedCategoryNames((current) => {
+      current.delete(categoryName)
+    })
+  }
+
+  function updateCollapsedCategoryNames(update: (categoryNames: Set<string>) => void) {
+    setCollapsedCategoryNamesByList((current) => {
+      const categoryNames = new Set(current[shoppingList.id] ?? [])
+      update(categoryNames)
+
+      const next = Object.fromEntries(
+        Object.entries(current).filter(([shoppingListId]) => shoppingListId !== shoppingList.id),
+      )
+      if (categoryNames.size === 0) {
+        return next
+      } else {
+        return {
+          ...next,
+          [shoppingList.id]: [...categoryNames].sort((first, second) =>
+            first.localeCompare(second),
+          ),
+        }
+      }
     })
   }
 
@@ -103,6 +136,14 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         { itemId: dialogItem.id, request: toShoppingListItemRequest(values) },
         {
           onSuccess: () => {
+            if (
+              dialogItem.category !== values.category &&
+              shoppingList.categories.some(
+                (category) => category.name === dialogItem.category && category.items.length === 1,
+              )
+            ) {
+              clearCollapsedCategory(dialogItem.category)
+            }
             closeDialog()
             toast.success("Покупка обновлена")
           },
@@ -224,6 +265,9 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
                           onRemove={() => {
                             removeItemMutation.mutate(item.id, {
                               onSuccess: () => {
+                                if (category.items.length === 1) {
+                                  clearCollapsedCategory(category.name)
+                                }
                                 toast.success("Покупка удалена")
                               },
                             })

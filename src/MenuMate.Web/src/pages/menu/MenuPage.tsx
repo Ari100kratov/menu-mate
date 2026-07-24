@@ -268,7 +268,6 @@ export default function MenuPage() {
           items={calendar?.items ?? []}
           isPlacementMode={Boolean(placementRecipe)}
           isPending={isCalendarMutationPending}
-          isItemsLoading={calendarQuery.isFetching}
           onEditMealSlots={() => {
             setShowMealSlotSettings(true)
           }}

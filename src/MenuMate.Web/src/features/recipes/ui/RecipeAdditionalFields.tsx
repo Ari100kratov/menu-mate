@@ -5,7 +5,13 @@ import { TagPicker } from "@/features/tags/ui/TagPicker"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field"
 import { Input } from "@/shared/ui/input"
 
-export function RecipeAdditionalFields({ form }: { form: RecipeFormApi }) {
+export function RecipeAdditionalFields({
+  form,
+  showValidationErrors,
+}: {
+  form: RecipeFormApi
+  showValidationErrors: boolean
+}) {
   return (
     <details className="group p-4 md:p-6">
       <summary className="type-section-title flex cursor-pointer list-none items-center justify-between gap-3">
@@ -19,7 +25,8 @@ export function RecipeAdditionalFields({ form }: { form: RecipeFormApi }) {
       <FieldGroup className="mt-5 grid gap-4">
         <form.Field name="sourceUrl">
           {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            const isInvalid =
+              (showValidationErrors || field.state.meta.isTouched) && !field.state.meta.isValid
 
             return (
               <Field data-invalid={isInvalid}>

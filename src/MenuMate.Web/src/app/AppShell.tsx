@@ -2,14 +2,16 @@ import { ArrowLeft, LogOut } from "lucide-react"
 import { useEffect } from "react"
 import { Link, NavLink, Outlet, ScrollRestoration, matchPath, useLocation } from "react-router-dom"
 
+import type { NavigationItem } from "@/app/navigation"
 import {
   accountNavigationItem,
+  getWorkspaceNavigation,
   getLastWorkspaceSection,
   getScrollRestorationKey,
   rememberWorkspaceSection,
-  workspaceNavigation,
 } from "@/app/navigation"
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
+import { isAdministrator } from "@/features/auth/model/roles"
 import { createBackNavigationState, getBackNavigationState } from "@/shared/lib/back-navigation"
 import { cn } from "@/shared/lib/utils"
 import { AppMark } from "@/shared/ui/app-mark"
@@ -27,6 +29,9 @@ export function AppShell() {
   const currentUserQuery = useCurrentUserQuery()
   const logoutMutation = useLogoutMutation()
   const chrome = getPageChrome(location.pathname)
+  const navigationItems = getWorkspaceNavigation(
+    isAdministrator(currentUserQuery.data?.roles ?? []),
+  )
   const backNavigation = chrome.backTo ? getBackNavigationState(location.state) : undefined
   const accountBackState = location.pathname.startsWith(accountNavigationItem.path)
     ? undefined
@@ -40,6 +45,7 @@ export function AppShell() {
     <div className="bg-background min-h-svh">
       <DesktopSidebar
         displayName={currentUserQuery.data?.displayName ?? "Пользователь"}
+        navigationItems={navigationItems}
         accountBackState={accountBackState}
         onLogout={() => {
           logoutMutation.mutate()
@@ -57,7 +63,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
-      <BottomNavigation />
+      <BottomNavigation navigationItems={navigationItems} />
       <ScrollRestoration
         getKey={(scrollLocation) =>
           getScrollRestorationKey(scrollLocation.pathname, scrollLocation.key)
@@ -145,7 +151,6 @@ function getPageChrome(pathname: string): PageChrome {
     return {
       title: "Администрирование",
       description: "Зарегистрированные пользователи и их активность",
-      backTo: "/profile",
     }
   }
 
@@ -213,11 +218,17 @@ function AppTopBar({
 
 interface DesktopSidebarProps {
   displayName: string
+  navigationItems: NavigationItem[]
   accountBackState?: unknown
   onLogout: () => void
 }
 
-function DesktopSidebar({ displayName, accountBackState, onLogout }: DesktopSidebarProps) {
+function DesktopSidebar({
+  displayName,
+  navigationItems,
+  accountBackState,
+  onLogout,
+}: DesktopSidebarProps) {
   return (
     <aside className="bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r md:flex">
       <NavLink
@@ -240,7 +251,7 @@ function DesktopSidebar({ displayName, accountBackState, onLogout }: DesktopSide
       </NavLink>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {workspaceNavigation.map((item) => (
+        {navigationItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -269,8 +280,8 @@ function DesktopSidebar({ displayName, accountBackState, onLogout }: DesktopSide
   )
 }
 
-function BottomNavigation() {
-  const navigationColumnCount = String(workspaceNavigation.length)
+function BottomNavigation({ navigationItems }: { navigationItems: NavigationItem[] }) {
+  const navigationColumnCount = String(navigationItems.length)
 
   return (
     <nav className="bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
@@ -278,7 +289,7 @@ function BottomNavigation() {
         className="mx-auto grid h-16 max-w-sm"
         style={{ gridTemplateColumns: `repeat(${navigationColumnCount}, minmax(0, 1fr))` }}
       >
-        {workspaceNavigation.map((item) => (
+        {navigationItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

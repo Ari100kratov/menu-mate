@@ -45,3 +45,11 @@ export function writePersistentString(storageKey: string, value: string) {
     // Отсутствие localStorage не должно блокировать переход между разделами.
   }
 }
+
+export function removePersistentValue(storageKey: string) {
+  try {
+    window.localStorage.removeItem(storageKey)
+  } catch {
+    // Отсутствие localStorage не должно блокировать переход между разделами.
+  }
+}

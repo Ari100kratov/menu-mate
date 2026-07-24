@@ -108,7 +108,7 @@ export function RecipeFiltersSection({
           )}
           <Input
             type="search"
-            className="bg-card h-11 rounded-xl pl-9"
+            className="bg-card h-11 rounded-xl pr-10 pl-9 [&::-webkit-search-cancel-button]:appearance-none"
             value={search}
             placeholder="Название или описание"
             aria-label="Поиск по названию и описанию рецепта"
@@ -118,6 +118,21 @@ export function RecipeFiltersSection({
               onSearchChange(event.target.value)
             }}
           />
+          {search ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="absolute top-1/2 right-1 -translate-y-1/2 rounded-lg"
+              aria-label="Очистить поиск"
+              title="Очистить поиск"
+              onClick={() => {
+                onSearchChange("")
+              }}
+            >
+              <X />
+            </Button>
+          ) : null}
         </div>
         <Button
           type="button"

@@ -1,4 +1,4 @@
-import { LoaderCircle, Plus, Settings2, Utensils } from "lucide-react"
+import { Plus, Settings2, Utensils } from "lucide-react"
 
 import type {
   MealSlot,
@@ -20,7 +20,6 @@ interface MenuCalendarViewProps {
   items: readonly MenuCalendarItem[]
   isPlacementMode: boolean
   isPending: boolean
-  isItemsLoading: boolean
   onEditMealSlots: () => void
   onAdd: (date: string, mealSlotId: string) => void
   onUpdate: (itemId: string, request: UpdateMenuCalendarItemRequest) => void
@@ -33,7 +32,6 @@ export function MenuCalendarView({
   items,
   isPlacementMode,
   isPending,
-  isItemsLoading,
   onEditMealSlots,
   onAdd,
   onUpdate,
@@ -57,12 +55,6 @@ export function MenuCalendarView({
 
   return (
     <section className="space-y-3">
-      {isItemsLoading ? (
-        <div className="type-supporting text-muted-foreground flex items-center justify-end gap-2 px-1">
-          <LoaderCircle className="size-4 animate-spin" />
-          Обновляем блюда
-        </div>
-      ) : null}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {getRangeDates(range).map((date) => (
           <article

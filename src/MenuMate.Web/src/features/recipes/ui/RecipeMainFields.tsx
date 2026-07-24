@@ -15,15 +15,17 @@ import { Textarea } from "@/shared/ui/textarea"
 
 interface RecipeMainFieldsProps {
   form: RecipeFormApi
+  showValidationErrors: boolean
 }
 
-export function RecipeMainFields({ form }: RecipeMainFieldsProps) {
+export function RecipeMainFields({ form, showValidationErrors }: RecipeMainFieldsProps) {
   return (
     <PageSection title="О рецепте" className="rounded-none border-0 border-b p-4 md:p-6">
       <FieldGroup className="grid gap-4 md:grid-cols-2">
         <form.Field name="title">
           {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            const isInvalid =
+              (showValidationErrors || field.state.meta.isTouched) && !field.state.meta.isValid
 
             return (
               <Field className="md:col-span-2" data-invalid={isInvalid}>
@@ -103,7 +105,8 @@ export function RecipeMainFields({ form }: RecipeMainFieldsProps) {
 
         <form.Field name="servings">
           {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            const isInvalid =
+              (showValidationErrors || field.state.meta.isTouched) && !field.state.meta.isValid
             const servings = Number(field.state.value)
 
             return (
@@ -163,12 +166,14 @@ export function RecipeMainFields({ form }: RecipeMainFieldsProps) {
               name="totalTimeMinutes"
               label="Общее время"
               hint="до подачи"
+              showValidationErrors={showValidationErrors}
             />
             <RecipeDurationField
               form={form}
               name="activeTimeMinutes"
               label="Активное время"
               hint="ваша работа"
+              showValidationErrors={showValidationErrors}
             />
           </div>
         </div>

@@ -35,6 +35,7 @@ export function RecipeIngredientsFields({
               title="Ингредиенты"
               description="Добавляйте продукты по одному. Категория каталога подставится автоматически."
               className="rounded-none border-0 border-b p-4 md:p-6"
+              data-recipe-form-field="ingredients"
             >
               <FieldError errors={field.state.meta.errors} />
 
@@ -137,6 +138,7 @@ function IngredientRow({
     <div
       className="data-[invalid=true]:border-destructive/70 data-[invalid=true]:bg-destructive/5 flex min-h-16 items-center gap-3 rounded-lg border px-3 py-2"
       data-invalid={isInvalid}
+      data-recipe-form-field={`ingredients[${String(index)}]`}
       tabIndex={isInvalid ? -1 : undefined}
       aria-label={isInvalid ? `Ингредиент ${String(index + 1)}: ${errorMessages[0]}` : undefined}
     >

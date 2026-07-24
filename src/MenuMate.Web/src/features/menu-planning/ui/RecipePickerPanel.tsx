@@ -8,6 +8,7 @@ import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-opt
 import { useRecipeListFilterState } from "@/features/recipes/model/recipe-list-filter-state"
 import { RecipeFiltersSection } from "@/features/recipes/ui/RecipeFiltersSection"
 import { RecipeInfiniteScrollStatus } from "@/features/recipes/ui/RecipeInfiniteScrollStatus"
+import { RecipeImage } from "@/features/recipes/ui/RecipeImage"
 import { useDebouncedValue } from "@/shared/lib/use-debounced-value"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
@@ -120,17 +121,18 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
               })
             }}
           >
-            <span className="bg-muted flex size-16 overflow-hidden rounded-lg">
-              {recipe.coverImage?.readUrl ? (
-                <img
-                  src={recipe.coverImage.readUrl}
-                  alt={recipe.coverImage.altText ?? recipe.title}
-                  className="size-full object-cover"
-                />
-              ) : (
+            {recipe.coverImage?.readUrl ? (
+              <RecipeImage
+                frameClassName="size-16 shrink-0 rounded-lg"
+                imageClassName="object-cover"
+                src={recipe.coverImage.readUrl}
+                alt={recipe.coverImage.altText ?? recipe.title}
+              />
+            ) : (
+              <span className="bg-muted flex size-16 shrink-0 overflow-hidden rounded-lg">
                 <ImageIcon className="text-muted-foreground m-auto size-5" />
-              )}
-            </span>
+              </span>
+            )}
             <span className="min-w-0">
               <span className="type-label block truncate">{recipe.title}</span>
               <span className="type-supporting text-muted-foreground block truncate">

@@ -69,15 +69,14 @@ export function RecipeForm({
       return
     }
 
+    const firstInvalidPath = validationResult.error.issues[0]?.path
     await form.validate("submit")
     setShowValidationErrors(true)
     toast.error("Проверьте корректность заполненных данных.")
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const invalidElement = formElementRef.current?.querySelector<HTMLElement>(
-          '[aria-invalid="true"], [data-invalid="true"]',
-        )
+        const invalidElement = getValidationTarget(formElementRef.current, firstInvalidPath)
 
         invalidElement?.scrollIntoView({ behavior: "smooth", block: "center" })
         const focusTarget = invalidElement?.matches("input, textarea, button, [tabindex]")
@@ -142,10 +141,10 @@ export function RecipeForm({
           isGenerating={isGeneratingCover}
           suggestedCover={suggestedCover}
         />
-        <RecipeMainFields form={form} />
+        <RecipeMainFields form={form} showValidationErrors={showValidationErrors} />
         <RecipeIngredientsFields form={form} showValidationErrors={showValidationErrors} />
-        <RecipeStepsFields form={form} />
-        <RecipeAdditionalFields form={form} />
+        <RecipeStepsFields form={form} showValidationErrors={showValidationErrors} />
+        <RecipeAdditionalFields form={form} showValidationErrors={showValidationErrors} />
       </div>
 
       <div className="bg-background/95 sticky bottom-18 z-30 -mx-4 mt-3 border-y px-4 py-2.5 backdrop-blur md:bottom-0 md:mx-0 md:mt-4 md:flex md:justify-end md:rounded-xl md:border md:p-3">
@@ -156,6 +155,68 @@ export function RecipeForm({
       </div>
     </form>
   )
+}
+
+function getValidationTarget(
+  formElement: HTMLFormElement | null,
+  path: readonly PropertyKey[] | undefined,
+) {
+  if (!formElement) {
+    return undefined
+  }
+
+  const fieldName = getFieldName(path)
+  const namedElement = fieldName
+    ? [...formElement.querySelectorAll<HTMLElement>("[name]")].find(
+        (element) => element.getAttribute("name") === fieldName,
+      )
+    : undefined
+  const fieldMarker = fieldName
+    ? [...formElement.querySelectorAll<HTMLElement>("[data-recipe-form-field]")].reduce<
+        HTMLElement | undefined
+      >((closestMarker, element) => {
+        const markerName = element.dataset.recipeFormField
+        const isMatchingField =
+          markerName &&
+          (fieldName === markerName ||
+            fieldName.startsWith(`${markerName}.`) ||
+            fieldName.startsWith(`${markerName}[`))
+
+        if (!isMatchingField) {
+          return closestMarker
+        }
+
+        return !closestMarker ||
+          markerName.length > (closestMarker.dataset.recipeFormField?.length ?? 0)
+          ? element
+          : closestMarker
+      }, undefined)
+    : undefined
+  const target =
+    namedElement ??
+    fieldMarker ??
+    formElement.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')
+
+  target?.closest("details")?.setAttribute("open", "")
+  return target
+}
+
+function getFieldName(path: readonly PropertyKey[] | undefined): string {
+  if (!path?.length) {
+    return ""
+  }
+
+  return path.reduce<string>((fieldName, segment) => {
+    if (typeof segment === "number") {
+      return `${fieldName}[${String(segment)}]`
+    }
+
+    if (typeof segment !== "string") {
+      return fieldName
+    }
+
+    return fieldName ? `${fieldName}.${segment}` : segment
+  }, "")
 }
 
 function RecipeFormChangeObserver({

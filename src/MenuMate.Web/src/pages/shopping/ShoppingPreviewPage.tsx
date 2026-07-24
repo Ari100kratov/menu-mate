@@ -8,6 +8,7 @@ import {
   useReplaceShoppingListFromMenuMutation,
   useShoppingListQuery,
 } from "@/features/shopping-lists/api/shopping-lists.queries"
+import { clearCollapsedShoppingCategories } from "@/features/shopping-lists/model/shopping-category-collapse-state"
 import { ShoppingPreviewSkeleton } from "@/features/shopping-lists/ui/ShoppingSkeletons"
 import {
   AlertDialog,
@@ -69,6 +70,7 @@ export default function ShoppingPreviewPage() {
       },
       {
         onSuccess: () => {
+          clearCollapsedShoppingCategories()
           toast.success("Список покупок заменен")
           void navigate("/shopping")
         },

@@ -7,13 +7,21 @@ interface RecipeDurationFieldProps {
   name: "totalTimeMinutes" | "activeTimeMinutes"
   label: string
   hint: string
+  showValidationErrors: boolean
 }
 
-export function RecipeDurationField({ form, name, label, hint }: RecipeDurationFieldProps) {
+export function RecipeDurationField({
+  form,
+  name,
+  label,
+  hint,
+  showValidationErrors,
+}: RecipeDurationFieldProps) {
   return (
     <form.Field name={name}>
       {(field) => {
-        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+        const isInvalid =
+          (showValidationErrors || field.state.meta.isTouched) && !field.state.meta.isValid
         const totalMinutes = Number(field.state.value || 0)
         const hours = field.state.value ? String(Math.floor(totalMinutes / 60)) : ""
         const minutes = field.state.value ? String(totalMinutes % 60) : ""
@@ -26,7 +34,7 @@ export function RecipeDurationField({ form, name, label, hint }: RecipeDurationF
         }
 
         return (
-          <Field data-invalid={isInvalid}>
+          <Field data-invalid={isInvalid} data-recipe-form-field={name}>
             <div className="flex items-baseline justify-between gap-3">
               <FieldLabel>{label}</FieldLabel>
               <span className="type-supporting text-muted-foreground">{hint}</span>

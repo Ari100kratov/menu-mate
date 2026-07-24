@@ -1,5 +1,5 @@
 import { AlertTriangle, Clock3, Heart, ImageIcon, RefreshCw, Timer, Users } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
@@ -15,11 +15,22 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: RecipeCardProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const backNavigationState = createBackNavigationState(location)
   const detailsUrl = getRevisionUrl(recipe.id, recipe.revisionId)
 
   return (
-    <article className="bg-card group hover:border-primary/30 relative grid min-h-28 grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:min-h-32 sm:grid-cols-[8rem_minmax(0,1fr)]">
+    <article
+      className="bg-card group hover:border-primary/30 relative grid min-h-28 cursor-pointer grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md sm:min-h-32 sm:grid-cols-[8rem_minmax(0,1fr)]"
+      onClick={(event) => {
+        const target = event.target
+        if (target instanceof Element && target.closest("a, button")) {
+          return
+        }
+
+        void navigate(detailsUrl, { state: backNavigationState })
+      }}
+    >
       <Link
         to={detailsUrl}
         state={backNavigationState}

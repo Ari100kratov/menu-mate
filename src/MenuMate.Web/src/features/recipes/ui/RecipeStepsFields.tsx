@@ -10,9 +10,10 @@ import { PageSection } from "@/shared/ui/page"
 
 interface RecipeStepsFieldsProps {
   form: RecipeFormApi
+  showValidationErrors: boolean
 }
 
-export function RecipeStepsFields({ form }: RecipeStepsFieldsProps) {
+export function RecipeStepsFields({ form, showValidationErrors }: RecipeStepsFieldsProps) {
   return (
     <form.Field name="steps" mode="array">
       {(field) => {
@@ -24,6 +25,7 @@ export function RecipeStepsFields({ form }: RecipeStepsFieldsProps) {
           <PageSection
             title="Шаги приготовления"
             className="rounded-none border-0 border-b p-4 md:p-6"
+            data-recipe-form-field="steps"
           >
             <FieldError errors={field.state.meta.errors} />
 
@@ -34,6 +36,7 @@ export function RecipeStepsFields({ form }: RecipeStepsFieldsProps) {
                   form={form}
                   index={index}
                   canRemove={field.state.value.length > 1}
+                  showValidationErrors={showValidationErrors}
                   onRemove={() => {
                     field.removeValue(index)
                   }}
@@ -61,11 +64,13 @@ function RecipeStepCard({
   form,
   index,
   canRemove,
+  showValidationErrors,
   onRemove,
 }: {
   form: RecipeFormApi
   index: number
   canRemove: boolean
+  showValidationErrors: boolean
   onRemove: () => void
 }) {
   return (
@@ -76,7 +81,9 @@ function RecipeStepCard({
 
       <form.Field name={stepFieldName(index, "text")}>
         {(stepField) => {
-          const isInvalid = stepField.state.meta.isTouched && !stepField.state.meta.isValid
+          const isInvalid =
+            (showValidationErrors || stepField.state.meta.isTouched) &&
+            !stepField.state.meta.isValid
 
           return (
             <Field data-invalid={isInvalid}>

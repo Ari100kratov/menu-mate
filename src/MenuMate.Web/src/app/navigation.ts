@@ -1,4 +1,11 @@
-import { BookOpen, CalendarDays, ClipboardList, UserRound, type LucideIcon } from "lucide-react"
+import {
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  ShieldCheck,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react"
 
 import { readPersistentString, writePersistentString } from "@/shared/lib/persistent-state"
 
@@ -30,6 +37,18 @@ export const accountNavigationItem: NavigationItem = {
   title: "Профиль",
   path: "/profile",
   icon: UserRound,
+}
+
+export const administratorNavigationItem: NavigationItem = {
+  title: "Админ",
+  path: "/admin",
+  icon: ShieldCheck,
+}
+
+export function getWorkspaceNavigation(isAdministrator: boolean) {
+  return isAdministrator
+    ? [...workspaceNavigation, administratorNavigationItem]
+    : workspaceNavigation
 }
 
 const lastWorkspaceSectionStorageKey = "menumate:navigation:last-section:v1"
