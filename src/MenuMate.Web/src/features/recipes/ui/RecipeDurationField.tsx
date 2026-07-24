@@ -6,7 +6,7 @@ interface RecipeDurationFieldProps {
   form: RecipeFormApi
   name: "totalTimeMinutes" | "activeTimeMinutes"
   label: string
-  hint: string
+  hint?: string
   showValidationErrors: boolean
 }
 
@@ -37,7 +37,7 @@ export function RecipeDurationField({
           <Field data-invalid={isInvalid} data-recipe-form-field={name}>
             <div className="flex items-baseline justify-between gap-3">
               <FieldLabel>{label}</FieldLabel>
-              <span className="type-supporting text-muted-foreground">{hint}</span>
+              {hint ? <span className="type-supporting text-muted-foreground">{hint}</span> : null}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label
