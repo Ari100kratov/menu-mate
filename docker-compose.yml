@@ -47,7 +47,7 @@ services:
       Minio__PublicUseSsl: ${MINIO_PUBLIC_USE_SSL:-true}
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
-      OpenAI__Model: ${OPENAI_MODEL:-gpt-5.4-mini}
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-5.6-luna}
       OpenAI__ImageModel: ${OPENAI_IMAGE_MODEL:-gpt-image-1-mini}
       RecipeImports__DraftRetentionDays: ${RECIPE_IMPORT_DRAFT_RETENTION_DAYS:-7}
       RecipeImports__CleanupIntervalMinutes: ${RECIPE_IMPORT_CLEANUP_INTERVAL_MINUTES:-60}

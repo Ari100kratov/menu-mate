@@ -63,7 +63,7 @@ public static class RecipeImportsInfrastructureDependencyInjection
         {
             ApiKey = ResolveApiKey(configuration),
             BaseUrl = ResolveBaseUrl(configuration),
-            Model = configuration["OpenAI:Model"] ?? "gpt-5.4-mini"
+            Model = configuration["OpenAI:Model"] ?? "gpt-5.6-luna"
         };
 
     private static OpenAiRecipeCoverImageGeneratorOptions CreateImageOptions(IConfiguration configuration) =>

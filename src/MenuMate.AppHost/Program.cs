@@ -53,7 +53,7 @@ IResourceBuilder<ProjectResource> api = builder.AddProject<Projects.MenuMate_Api
     .WithEnvironment("Minio__PublicUseSsl", "false")
     .WithEnvironment("OpenAI__ApiKey", ResolveOpenAiApiKey(builder.Configuration))
     .WithEnvironment("OpenAI__BaseUrl", ResolveOpenAiBaseUrl(builder.Configuration))
-    .WithEnvironment("OpenAI__Model", builder.Configuration["OpenAI:Model"] ?? "gpt-5.4-mini")
+    .WithEnvironment("OpenAI__Model", builder.Configuration["OpenAI:Model"] ?? "gpt-5.6-luna")
     .WithEnvironment("OpenAI__ImageModel", builder.Configuration["OpenAI:ImageModel"] ?? "gpt-image-1-mini")
     .WithEnvironment("RecipeImports__DraftRetentionDays", builder.Configuration["RecipeImports:DraftRetentionDays"] ?? "7")
     .WithEnvironment("RecipeImports__CleanupIntervalMinutes", builder.Configuration["RecipeImports:CleanupIntervalMinutes"] ?? "60")

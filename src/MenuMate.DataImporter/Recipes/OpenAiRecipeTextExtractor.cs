@@ -65,7 +65,7 @@ internal sealed class OpenAiRecipeTextExtractor(ResponsesClient client, IConfigu
             return null;
         }
 
-        string model = configuration["OpenAI:Model"] ?? "gpt-5.4-mini";
+        string model = configuration["OpenAI:Model"] ?? "gpt-5.6-luna";
         CreateResponseOptions request = new(
             model,
             [

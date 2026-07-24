@@ -67,6 +67,44 @@ public sealed class RecipeImportTextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeShouldKeepEggGradesAsDistinctProducts()
+    {
+        CreateRecipeRequest recipe = CreateRecipe(
+        [
+            new(null, "Куриное яйцо", 2m, "Piece", "Other", null, false),
+            new(null, "Куриное яйцо", 3m, "Piece", "Other", null, false)
+        ]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(
+            recipe,
+            ["Яйца C0 — 2 шт.", "Яйца C1 — 3 шт."]);
+
+        Assert.Collection(
+            normalized.Ingredients,
+            ingredient =>
+            {
+                Assert.Equal("куриное яйцо c0", ingredient.ProductName);
+                Assert.Equal("Eggs", ingredient.Category);
+            },
+            ingredient =>
+            {
+                Assert.Equal("куриное яйцо c1", ingredient.ProductName);
+                Assert.Equal("Eggs", ingredient.Category);
+            });
+    }
+
+    [Fact]
+    public void NormalizeShouldPreserveComponentCommentForIngredient()
+    {
+        CreateRecipeRequest recipe = CreateRecipe(
+            [new(null, "Лук", 1m, "Piece", "Produce", "для соуса", false)]);
+
+        CreateRecipeRequest normalized = RecipeImportTextNormalizer.Normalize(recipe, ["Лук — 1 шт."]);
+
+        Assert.Equal("для соуса", Assert.Single(normalized.Ingredients).Comment);
+    }
+
+    [Fact]
     public void NormalizeShouldSetToTasteWhenIngredientAmountIsMissing()
     {
         var recipe = new CreateRecipeRequest(

@@ -6,5 +6,5 @@ internal sealed class OpenAiRecipeImageExtractorOptions
 
     public string? BaseUrl { get; init; }
 
-    public string Model { get; init; } = "gpt-5.4-mini";
+    public string Model { get; init; } = "gpt-5.6-luna";
 }

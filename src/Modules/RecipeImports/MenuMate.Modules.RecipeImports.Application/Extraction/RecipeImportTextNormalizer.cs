@@ -97,6 +97,7 @@ public static partial class RecipeImportTextNormalizer
         };
 
         normalizedIngredient = NormalizeProductCharacteristic(normalizedIngredient, sourceText);
+        normalizedIngredient = NormalizeEggGrade(normalizedIngredient, sourceText);
 
         RecipeSourceQuantity? sourceQuantity = RecipeMeasurementUnitVocabulary.ParseQuantity(sourceText);
         sourceQuantity ??= normalizedIngredient.Amount is null
@@ -178,6 +179,33 @@ public static partial class RecipeImportTextNormalizer
         {
             ProductName = ProductNameNormalizer.Normalize(productName),
             Comment = comment
+        };
+    }
+
+    private static RecipeIngredientRequest NormalizeEggGrade(
+        RecipeIngredientRequest ingredient,
+        string? sourceText)
+    {
+        string evidence = $"{ingredient.ProductName} {sourceText}";
+        if (!EggNameRegex().IsMatch(evidence))
+        {
+            return ingredient;
+        }
+
+        Match grade = EggGradeRegex().Match(evidence);
+        if (!grade.Success)
+        {
+            return ingredient;
+        }
+
+        string productName = EggGradeRegex().IsMatch(ingredient.ProductName)
+            ? ingredient.ProductName
+            : $"{ingredient.ProductName} {grade.Groups["grade"].Value}";
+
+        return ingredient with
+        {
+            ProductName = ProductNameNormalizer.Normalize(productName),
+            Category = "Eggs"
         };
     }
 
@@ -268,6 +296,12 @@ public static partial class RecipeImportTextNormalizer
         @"(?:жирност(?:ь|и|ью)\s*)?\d+(?:[.,]\d+)?\s*%",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PercentageCharacteristicRegex();
+
+    [GeneratedRegex(@"яйц", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex EggNameRegex();
+
+    [GeneratedRegex(@"\b(?<grade>[cс][0-3вoо])\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex EggGradeRegex();
 
     [GeneratedRegex(
         @"^\s*\d+(?:[.,]\d+)?\s*[-–—]\s*\d+(?:[.,]\d+)?(?:\s*[\p{L}.]+(?:\s*[\p{L}.]+)*)?\s*$",
