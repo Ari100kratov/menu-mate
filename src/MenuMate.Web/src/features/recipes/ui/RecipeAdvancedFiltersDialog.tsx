@@ -60,9 +60,7 @@ export function RecipeAdvancedFiltersDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Расширенные фильтры</DialogTitle>
-          <DialogDescription>
-            Настройте условия и примените их к списку рецептов.
-          </DialogDescription>
+          <DialogDescription>Настройте условия и примените их к списку рецептов.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 overflow-y-auto px-5 pb-1">
