@@ -14,9 +14,9 @@ internal sealed class GetRecipesQueryHandler(
     IUserContext userContext,
     RecipeImageReadUrlService imageReadUrlService,
     ITagCatalog tagCatalog)
-    : IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>>
+    : IQueryHandler<GetRecipesQuery, RecipeListPageResponse>
 {
-    public async Task<Result<IReadOnlyCollection<RecipeListItemResponse>>> Handle(
+    public async Task<Result<RecipeListPageResponse>> Handle(
         GetRecipesQuery query,
         CancellationToken cancellationToken)
     {
@@ -27,14 +27,14 @@ internal sealed class GetRecipesQueryHandler(
             Enum.IsDefined(parsedCategory);
         if (hasCategory && !hasValidCategory)
         {
-            return Result.Success<IReadOnlyCollection<RecipeListItemResponse>>([]);
+            return Result.Success(new RecipeListPageResponse([], 0));
         }
 
         RecipeCategory? category = hasValidCategory ? parsedCategory : null;
         int page = Math.Clamp(query.Page, 1, 100_000);
         int pageSize = Math.Clamp(query.PageSize, 1, 50);
 
-        IReadOnlyCollection<RecipeListItemReadModel> readModels = await dbContext.GetRecipesAsync(
+        RecipeListPageReadModel readPage = await dbContext.GetRecipesAsync(
             userContext.UserId,
             catalog,
             query.Search,
@@ -42,13 +42,15 @@ internal sealed class GetRecipesQueryHandler(
             category,
             query.FavoritesOnly,
             query.AvailableOnly,
+            query.Sort,
+            query.Ownership,
             (page - 1) * pageSize,
             pageSize,
             cancellationToken);
         IReadOnlyDictionary<Guid, string> tagNames = await tagCatalog.GetNamesAsync(
-            readModels.SelectMany(recipe => recipe.TagIds).Distinct().ToArray(),
+            readPage.Items.SelectMany(recipe => recipe.TagIds).Distinct().ToArray(),
             cancellationToken);
-        IReadOnlyCollection<RecipeListItemResponse> recipes = readModels
+        IReadOnlyCollection<RecipeListItemResponse> recipes = readPage.Items
             .Select(recipe => recipe.Response with
             {
                 Tags = recipe.TagIds
@@ -64,11 +66,11 @@ internal sealed class GetRecipesQueryHandler(
             IReadOnlyCollection<RecipeListItemResponse> recipesWithCovers =
                 await AddCoverReadUrlsAsync(recipes);
 
-            return Result.Success(recipesWithCovers);
+            return Result.Success(new RecipeListPageResponse(recipesWithCovers, readPage.TotalCount));
         }
         catch (ObjectStorageException exception)
         {
-            return Result.Failure<IReadOnlyCollection<RecipeListItemResponse>>(
+            return Result.Failure<RecipeListPageResponse>(
                 RecipeApplicationErrors.ImageStorageFailed(exception.Message));
         }
     }

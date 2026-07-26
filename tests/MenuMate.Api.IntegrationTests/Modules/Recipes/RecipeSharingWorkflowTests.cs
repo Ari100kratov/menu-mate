@@ -33,19 +33,27 @@ public sealed class RecipeSharingWorkflowTests : IAsyncLifetime, IDisposable
         Assert.NotNull(visible);
         Assert.False(visible.IsOwnedByCurrentUser);
         Assert.False(visible.IsFavorite);
+        Assert.Equal(0, visible.FavoriteCount);
 
         HttpResponseMessage saveResponse = await readerHttpClient.PostAsync(
             RelativeUri($"/api/recipes/{original.Id}/favorite?revisionId={original.RevisionId}"),
             content: null);
         saveResponse.EnsureSuccessStatusCode();
 
-        RecipeListItemResponse[]? library = await readerHttpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? library = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?scope=library");
         Assert.NotNull(library);
-        RecipeListItemResponse saved = Assert.Single(library);
+        RecipeListItemResponse saved = Assert.Single(library.Items);
         Assert.Equal(original.Id, saved.Id);
         Assert.True(saved.IsFavorite);
+        Assert.Equal(1, saved.FavoriteCount);
         Assert.Equal(original.RevisionId, saved.RevisionId);
+        Assert.Equal(1, library.TotalCount);
+
+        RecipeResponse? savedDetails = await readerHttpClient.GetFromJsonAsync<RecipeResponse>(
+            $"/api/recipes/{original.Id}");
+        Assert.NotNull(savedDetails);
+        Assert.Equal(1, savedDetails.FavoriteCount);
 
         HttpResponseMessage copyResponse = await readerHttpClient.PostAsJsonAsync(
             $"/api/recipes/{original.Id}/copy",
@@ -67,6 +75,51 @@ public sealed class RecipeSharingWorkflowTests : IAsyncLifetime, IDisposable
             editOriginalResponse,
             HttpStatusCode.Forbidden,
             "Recipes.AccessDenied");
+    }
+
+    [Fact]
+    public async Task CatalogShouldFilterByOwnershipAndSortByPopularity()
+    {
+        using HttpClient ownerHttpClient = _factory.CreateClient();
+        using HttpClient readerHttpClient = _factory.CreateClient();
+        var owner = new ApiTestClient(ownerHttpClient);
+        var reader = new ApiTestClient(readerHttpClient);
+        await owner.RegisterAsync(TestEmail.Create("catalog-sort-owner"));
+        await reader.RegisterAsync(TestEmail.Create("catalog-sort-reader"));
+
+        RecipeResponse alphabetic = await CreateRecipeAsync(ownerHttpClient, "Alpha recipe", "Public");
+        RecipeResponse popular = await CreateRecipeAsync(ownerHttpClient, "Popular recipe", "Public");
+        RecipeResponse ownRecipe = await CreateRecipeAsync(readerHttpClient, "Reader recipe", "Public");
+
+        (await ownerHttpClient.PostAsync(RelativeUri($"/api/recipes/{popular.Id}/favorite"), null))
+            .EnsureSuccessStatusCode();
+        (await readerHttpClient.PostAsync(RelativeUri($"/api/recipes/{popular.Id}/favorite"), null))
+            .EnsureSuccessStatusCode();
+
+        RecipeListPageResponse? mine = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            "/api/recipes?scope=catalog&ownership=mine");
+        RecipeListPageResponse? others = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            "/api/recipes?scope=catalog&ownership=others");
+        RecipeListPageResponse? favorites = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            "/api/recipes?scope=catalog&ownership=others&favoritesOnly=true");
+        RecipeListPageResponse? sorted = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            "/api/recipes?scope=catalog&sort=popular");
+
+        Assert.NotNull(mine);
+        Assert.NotNull(others);
+        Assert.NotNull(favorites);
+        Assert.NotNull(sorted);
+        Assert.Equal(ownRecipe.Id, Assert.Single(mine.Items).Id);
+        Assert.Equal(2, others.Items.Count);
+        Assert.Contains(others.Items, recipe => recipe.Id == alphabetic.Id);
+        Assert.Contains(others.Items, recipe => recipe.Id == popular.Id);
+        Assert.Equal(popular.Id, Assert.Single(favorites.Items).Id);
+        Assert.Equal(popular.Id, sorted.Items.First().Id);
+        Assert.Equal(2, sorted.Items.First().FavoriteCount);
+        Assert.Equal(1, mine.TotalCount);
+        Assert.Equal(2, others.TotalCount);
+        Assert.Equal(1, favorites.TotalCount);
+        Assert.Equal(3, sorted.TotalCount);
     }
 
     [Fact]
@@ -117,10 +170,10 @@ public sealed class RecipeSharingWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal(current.RevisionId, savedRevision.CurrentRevisionId);
         Assert.True(savedRevision.IsDisplayedRevisionSaved);
 
-        RecipeListItemResponse[]? library = await readerHttpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? library = await readerHttpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?scope=library");
         Assert.NotNull(library);
-        RecipeListItemResponse savedCard = Assert.Single(library);
+        RecipeListItemResponse savedCard = Assert.Single(library.Items);
         Assert.Equal(original.RevisionId, savedCard.RevisionId);
         Assert.Equal("UpdateAvailable", savedCard.RevisionState);
 

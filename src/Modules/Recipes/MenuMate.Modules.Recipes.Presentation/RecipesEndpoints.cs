@@ -34,7 +34,7 @@ public static class RecipesEndpoints
 
         group.MapGet("/", GetRecipesAsync)
             .WithName("GetRecipes")
-            .Produces<IReadOnlyCollection<RecipeListItemResponse>>();
+            .Produces<RecipeListPageResponse>();
 
         group.MapGet("/{recipeId:guid}", GetRecipeByIdAsync)
             .WithName("GetRecipeById")
@@ -106,13 +106,29 @@ public static class RecipesEndpoints
         string? category,
         bool? favoritesOnly,
         bool? availableOnly,
+        string? sort,
+        string? ownership,
         int? page,
         int? pageSize,
-        IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>> handler,
+        IQueryHandler<GetRecipesQuery, RecipeListPageResponse> handler,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        Result<IReadOnlyCollection<RecipeListItemResponse>> result = await handler.Handle(
+        if (!TryParseListSort(sort, out RecipeListSort parsedSort))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Недопустимый порядок сортировки рецептов.");
+        }
+
+        if (!TryParseOwnershipFilter(ownership, out RecipeOwnershipFilter parsedOwnership))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Недопустимый фильтр принадлежности рецептов.");
+        }
+
+        Result<RecipeListPageResponse> result = await handler.Handle(
             new GetRecipesQuery(
                 scope ?? "library",
                 search,
@@ -120,11 +136,35 @@ public static class RecipesEndpoints
                 category,
                 favoritesOnly ?? false,
                 availableOnly ?? false,
+                parsedSort,
+                parsedOwnership,
                 page ?? 1,
                 pageSize ?? 20),
             cancellationToken);
 
         return result.ToHttpResult(httpContext);
+    }
+
+    private static bool TryParseListSort(string? value, out RecipeListSort sort)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            sort = RecipeListSort.Alphabetical;
+            return true;
+        }
+
+        return Enum.TryParse(value, ignoreCase: true, out sort) && Enum.IsDefined(sort);
+    }
+
+    private static bool TryParseOwnershipFilter(string? value, out RecipeOwnershipFilter ownership)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ownership = RecipeOwnershipFilter.All;
+            return true;
+        }
+
+        return Enum.TryParse(value, ignoreCase: true, out ownership) && Enum.IsDefined(ownership);
     }
 
     private static async Task<IResult> GetRecipeByIdAsync(

@@ -24,11 +24,17 @@ export default function RecipesPage() {
     category,
     selectedTags,
     favoritesOnly,
+    sort,
+    ownership,
+    showTagsInMain,
     setScope,
     setSearch,
     setCategory,
     setTags,
     setFavoritesOnly,
+    setSort,
+    setOwnership,
+    setShowTagsInMain,
     resetActiveFilters,
   } = useRecipeListFilterState("menumate:recipes:filters:v1")
   const debouncedSearch = useDebouncedValue(search, 350)
@@ -38,11 +44,14 @@ export default function RecipesPage() {
     category,
     tagIds: selectedTags.map((tag) => tag.id),
     favoritesOnly,
+    sort,
+    ownership,
   })
   const favoriteMutation = useSetRecipeFavoriteMutation()
-  const recipes = recipesQuery.data?.pages.flat() ?? []
+  const recipes = recipesQuery.data?.pages.flatMap((page) => page.items) ?? []
+  const totalCount = recipesQuery.data?.pages[0]?.totalCount
   const hasActiveFilters = Boolean(
-    search.trim() || category || selectedTags.length > 0 || favoritesOnly,
+    search.trim() || category || selectedTags.length > 0 || favoritesOnly || ownership !== "all",
   )
   const isSearchPending = search.trim() !== debouncedSearch.trim()
 
@@ -54,14 +63,20 @@ export default function RecipesPage() {
         category={category}
         selectedTags={selectedTags}
         favoritesOnly={favoritesOnly}
+        sort={sort}
+        ownership={ownership}
+        showTagsInMain={showTagsInMain}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
-        hasMoreRecipes={recipesQuery.hasNextPage}
+        totalCount={totalCount}
         isSearchPending={isSearchPending}
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
         onTagsChange={setTags}
         onFavoritesOnlyChange={setFavoritesOnly}
+        onSortChange={setSort}
+        onOwnershipChange={setOwnership}
+        onShowTagsInMainChange={setShowTagsInMain}
         onReset={resetActiveFilters}
       />
 

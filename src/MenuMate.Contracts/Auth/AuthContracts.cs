@@ -53,13 +53,15 @@ public sealed record AdminUsersPageResponse(
 /// <param name="RegisteredAt">Дата и время регистрации.</param>
 /// <param name="Roles">Назначенные роли.</param>
 /// <param name="RecipesCount">Количество активных рецептов пользователя.</param>
+/// <param name="FavoriteCount">Количество рецептов, добавленных пользователем в избранное.</param>
 public sealed record AdminUserListItemResponse(
     Guid Id,
     string Email,
     string DisplayName,
     DateTimeOffset RegisteredAt,
     IReadOnlyCollection<string> Roles,
-    int RecipesCount);
+    int RecipesCount,
+    int FavoriteCount);
 
 /// <summary>
 /// Ответ после регистрации.

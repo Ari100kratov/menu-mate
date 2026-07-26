@@ -27,11 +27,17 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
     category,
     selectedTags,
     favoritesOnly,
+    sort,
+    ownership,
+    showTagsInMain,
     setScope,
     setSearch,
     setCategory,
     setTags,
     setFavoritesOnly,
+    setSort,
+    setOwnership,
+    setShowTagsInMain,
     resetActiveFilters,
   } = useRecipeListFilterState("menumate:menu:recipe-picker-filters:v1")
   const debouncedSearch = useDebouncedValue(search, 350)
@@ -42,9 +48,12 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
     category,
     tagIds: selectedTags.map((tag) => tag.id),
     favoritesOnly,
+    sort,
+    ownership,
     availableOnly: true,
   })
-  const recipes = recipesQuery.data?.pages.flat() ?? []
+  const recipes = recipesQuery.data?.pages.flatMap((page) => page.items) ?? []
+  const totalCount = recipesQuery.data?.pages[0]?.totalCount
 
   return (
     <section className="mx-auto max-w-3xl space-y-4">
@@ -70,14 +79,20 @@ export function RecipePickerPanel({ onSelect, onAddText, onBack }: RecipePickerP
         category={category}
         selectedTags={selectedTags}
         favoritesOnly={favoritesOnly}
+        sort={sort}
+        ownership={ownership}
+        showTagsInMain={showTagsInMain}
         recipesCount={recipesQuery.data ? recipes.length : undefined}
-        hasMoreRecipes={recipesQuery.hasNextPage}
+        totalCount={totalCount}
         isSearchPending={search.trim() !== debouncedSearch.trim()}
         onScopeChange={setScope}
         onSearchChange={setSearch}
         onCategoryChange={setCategory}
         onTagsChange={setTags}
         onFavoritesOnlyChange={setFavoritesOnly}
+        onSortChange={setSort}
+        onOwnershipChange={setOwnership}
+        onShowTagsInMainChange={setShowTagsInMain}
         onReset={resetActiveFilters}
       />
 

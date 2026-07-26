@@ -1,4 +1,5 @@
 using MenuMate.Contracts.Recipes;
+using MenuMate.Modules.Recipes.Application.GetRecipes;
 using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.SharedKernel.Identifiers;
 
@@ -30,7 +31,7 @@ internal interface IRecipesReadDbContext
     /// <summary>
     /// Возвращает список рецептов владельца с базовой фильтрацией.
     /// </summary>
-    Task<IReadOnlyCollection<RecipeListItemReadModel>> GetRecipesAsync(
+    Task<RecipeListPageReadModel> GetRecipesAsync(
         UserId currentUserId,
         bool catalog,
         string? search,
@@ -38,6 +39,8 @@ internal interface IRecipesReadDbContext
         RecipeCategory? category,
         bool favoritesOnly,
         bool availableOnly,
+        RecipeListSort sort,
+        RecipeOwnershipFilter ownership,
         int skip,
         int take,
         CancellationToken cancellationToken);

@@ -34,4 +34,31 @@ internal sealed class RecipeUserStatisticsReader(RecipesDbContext dbContext) : I
             .Select(group => new { UserId = group.Key.Value, Count = group.Count() })
             .ToDictionaryAsync(item => item.UserId, item => item.Count, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<Guid, int>> GetFavoriteCountsByUserAsync(
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken)
+    {
+        UserId[] distinctUserIds = ToDistinctUserIds(userIds);
+        if (distinctUserIds.Length == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+
+        return await dbContext.RecipeLibraryEntries
+            .AsNoTracking()
+            .Where(entry => distinctUserIds.Contains(entry.UserId))
+            .GroupBy(entry => entry.UserId)
+            .Select(group => new { UserId = group.Key.Value, Count = group.Count() })
+            .ToDictionaryAsync(item => item.UserId, item => item.Count, cancellationToken);
+    }
+
+    private static UserId[] ToDistinctUserIds(IReadOnlyCollection<Guid> userIds) =>
+    [
+        .. userIds
+            .Where(userId => userId != Guid.Empty)
+            .Distinct()
+            .Select(UserId.From),
+    ];
 }

@@ -29,6 +29,10 @@ internal sealed class GetAdminUsersQueryHandler(
             await recipeStatisticsReader.GetActiveRecipeCountsByOwnerAsync(
                 usersPage.Users.Select(user => user.Id).ToArray(),
                 cancellationToken);
+        IReadOnlyDictionary<Guid, int> favoriteCounts =
+            await recipeStatisticsReader.GetFavoriteCountsByUserAsync(
+                usersPage.Users.Select(user => user.Id).ToArray(),
+                cancellationToken);
 
         var response = new AdminUsersPageResponse(
             usersPage.Users
@@ -38,7 +42,8 @@ internal sealed class GetAdminUsersQueryHandler(
                     user.DisplayName,
                     user.RegisteredAt,
                     user.Roles,
-                    recipeCounts.GetValueOrDefault(user.Id)))
+                    recipeCounts.GetValueOrDefault(user.Id),
+                    favoriteCounts.GetValueOrDefault(user.Id)))
                 .ToArray(),
             usersPage.TotalCount,
             page,

@@ -1,4 +1,4 @@
-import { CalendarPlus, Copy, Heart, Pencil, Trash2 } from "lucide-react"
+import { CalendarPlus, Copy, Pencil, Trash2 } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link, useLocation } from "react-router-dom"
 
@@ -17,6 +17,7 @@ import {
 } from "@/shared/ui/alert-dialog"
 import { Button } from "@/shared/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip"
+import { RecipeFavoriteButton } from "./RecipeFavoriteButton"
 
 interface RecipeDetailsActionsProps {
   recipe: Recipe
@@ -45,92 +46,93 @@ export function RecipeDetailsActions({
   const showCopy = !recipe.isOwnedByCurrentUser || sourceUnavailable || isHistorical
 
   return (
-    <div className="flex shrink-0 flex-wrap justify-end gap-1">
-      {!sourceUnavailable && !isHistorical ? (
-        <ActionTooltip label="Добавить в меню">
-          <Button asChild variant="ghost" size="icon">
-            <Link to={getMenuPlacementUrl(recipe)} aria-label="Добавить в меню">
-              <CalendarPlus className="size-4" />
-            </Link>
-          </Button>
-        </ActionTooltip>
-      ) : null}
+    <div className="flex w-full min-w-0 items-start gap-3">
+      <div className="flex min-w-0 flex-wrap gap-1">
+        {!sourceUnavailable && !isHistorical ? (
+          <ActionTooltip label="Добавить в меню">
+            <Button asChild variant="ghost" size="icon">
+              <Link to={getMenuPlacementUrl(recipe)} aria-label="Добавить в меню">
+                <CalendarPlus className="size-4" />
+              </Link>
+            </Button>
+          </ActionTooltip>
+        ) : null}
 
-      {recipe.isOwnedByCurrentUser && isCurrent ? (
-        <ActionTooltip label="Изменить рецепт">
-          <Button asChild variant="ghost" size="icon">
-            <Link
-              to={`/recipes/${recipe.id}/edit`}
-              state={createBackNavigationState(location)}
-              aria-label="Изменить рецепт"
+        {recipe.isOwnedByCurrentUser && isCurrent ? (
+          <ActionTooltip label="Изменить рецепт">
+            <Button asChild variant="ghost" size="icon">
+              <Link
+                to={`/recipes/${recipe.id}/edit`}
+                state={createBackNavigationState(location)}
+                aria-label="Изменить рецепт"
+              >
+                <Pencil className="size-4" />
+              </Link>
+            </Button>
+          </ActionTooltip>
+        ) : null}
+
+        {showCopy ? (
+          <ActionTooltip label="Создать свою копию">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Создать свою копию"
+              onClick={onCopy}
             >
-              <Pencil className="size-4" />
-            </Link>
-          </Button>
-        </ActionTooltip>
-      ) : null}
+              <Copy className="size-4" />
+            </Button>
+          </ActionTooltip>
+        ) : null}
+
+        {recipe.isOwnedByCurrentUser && isCurrent ? (
+          <AlertDialog>
+            <ActionTooltip label="Удалить рецепт">
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive"
+                  aria-label="Удалить рецепт"
+                  disabled={isDeletePending}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </AlertDialogTrigger>
+            </ActionTooltip>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Удалить рецепт?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  «{recipe.title}» будет скрыт. Пользователи, сохранившие точную версию в избранном
+                  или меню, смогут открыть ее только для копирования.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction disabled={isDeletePending} onClick={onDelete}>
+                  {isDeletePending ? "Удаляем..." : "Удалить рецепт"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : null}
+      </div>
 
       {showFavorite ? (
-        <ActionTooltip label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}
-            disabled={isFavoritePending}
-            onClick={onToggleFavorite}
-          >
-            <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
-          </Button>
-        </ActionTooltip>
-      ) : null}
-
-      {showCopy ? (
-        <ActionTooltip label="Создать свою копию">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Создать свою копию"
-            onClick={onCopy}
-          >
-            <Copy className="size-4" />
-          </Button>
-        </ActionTooltip>
-      ) : null}
-
-      {recipe.isOwnedByCurrentUser && isCurrent ? (
-        <AlertDialog>
-          <ActionTooltip label="Удалить рецепт">
-            <AlertDialogTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive"
-                aria-label="Удалить рецепт"
-                disabled={isDeletePending}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
+        <div className="ml-auto shrink-0">
+          <ActionTooltip label={recipe.isFavorite ? "Убрать из избранного" : "В избранное"}>
+            <RecipeFavoriteButton
+              isFavorite={recipe.isFavorite}
+              favoriteCount={recipe.favoriteCount}
+              disabled={isFavoritePending}
+              onClick={onToggleFavorite}
+              presentation="action"
+            />
           </ActionTooltip>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Удалить рецепт?</AlertDialogTitle>
-              <AlertDialogDescription>
-                «{recipe.title}» будет скрыт. Пользователи, сохранившие точную версию в избранном
-                или меню, смогут открыть ее только для копирования.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
-              <AlertDialogAction disabled={isDeletePending} onClick={onDelete}>
-                {isDeletePending ? "Удаляем..." : "Удалить рецепт"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        </div>
       ) : null}
     </div>
   )

@@ -103,6 +103,7 @@ public sealed record PreparationStepRequest(string Text);
 /// <param name="RevisionNumber">Номер отображаемой ревизии рецепта.</param>
 /// <param name="IsOwnedByCurrentUser">Признак принадлежности рецепта текущему пользователю.</param>
 /// <param name="IsFavorite">Признак нахождения рецепта в избранном.</param>
+/// <param name="FavoriteCount">Количество пользователей, добавивших рецепт в избранное.</param>
 /// <param name="IsDisplayedRevisionSaved">Признак того, что отображаемая ревизия закреплена в избранном.</param>
 /// <param name="RevisionState">Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable.</param>
 /// <param name="Title">Название блюда.</param>
@@ -121,6 +122,7 @@ public sealed record RecipeListItemResponse(
     int RevisionNumber,
     bool IsOwnedByCurrentUser,
     bool IsFavorite,
+    int FavoriteCount,
     bool IsDisplayedRevisionSaved,
     string RevisionState,
     string Title,
@@ -134,6 +136,15 @@ public sealed record RecipeListItemResponse(
     RecipeImageResponse? CoverImage);
 
 /// <summary>
+/// Страница списка рецептов с количеством результатов для текущих условий.
+/// </summary>
+/// <param name="Items">Рецепты на запрошенной странице.</param>
+/// <param name="TotalCount">Общее количество рецептов, подходящих под фильтры.</param>
+public sealed record RecipeListPageResponse(
+    IReadOnlyCollection<RecipeListItemResponse> Items,
+    int TotalCount);
+
+/// <summary>
 /// Рецепт, возвращаемый внешним API.
 /// </summary>
 /// <param name="Id">Идентификатор рецепта.</param>
@@ -143,6 +154,7 @@ public sealed record RecipeListItemResponse(
 /// <param name="RevisionNumber">Номер отображаемой ревизии рецепта.</param>
 /// <param name="IsOwnedByCurrentUser">Признак принадлежности рецепта текущему пользователю.</param>
 /// <param name="IsFavorite">Признак нахождения рецепта в избранном.</param>
+/// <param name="FavoriteCount">Количество пользователей, добавивших рецепт в избранное.</param>
 /// <param name="IsDisplayedRevisionSaved">Признак того, что отображаемая ревизия закреплена в избранном.</param>
 /// <param name="RevisionState">Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable.</param>
 /// <param name="SourceRecipeId">Идентификатор исходного рецепта, если рецепт создан как копия.</param>
@@ -168,6 +180,7 @@ public sealed record RecipeResponse(
     int RevisionNumber,
     bool IsOwnedByCurrentUser,
     bool IsFavorite,
+    int FavoriteCount,
     bool IsDisplayedRevisionSaved,
     string RevisionState,
     Guid? SourceRecipeId,

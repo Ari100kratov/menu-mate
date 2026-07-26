@@ -32,7 +32,7 @@ public static class RecipesApplicationDependencyInjection
         services.AddScoped<ICommandHandler<SetRecipeFavoriteCommand>, SetRecipeFavoriteCommandHandler>();
         services.AddScoped<ICommandHandler<UploadRecipeImageCommand, RecipeImageResponse>, UploadRecipeImageCommandHandler>();
         services.AddScoped<IQueryHandler<GetRecipeByIdQuery, RecipeResponse>, GetRecipeByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetRecipesQuery, IReadOnlyCollection<RecipeListItemResponse>>, GetRecipesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetRecipesQuery, RecipeListPageResponse>, GetRecipesQueryHandler>();
         services.AddScoped<RecipeImageReadUrlService>();
         services.AddScoped<RecipeProductResolver>();
         services.AddScoped<RecipeTagCatalogResolver>();

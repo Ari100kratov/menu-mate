@@ -3,6 +3,8 @@ import { useCallback } from "react"
 import { usePersistentState } from "@/shared/lib/persistent-state"
 
 export type RecipeListScope = "library" | "catalog"
+export type RecipeListSort = "alphabetical" | "newest" | "popular"
+export type RecipeOwnershipFilter = "all" | "mine" | "others"
 
 export interface RecipeListTagFilter {
   id: string
@@ -13,11 +15,14 @@ export interface RecipeListFilterValues {
   search: string
   category: string
   tags?: RecipeListTagFilter[]
-  // Поддержка сохранённого одиночного фильтра до перехода на множественный выбор.
+  // Поддержка сохраненного одиночного фильтра до перехода на множественный выбор.
   tagId?: string
-  // Поддержка сохранённого одиночного фильтра до перехода на множественный выбор.
+  // Поддержка сохраненного одиночного фильтра до перехода на множественный выбор.
   tagName?: string
   favoritesOnly: boolean
+  sort: RecipeListSort
+  ownership: RecipeOwnershipFilter
+  showTagsInMain: boolean
 }
 
 interface RecipeListFilterState {
@@ -27,7 +32,7 @@ interface RecipeListFilterState {
 
 interface LegacyRecipeListFilterState {
   scope: RecipeListScope
-  filters: Record<RecipeListScope, RecipeListFilterValues>
+  filters: Record<RecipeListScope, Partial<RecipeListFilterValues>>
 }
 
 type StoredRecipeListFilterState = RecipeListFilterState | LegacyRecipeListFilterState
@@ -39,6 +44,9 @@ const emptyFilters: RecipeListFilterValues = {
   tagId: "",
   tagName: "",
   favoritesOnly: false,
+  sort: "alphabetical",
+  ownership: "all",
+  showTagsInMain: false,
 }
 
 const initialState: RecipeListFilterState = {
@@ -79,8 +87,17 @@ export function useRecipeListFilterState(storageKey: string) {
   )
 
   const resetFilters = useCallback(() => {
-    updateFilters(emptyFilters)
-  }, [updateFilters])
+    setStoredState((current) => {
+      const normalized = normalizeState(current)
+      return {
+        ...normalized,
+        filters: {
+          ...emptyFilters,
+          showTagsInMain: normalized.filters.showTagsInMain,
+        },
+      }
+    })
+  }, [setStoredState])
 
   return {
     scope: state.scope,
@@ -99,6 +116,15 @@ export function useRecipeListFilterState(storageKey: string) {
     setFavoritesOnly: (favoritesOnly: boolean) => {
       updateFilters({ favoritesOnly })
     },
+    setSort: (sort: RecipeListSort) => {
+      updateFilters({ sort })
+    },
+    setOwnership: (ownership: RecipeOwnershipFilter) => {
+      updateFilters({ ownership })
+    },
+    setShowTagsInMain: (showTagsInMain: boolean) => {
+      updateFilters({ showTagsInMain })
+    },
     resetActiveFilters: resetFilters,
   }
 }
@@ -107,11 +133,27 @@ function normalizeState(state: StoredRecipeListFilterState): RecipeListFilterSta
   if (isLegacyRecipeListFilterState(state)) {
     return {
       scope: state.scope,
-      filters: state.filters[state.scope],
+      filters: normalizeFilters(state.filters[state.scope]),
     }
   }
 
-  return state
+  return {
+    scope: state.scope,
+    filters: normalizeFilters(state.filters),
+  }
+}
+
+function normalizeFilters(filters: Partial<RecipeListFilterValues>): RecipeListFilterValues {
+  return {
+    ...emptyFilters,
+    ...filters,
+    tags: filters.tags ?? [],
+    sort: isRecipeListSort(filters.sort) ? filters.sort : emptyFilters.sort,
+    ownership: isRecipeOwnershipFilter(filters.ownership)
+      ? filters.ownership
+      : emptyFilters.ownership,
+    showTagsInMain: filters.showTagsInMain ?? emptyFilters.showTagsInMain,
+  }
 }
 
 function isStoredRecipeListFilterState(value: unknown): value is StoredRecipeListFilterState {
@@ -135,7 +177,7 @@ function isStateShell(value: unknown): value is { scope: RecipeListScope; filter
   return isRecord(value) && (value.scope === "library" || value.scope === "catalog")
 }
 
-function isFilterValues(value: unknown): value is RecipeListFilterValues {
+function isFilterValues(value: unknown): value is Partial<RecipeListFilterValues> {
   return (
     isRecord(value) &&
     typeof value.search === "string" &&
@@ -144,7 +186,10 @@ function isFilterValues(value: unknown): value is RecipeListFilterValues {
       (Array.isArray(value.tags) && value.tags.every(isRecipeListTagFilter))) &&
     (value.tagId === undefined || typeof value.tagId === "string") &&
     (value.tagName === undefined || typeof value.tagName === "string") &&
-    typeof value.favoritesOnly === "boolean"
+    typeof value.favoritesOnly === "boolean" &&
+    (value.sort === undefined || isRecipeListSort(value.sort)) &&
+    (value.ownership === undefined || isRecipeOwnershipFilter(value.ownership)) &&
+    (value.showTagsInMain === undefined || typeof value.showTagsInMain === "boolean")
   )
 }
 
@@ -170,6 +215,14 @@ function isRecipeListTagFilter(value: unknown): value is RecipeListTagFilter {
     typeof value.name === "string" &&
     value.name.length > 0
   )
+}
+
+function isRecipeListSort(value: unknown): value is RecipeListSort {
+  return value === "alphabetical" || value === "newest" || value === "popular"
+}
+
+function isRecipeOwnershipFilter(value: unknown): value is RecipeOwnershipFilter {
+  return value === "all" || value === "mine" || value === "others"
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

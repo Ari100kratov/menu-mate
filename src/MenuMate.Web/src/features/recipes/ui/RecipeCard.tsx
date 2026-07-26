@@ -1,10 +1,10 @@
-import { AlertTriangle, Clock3, Heart, ImageIcon, RefreshCw, Timer, Users } from "lucide-react"
+import { AlertTriangle, Clock3, ImageIcon, RefreshCw, Timer, Users } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import type { RecipeListItem } from "@/features/recipes/api/recipes.api"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { createBackNavigationState } from "@/shared/lib/back-navigation"
-import { Button } from "@/shared/ui/button"
+import { RecipeFavoriteButton } from "./RecipeFavoriteButton"
 import { RecipeImage } from "./RecipeImage"
 
 interface RecipeCardProps {
@@ -103,17 +103,13 @@ export function RecipeCard({ recipe, isFavoritePending, onToggleFavorite }: Reci
         </Link>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className="absolute top-2 right-2 rounded-full"
-        aria-label={recipe.isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
+      <RecipeFavoriteButton
+        isFavorite={recipe.isFavorite}
+        favoriteCount={recipe.favoriteCount}
         disabled={isFavoritePending}
+        className="absolute top-2 right-2"
         onClick={onToggleFavorite}
-      >
-        <Heart className={recipe.isFavorite ? "fill-primary text-primary size-4" : "size-4"} />
-      </Button>
+      />
     </article>
   )
 }

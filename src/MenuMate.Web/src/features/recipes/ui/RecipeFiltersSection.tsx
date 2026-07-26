@@ -1,10 +1,32 @@
-import { Check, Compass, Heart, Library, LoaderCircle, Search, X } from "lucide-react"
-import { useEffect, useRef, type WheelEvent } from "react"
+import {
+  ArrowUpDown,
+  Check,
+  Compass,
+  Library,
+  LoaderCircle,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react"
+import { useEffect, useRef, useState, type WheelEvent } from "react"
 
 import { recipeCategoryOptions } from "@/features/recipes/model/recipe-form-options"
-import type { RecipeListTagFilter } from "@/features/recipes/model/recipe-list-filter-state"
+import type {
+  RecipeListSort,
+  RecipeListTagFilter,
+  RecipeOwnershipFilter,
+} from "@/features/recipes/model/recipe-list-filter-state"
+import { RecipeAdvancedFiltersDialog } from "@/features/recipes/ui/RecipeAdvancedFiltersDialog"
 import { RecipeTagFilter } from "@/features/recipes/ui/RecipeTagFilter"
+import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu"
 import { Input } from "@/shared/ui/input"
 
 interface RecipeFiltersSectionProps {
@@ -13,14 +35,20 @@ interface RecipeFiltersSectionProps {
   category: string
   selectedTags: RecipeListTagFilter[]
   favoritesOnly: boolean
+  sort: RecipeListSort
+  ownership: RecipeOwnershipFilter
+  showTagsInMain: boolean
   recipesCount: number | undefined
-  hasMoreRecipes: boolean
+  totalCount: number | undefined
   isSearchPending: boolean
   onScopeChange: (value: "library" | "catalog") => void
   onSearchChange: (value: string) => void
   onCategoryChange: (value: string) => void
   onTagsChange: (tags: RecipeListTagFilter[]) => void
   onFavoritesOnlyChange: (value: boolean) => void
+  onSortChange: (value: RecipeListSort) => void
+  onOwnershipChange: (value: RecipeOwnershipFilter) => void
+  onShowTagsInMainChange: (value: boolean) => void
   onReset: () => void
 }
 
@@ -30,19 +58,33 @@ export function RecipeFiltersSection({
   category,
   selectedTags,
   favoritesOnly,
+  sort,
+  ownership,
+  showTagsInMain,
   recipesCount,
-  hasMoreRecipes,
+  totalCount,
   isSearchPending,
   onScopeChange,
   onSearchChange,
   onCategoryChange,
   onTagsChange,
   onFavoritesOnlyChange,
+  onSortChange,
+  onOwnershipChange,
+  onShowTagsInMainChange,
   onReset,
 }: RecipeFiltersSectionProps) {
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
   const hasActiveFilters = Boolean(
-    search.trim() || category || selectedTags.length > 0 || favoritesOnly,
+    search.trim() ||
+    category ||
+    selectedTags.length > 0 ||
+    favoritesOnly ||
+    ownership !== "all" ||
+    sort !== "alphabetical",
   )
+  const hasActiveAdvancedFilters =
+    favoritesOnly || ownership !== "all" || (selectedTags.length > 0 && !showTagsInMain)
   const categoriesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -108,7 +150,10 @@ export function RecipeFiltersSection({
           )}
           <Input
             type="search"
-            className="bg-card h-11 rounded-xl pr-10 pl-9 [&::-webkit-search-cancel-button]:appearance-none"
+            className={cn(
+              "bg-card h-11 rounded-xl pl-9 [&::-webkit-search-cancel-button]:appearance-none",
+              search ? "pr-10" : "pr-3",
+            )}
             value={search}
             placeholder="Название или описание"
             aria-label="Поиск по названию и описанию рецепта"
@@ -134,25 +179,33 @@ export function RecipeFiltersSection({
             </Button>
           ) : null}
         </div>
+
         <Button
           type="button"
-          variant={favoritesOnly ? "default" : "outline"}
+          variant="outline"
           size="icon-lg"
-          className="size-11 rounded-xl"
-          aria-label={favoritesOnly ? "Показать все рецепты" : "Показать только избранные"}
-          aria-pressed={favoritesOnly}
-          title={favoritesOnly ? "Показаны избранные" : "Только избранные"}
+          className="relative size-11 rounded-xl"
+          aria-label="Расширенные фильтры"
+          title="Расширенные фильтры"
           onClick={() => {
-            onFavoritesOnlyChange(!favoritesOnly)
+            setAdvancedFiltersOpen(true)
           }}
         >
-          <Heart className={favoritesOnly ? "fill-current" : undefined} />
+          <SlidersHorizontal />
+          {hasActiveAdvancedFilters ? (
+            <span
+              className="bg-destructive absolute top-1.5 right-1.5 size-2 rounded-full"
+              aria-hidden="true"
+            />
+          ) : null}
         </Button>
       </div>
 
-      <div className="min-w-0">
-        <RecipeTagFilter selectedTags={selectedTags} onChange={onTagsChange} />
-      </div>
+      {showTagsInMain ? (
+        <div className="min-w-0">
+          <RecipeTagFilter selectedTags={selectedTags} onChange={onTagsChange} />
+        </div>
+      ) : null}
 
       <div
         ref={categoriesRef}
@@ -180,18 +233,96 @@ export function RecipeFiltersSection({
         {hasActiveFilters ? (
           <Button type="button" variant="ghost" size="sm" onClick={onReset}>
             <X />
-            Сбросить
+            Сбросить все
           </Button>
         ) : null}
       </div>
 
-      {recipesCount === undefined ? null : (
-        <p className="type-supporting text-muted-foreground" aria-live="polite">
-          {hasMoreRecipes ? "Показано" : "Найдено"}: {recipesCount}
-        </p>
-      )}
+      <div className="flex min-h-8 min-w-0 items-center justify-between gap-2">
+        {recipesCount === undefined ? (
+          <span />
+        ) : (
+          <p className="type-supporting text-muted-foreground whitespace-nowrap" aria-live="polite">
+            {getResultsLabel(recipesCount, totalCount)}
+          </p>
+        )}
+        <SortMenu sort={sort} onSortChange={onSortChange} />
+      </div>
+
+      <RecipeAdvancedFiltersDialog
+        key={String(advancedFiltersOpen)}
+        open={advancedFiltersOpen}
+        favoritesOnly={favoritesOnly}
+        ownership={ownership}
+        selectedTags={selectedTags}
+        showTagsInMain={showTagsInMain}
+        onOpenChange={setAdvancedFiltersOpen}
+        onApply={(filters) => {
+          onFavoritesOnlyChange(filters.favoritesOnly)
+          onOwnershipChange(filters.ownership)
+          onTagsChange(filters.tags)
+          onShowTagsInMainChange(filters.showTagsInMain)
+        }}
+      />
     </section>
   )
+}
+
+function SortMenu({
+  sort,
+  onSortChange,
+}: {
+  sort: RecipeListSort
+  onSortChange: (sort: RecipeListSort) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground h-auto max-w-40 justify-end gap-1 rounded-lg px-1.5 py-1"
+          aria-label={`Сортировка: ${getSortLabel(sort)}`}
+          title={`Сортировка: ${getSortLabel(sort)}`}
+        >
+          <ArrowUpDown className="size-3.5" />
+          <span className="truncate">{getSortLabel(sort)}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={sort}
+          onValueChange={(value) => {
+            onSortChange(value as RecipeListSort)
+          }}
+        >
+          <DropdownMenuRadioItem value="alphabetical">По алфавиту</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="newest">Сначала новые</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="popular">По популярности</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function getSortLabel(sort: RecipeListSort) {
+  switch (sort) {
+    case "newest":
+      return "Сначала новые"
+    case "popular":
+      return "По популярности"
+    default:
+      return "По алфавиту"
+  }
+}
+
+function getResultsLabel(loadedCount: number, totalCount: number | undefined) {
+  if (totalCount === undefined || loadedCount >= totalCount) {
+    return `Найдено: ${String(totalCount ?? loadedCount)}`
+  }
+
+  return `Показано: ${String(loadedCount)} из ${String(totalCount)}`
 }
 
 function scrollCategoriesWithMouseWheel(event: WheelEvent<HTMLDivElement>) {
@@ -213,12 +344,10 @@ function scrollCategoriesWithMouseWheel(event: WheelEvent<HTMLDivElement>) {
 function FilterChip({
   active,
   label,
-  icon,
   onClick,
 }: {
   active: boolean
   label: string
-  icon?: React.ReactNode
   onClick: () => void
 }) {
   return (
@@ -231,7 +360,6 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
     >
-      {icon}
       {label}
     </Button>
   )

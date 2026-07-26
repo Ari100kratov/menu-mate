@@ -31,6 +31,7 @@ export function RecipeDetailsContent({
   const location = useLocation()
   const canUpdateSavedRevision =
     recipe.revisionState === "Current" &&
+    !recipe.isOwnedByCurrentUser &&
     recipe.isFavorite &&
     recipe.savedRevisionId !== recipe.revisionId
 

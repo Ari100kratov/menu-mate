@@ -28,6 +28,11 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal("Паста", created.Title);
         Assert.Equal("GrainsAndPasta", Assert.Single(created.Ingredients).Category);
 
+        HttpResponseMessage favoriteResponse = await httpClient.PostAsync(
+            RelativeUri($"/api/recipes/{created.Id}/favorite"),
+            content: null);
+        favoriteResponse.EnsureSuccessStatusCode();
+
         HttpResponseMessage updateResponse = await httpClient.PutAsJsonAsync(
             $"/api/recipes/{created.Id}",
             CreateRequest("Паста с овощами", "Public"));
@@ -39,6 +44,9 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         Assert.NotEqual(created.CurrentRevisionId, updated.CurrentRevisionId);
         Assert.Equal("Паста с овощами", updated.Title);
         Assert.Equal("Public", updated.Visibility);
+        Assert.Equal(updated.RevisionId, updated.SavedRevisionId);
+        Assert.True(updated.IsDisplayedRevisionSaved);
+        Assert.Equal("Current", updated.RevisionState);
 
         HttpResponseMessage identicalUpdateResponse = await httpClient.PutAsJsonAsync(
             $"/api/recipes/{created.Id}",
@@ -61,15 +69,11 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal(2, afterVisibilityUpdate.RevisionNumber);
         Assert.Equal("Private", afterVisibilityUpdate.Visibility);
 
-        HttpResponseMessage favoriteResponse = await httpClient.PostAsync(
-            RelativeUri($"/api/recipes/{created.Id}/favorite"),
-            content: null);
-        favoriteResponse.EnsureSuccessStatusCode();
-
-        RecipeListItemResponse[]? favorites = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? favorites = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?favoritesOnly=true");
         Assert.NotNull(favorites);
-        Assert.Equal(created.Id, Assert.Single(favorites).Id);
+        Assert.Equal(created.Id, Assert.Single(favorites.Items).Id);
+        Assert.Equal(1, favorites.TotalCount);
 
         HttpResponseMessage deleteResponse = await httpClient.DeleteAsync(
             RelativeUri($"/api/recipes/{created.Id}"));
@@ -126,7 +130,7 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
             httpClient,
             CreateRequest("Овсянка", "Private", ["завтрак"], category: "Breakfast"));
 
-        RecipeListItemResponse[]? search = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? search = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?search=паста");
         TagResponse[]? catalogTags = await httpClient.GetFromJsonAsync<TagResponse[]>(
             "/api/tags?search=быстро");
@@ -136,25 +140,30 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
             "/api/tags?search=завтрак");
         Assert.NotNull(breakfastTags);
         TagResponse breakfastTag = Assert.Single(breakfastTags);
-        RecipeListItemResponse[]? tags = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? tags = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             $"/api/recipes?tagIds={catalogTag.Id}&tagIds={breakfastTag.Id}");
-        RecipeListItemResponse[]? category = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? category = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?category=Breakfast");
-        RecipeListItemResponse[]? firstPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? firstPage = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?page=1&pageSize=1");
-        RecipeListItemResponse[]? secondPage = await httpClient.GetFromJsonAsync<RecipeListItemResponse[]>(
+        RecipeListPageResponse? secondPage = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
             "/api/recipes?page=2&pageSize=1");
         Assert.NotNull(search);
         Assert.NotNull(tags);
         Assert.NotNull(category);
         Assert.NotNull(firstPage);
         Assert.NotNull(secondPage);
-        Assert.Equal("Быстрая паста", Assert.Single(search).Title);
+        Assert.Equal("Быстрая паста", Assert.Single(search.Items).Title);
         Assert.Equal(
             ["Быстрая паста", "Овсянка"],
-            [.. tags.Select(recipe => recipe.Title).OrderBy(title => title)]);
-        Assert.Equal("Овсянка", Assert.Single(category).Title);
-        Assert.NotEqual(Assert.Single(firstPage).Id, Assert.Single(secondPage).Id);
+            [.. tags.Items.Select(recipe => recipe.Title).OrderBy(title => title)]);
+        Assert.Equal("Овсянка", Assert.Single(category.Items).Title);
+        Assert.NotEqual(Assert.Single(firstPage.Items).Id, Assert.Single(secondPage.Items).Id);
+        Assert.Equal(1, search.TotalCount);
+        Assert.Equal(2, tags.TotalCount);
+        Assert.Equal(1, category.TotalCount);
+        Assert.Equal(2, firstPage.TotalCount);
+        Assert.Equal(2, secondPage.TotalCount);
         Assert.Equal("быстро", catalogTag.Name);
         Assert.Equal("User", catalogTag.Kind);
         Assert.Equal("Confirmed", catalogTag.Status);

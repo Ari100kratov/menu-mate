@@ -42,7 +42,10 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         var otherClient = new ApiTestClient(otherHttpClient);
 
         RegisterUserResponse target = await targetClient.RegisterAsync(TestEmail.Create("admin-users-target"));
-        await CreateRecipeAsync(targetHttpClient);
+        RecipeResponse recipe = await CreateRecipeAsync(targetHttpClient);
+        (await targetHttpClient.PostAsync(
+            new Uri($"/api/recipes/{recipe.Id}/favorite", UriKind.Relative),
+            null)).EnsureSuccessStatusCode();
         await otherClient.RegisterAsync(TestEmail.Create("admin-users-other"));
         RegisterUserResponse admin = await adminClient.RegisterAsync(TestEmail.Create("admin-users-admin"));
         await PromoteToAdminAsync(admin.User.Id);
@@ -61,6 +64,7 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         Assert.Equal(target.User.DisplayName, user.DisplayName);
         Assert.Contains("user", user.Roles);
         Assert.Equal(1, user.RecipesCount);
+        Assert.Equal(1, user.FavoriteCount);
         Assert.NotEqual(default, user.RegisteredAt);
         Assert.Equal(1, searched.TotalCount);
         Assert.Equal(1, searched.Page);
@@ -86,7 +90,7 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
             """);
     }
 
-    private static async Task CreateRecipeAsync(HttpClient httpClient)
+    private static async Task<RecipeResponse> CreateRecipeAsync(HttpClient httpClient)
     {
         var request = new CreateRecipeRequest(
             "Тестовый рецепт",
@@ -103,5 +107,8 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
 
         HttpResponseMessage response = await httpClient.PostAsJsonAsync("/api/recipes", request);
         response.EnsureSuccessStatusCode();
+        RecipeResponse? recipe = await response.Content.ReadFromJsonAsync<RecipeResponse>();
+        Assert.NotNull(recipe);
+        return recipe;
     }
 }

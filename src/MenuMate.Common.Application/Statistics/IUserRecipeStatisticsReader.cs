@@ -11,4 +11,11 @@ public interface IUserRecipeStatisticsReader
     Task<IReadOnlyDictionary<Guid, int>> GetActiveRecipeCountsByOwnerAsync(
         IReadOnlyCollection<Guid> userIds,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает количество рецептов, добавленных в избранное каждым указанным пользователем.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> GetFavoriteCountsByUserAsync(
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken);
 }

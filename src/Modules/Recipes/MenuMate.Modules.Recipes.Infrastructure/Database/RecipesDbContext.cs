@@ -1,5 +1,6 @@
 using MenuMate.Contracts.Recipes;
 using MenuMate.Modules.Recipes.Application.Abstractions;
+using MenuMate.Modules.Recipes.Application.GetRecipes;
 using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.Modules.Recipes.Infrastructure.Database.Entities;
 using MenuMate.Modules.Recipes.Infrastructure.Database.Source;
@@ -43,7 +44,8 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                 item.LibraryEntries
                     .Where(entry => entry.UserId == currentUserId)
                     .Select(entry => (Guid?)entry.SavedRevisionId)
-                    .FirstOrDefault()))
+                    .FirstOrDefault(),
+                item.LibraryEntries.Count))
             .SingleOrDefaultAsync(cancellationToken);
 
         if (recipe is null)
@@ -164,6 +166,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             revision.RevisionNumber,
             recipe.IsOwnedByCurrentUser,
             isFavorite,
+            recipe.FavoriteCount,
             isDisplayedRevisionSaved,
             revisionState,
             recipe.SourceRecipeId,
@@ -229,7 +232,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
     }
 
     /// <inheritdoc />
-    async Task<IReadOnlyCollection<RecipeListItemReadModel>> IRecipesReadDbContext.GetRecipesAsync(
+    async Task<RecipeListPageReadModel> IRecipesReadDbContext.GetRecipesAsync(
         UserId currentUserId,
         bool catalog,
         string? search,
@@ -237,13 +240,15 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         RecipeCategory? category,
         bool favoritesOnly,
         bool availableOnly,
+        RecipeListSort sort,
+        RecipeOwnershipFilter ownership,
         int skip,
         int take,
         CancellationToken cancellationToken)
     {
         Guid[] distinctTagIds = [.. tagIds.Where(tagId => tagId != Guid.Empty).Distinct()];
         string? searchPattern = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-        RecipeListProjection[] recipes;
+        IQueryable<RecipeListProjection> filteredRecipes;
         if (catalog)
         {
             IQueryable<RecipeListProjection> catalogQuery = CreateCatalogQuery(
@@ -252,12 +257,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                 distinctTagIds,
                 category,
                 favoritesOnly);
-            recipes = await catalogQuery
-                .OrderBy(recipe => recipe.Title)
-                .ThenBy(recipe => recipe.Id)
-                .Skip(skip)
-                .Take(take)
-                .ToArrayAsync(cancellationToken);
+            filteredRecipes = ApplyOwnershipFilter(catalogQuery, ownership);
         }
         else
         {
@@ -273,17 +273,14 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
                 distinctTagIds,
                 category,
                 availableOnly);
-            RecipeListProjection[] ownedRecipes = await ownedQuery.ToArrayAsync(cancellationToken);
-            RecipeListProjection[] favoriteRecipes = await favoriteQuery.ToArrayAsync(cancellationToken);
-            recipes = [
-                .. ownedRecipes
-                    .Concat(favoriteRecipes)
-                    .OrderBy(recipe => recipe.Title)
-                    .ThenBy(recipe => recipe.Id)
-                    .Skip(skip)
-                    .Take(take),
-            ];
+            filteredRecipes = ApplyOwnershipFilter(ownedQuery.Concat(favoriteQuery), ownership);
         }
+
+        int totalCount = await filteredRecipes.CountAsync(cancellationToken);
+        RecipeListProjection[] recipes = await ApplyListSort(filteredRecipes, sort)
+            .Skip(skip)
+            .Take(take)
+            .ToArrayAsync(cancellationToken);
 
         Guid[] revisionIds = [.. recipes.Select(recipe => recipe.RevisionId).Distinct()];
         RevisionTagProjection[] revisionTags = revisionIds.Length == 0
@@ -332,32 +329,37 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             .GroupBy(cover => cover.RecipeId)
             .ToDictionary(group => group.Key, group => group.First().Image);
 
-        return recipes.Select(recipe => new RecipeListItemReadModel(
-            new RecipeListItemResponse(
-                recipe.Id,
-                recipe.RevisionId,
-                recipe.IsSourceAccessible ? recipe.CurrentRevisionId : null,
-                recipe.RevisionNumber,
-                recipe.IsOwnedByCurrentUser,
-                recipe.IsFavorite,
-                recipe.IsDisplayedRevisionSaved,
-                GetRevisionState(
-                    recipe.IsSourceAccessible,
+        IReadOnlyCollection<RecipeListItemReadModel> items = recipes
+            .Select(recipe => new RecipeListItemReadModel(
+                new RecipeListItemResponse(
+                    recipe.Id,
                     recipe.RevisionId,
-                    recipe.CurrentRevisionId,
-                    recipe.IsDisplayedRevisionSaved),
-                recipe.Title,
-                recipe.Description,
-                recipe.Servings,
-                recipe.Category.ToString(),
-                recipe.Visibility.ToString(),
-                recipe.TotalTimeMinutes,
-                recipe.ActiveTimeMinutes,
-                [],
-                coverByRecipe.TryGetValue(recipe.Id, out RecipeImageProjection? cover)
-                    ? ToResponse(cover)
-                    : null),
-            tagIdsByRevision[recipe.RevisionId].ToArray())).ToArray();
+                    recipe.IsSourceAccessible ? recipe.CurrentRevisionId : null,
+                    recipe.RevisionNumber,
+                    recipe.IsOwnedByCurrentUser,
+                    recipe.IsFavorite,
+                    recipe.FavoriteCount,
+                    recipe.IsDisplayedRevisionSaved,
+                    GetRevisionState(
+                        recipe.IsSourceAccessible,
+                        recipe.RevisionId,
+                        recipe.CurrentRevisionId,
+                        recipe.IsDisplayedRevisionSaved),
+                    recipe.Title,
+                    recipe.Description,
+                    recipe.Servings,
+                    recipe.Category.ToString(),
+                    recipe.Visibility.ToString(),
+                    recipe.TotalTimeMinutes,
+                    recipe.ActiveTimeMinutes,
+                    [],
+                    coverByRecipe.TryGetValue(recipe.Id, out RecipeImageProjection? cover)
+                        ? ToResponse(cover)
+                        : null),
+                tagIdsByRevision[recipe.RevisionId].ToArray()))
+            .ToArray();
+
+        return new RecipeListPageReadModel(items, totalCount);
     }
 
     /// <inheritdoc />
@@ -415,6 +417,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             RevisionNumber = item.Revision.RevisionNumber,
             IsOwnedByCurrentUser = item.Recipe.OwnerUserId == currentUserId,
             IsFavorite = item.Recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId),
+            FavoriteCount = item.Recipe.LibraryEntries.Count,
             IsDisplayedRevisionSaved = item.Recipe.LibraryEntries.Any(entry =>
                 entry.UserId == currentUserId && entry.SavedRevisionId == item.Revision.Id),
             IsSourceAccessible = true,
@@ -425,6 +428,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             Visibility = item.Recipe.Visibility,
             TotalTimeMinutes = item.Revision.TotalTimeMinutes,
             ActiveTimeMinutes = item.Revision.ActiveTimeMinutes,
+            CreatedAt = item.Recipe.CreatedAt,
         });
     }
 
@@ -475,6 +479,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             RevisionNumber = item.Revision.RevisionNumber,
             IsOwnedByCurrentUser = true,
             IsFavorite = item.Recipe.LibraryEntries.Any(entry => entry.UserId == currentUserId),
+            FavoriteCount = item.Recipe.LibraryEntries.Count,
             IsDisplayedRevisionSaved = item.Recipe.LibraryEntries.Any(entry =>
                 entry.UserId == currentUserId && entry.SavedRevisionId == item.Revision.Id),
             IsSourceAccessible = true,
@@ -485,6 +490,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             Visibility = item.Recipe.Visibility,
             TotalTimeMinutes = item.Revision.TotalTimeMinutes,
             ActiveTimeMinutes = item.Revision.ActiveTimeMinutes,
+            CreatedAt = item.Recipe.CreatedAt,
         });
     }
 
@@ -535,6 +541,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             RevisionNumber = item.Revision.RevisionNumber,
             IsOwnedByCurrentUser = false,
             IsFavorite = true,
+            FavoriteCount = item.Recipe.LibraryEntries.Count,
             IsDisplayedRevisionSaved = true,
             IsSourceAccessible = !item.Recipe.IsDeleted &&
                 item.Recipe.Visibility == RecipeVisibility.Public,
@@ -545,8 +552,37 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
             Visibility = item.Recipe.Visibility,
             TotalTimeMinutes = item.Revision.TotalTimeMinutes,
             ActiveTimeMinutes = item.Revision.ActiveTimeMinutes,
+            CreatedAt = item.Recipe.CreatedAt,
         });
+
     }
+
+    private static IQueryable<RecipeListProjection> ApplyOwnershipFilter(
+        IQueryable<RecipeListProjection> query,
+        RecipeOwnershipFilter ownership) =>
+        ownership switch
+        {
+            RecipeOwnershipFilter.Mine => query.Where(recipe => recipe.IsOwnedByCurrentUser),
+            RecipeOwnershipFilter.Others => query.Where(recipe => !recipe.IsOwnedByCurrentUser),
+            _ => query,
+        };
+
+    private static IOrderedQueryable<RecipeListProjection> ApplyListSort(
+        IQueryable<RecipeListProjection> query,
+        RecipeListSort sort) =>
+        sort switch
+        {
+            RecipeListSort.Newest => query
+                .OrderByDescending(recipe => recipe.CreatedAt)
+                .ThenByDescending(recipe => recipe.Id),
+            RecipeListSort.Popular => query
+                .OrderByDescending(recipe => recipe.FavoriteCount)
+                .ThenBy(recipe => recipe.Title)
+                .ThenBy(recipe => recipe.Id),
+            _ => query
+                .OrderBy(recipe => recipe.Title)
+                .ThenBy(recipe => recipe.Id),
+        };
 
     private static string GetRevisionState(
         bool sourceAccessible,
@@ -591,7 +627,8 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         bool IsDeleted,
         Guid? SourceRecipeId,
         Guid? SourceRevisionId,
-        Guid? SavedRevisionId);
+        Guid? SavedRevisionId,
+        int FavoriteCount);
 
     private sealed record RecipeSourceAccessProjection(bool IsSourceAccessible, bool HasLibraryGrant);
 
@@ -618,6 +655,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         public required int RevisionNumber { get; init; }
         public required bool IsOwnedByCurrentUser { get; init; }
         public required bool IsFavorite { get; init; }
+        public required int FavoriteCount { get; init; }
         public required bool IsDisplayedRevisionSaved { get; init; }
         public required bool IsSourceAccessible { get; init; }
         public required string Title { get; init; }
@@ -627,6 +665,7 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         public required RecipeVisibility Visibility { get; init; }
         public int? TotalTimeMinutes { get; init; }
         public int? ActiveTimeMinutes { get; init; }
+        public required DateTimeOffset CreatedAt { get; init; }
     }
 
     private sealed record RevisionTagProjection(Guid RevisionId, Guid TagId);

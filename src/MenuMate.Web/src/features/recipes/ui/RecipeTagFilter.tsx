@@ -60,7 +60,7 @@ export function RecipeTagFilter({ selectedTags, onChange }: RecipeTagFilterProps
 
   return (
     <div className="space-y-2">
-      <div className="border-input bg-background focus-within:ring-ring rounded-xl border p-1.5 transition-colors focus-within:ring-2 focus-within:ring-offset-2">
+      <div className="border-input bg-card focus-within:ring-ring rounded-xl border p-1.5 shadow-xs transition-colors focus-within:ring-2 focus-within:ring-offset-2">
         <div className="flex flex-wrap gap-2">
           <SelectedTagChips tags={selectedTags.map((tag) => tag.name)} onRemove={removeTag} />
 

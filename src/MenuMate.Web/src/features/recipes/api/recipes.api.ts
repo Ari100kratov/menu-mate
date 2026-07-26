@@ -4,6 +4,8 @@ import type { paths } from "@/shared/api/generated/schema"
 import { optimizeRecipeImageForUpload } from "@/features/recipes/model/recipe-image-optimization"
 
 export type RecipeRevisionState = "Current" | "UpdateAvailable" | "Historical" | "SourceUnavailable"
+export type RecipeListSort = "alphabetical" | "newest" | "popular"
+export type RecipeOwnershipFilter = "all" | "mine" | "others"
 
 export interface RecipeImage {
   id: string
@@ -43,6 +45,7 @@ interface RecipeRevisionSummary {
   revisionNumber: number
   isOwnedByCurrentUser: boolean
   isFavorite: boolean
+  favoriteCount: number
   isDisplayedRevisionSaved: boolean
   revisionState: RecipeRevisionState
   title: string
@@ -57,6 +60,11 @@ interface RecipeRevisionSummary {
 
 export interface RecipeListItem extends RecipeRevisionSummary {
   coverImage: RecipeImage | null
+}
+
+export interface RecipeListPage {
+  items: RecipeListItem[]
+  totalCount: number
 }
 
 export interface Recipe extends RecipeRevisionSummary {
@@ -124,6 +132,8 @@ export interface RecipeListFilters {
   category?: string
   favoritesOnly?: boolean
   availableOnly?: boolean
+  sort?: RecipeListSort
+  ownership?: RecipeOwnershipFilter
   page?: number
   pageSize?: number
 }
@@ -133,6 +143,8 @@ export async function getRecipes(filters: RecipeListFilters) {
     scope: filters.scope ?? "library",
     favoritesOnly: String(filters.favoritesOnly ?? false),
     availableOnly: String(filters.availableOnly ?? false),
+    sort: filters.sort ?? "alphabetical",
+    ownership: filters.ownership ?? "all",
     page: String(filters.page ?? 1),
     pageSize: String(filters.pageSize ?? 20),
   })
@@ -142,7 +154,7 @@ export async function getRecipes(filters: RecipeListFilters) {
     searchParams.append("tagIds", tagId)
   }
 
-  return apiFetchJson<RecipeListItem[]>(`/api/recipes?${searchParams.toString()}`)
+  return apiFetchJson<RecipeListPage>(`/api/recipes?${searchParams.toString()}`)
 }
 
 export async function getRecipe(recipeId: string, revisionId?: string) {

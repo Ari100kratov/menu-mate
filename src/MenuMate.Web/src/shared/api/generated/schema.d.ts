@@ -180,6 +180,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetAdminUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/imports/recipe-drafts": {
         parameters: {
             query?: never;
@@ -552,6 +568,55 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Краткая информация о зарегистрированном пользователе для администратора. */
+        AdminUserListItemResponse: {
+            /**
+             * Format: uuid
+             * @description Идентификатор пользователя.
+             */
+            id: string;
+            /** @description Email пользователя. */
+            email: string;
+            /** @description Отображаемое имя пользователя. */
+            displayName: string;
+            /**
+             * Format: date-time
+             * @description Дата и время регистрации.
+             */
+            registeredAt: string;
+            /** @description Назначенные роли. */
+            roles: string[];
+            /**
+             * Format: int32
+             * @description Количество активных рецептов пользователя.
+             */
+            recipesCount: number | string;
+            /**
+             * Format: int32
+             * @description Количество рецептов, добавленных пользователем в избранное.
+             */
+            favoriteCount: number | string;
+        };
+        /** @description Страница пользователей для административного просмотра. */
+        AdminUsersPageResponse: {
+            /** @description Пользователи на текущей странице. */
+            items: components["schemas"]["AdminUserListItemResponse"][];
+            /**
+             * Format: int32
+             * @description Общее количество пользователей, соответствующих фильтру.
+             */
+            totalCount: number | string;
+            /**
+             * Format: int32
+             * @description Номер текущей страницы.
+             */
+            page: number | string;
+            /**
+             * Format: int32
+             * @description Количество пользователей на странице.
+             */
+            pageSize: number | string;
+        };
         /** @description Запрос на создание независимой копии выбранной ревизии рецепта. */
         CopyRecipeRequest: {
             /**
@@ -607,8 +672,6 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
-            /** @description Советы и примечания к рецепту. */
-            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.
@@ -639,6 +702,8 @@ export interface components {
             steps: components["schemas"]["PreparationStepRequest"][];
             /** @description Теги рецепта. */
             tags: string[];
+            /** @description Советы и примечания к рецепту. */
+            advice?: null | string;
         };
         /** @description Запрос на создание тега. */
         CreateTagRequest: {
@@ -1010,6 +1075,11 @@ export interface components {
             isOwnedByCurrentUser: boolean;
             /** @description Признак нахождения рецепта в избранном. */
             isFavorite: boolean;
+            /**
+             * Format: int32
+             * @description Количество пользователей, добавивших рецепт в избранное.
+             */
+            favoriteCount: number | string;
             /** @description Признак того, что отображаемая ревизия закреплена в избранном. */
             isDisplayedRevisionSaved: boolean;
             /** @description Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable. */
@@ -1040,6 +1110,16 @@ export interface components {
             /** @description Теги рецепта. */
             tags: string[];
             coverImage: null | components["schemas"]["RecipeImageResponse"];
+        };
+        /** @description Страница списка рецептов с количеством результатов для текущих условий. */
+        RecipeListPageResponse: {
+            /** @description Рецепты на запрошенной странице. */
+            items: components["schemas"]["RecipeListItemResponse"][];
+            /**
+             * Format: int32
+             * @description Общее количество рецептов, подходящих под фильтры.
+             */
+            totalCount: number | string;
         };
         /** @description Рецепт, возвращаемый внешним API. */
         RecipeResponse: {
@@ -1072,6 +1152,11 @@ export interface components {
             isOwnedByCurrentUser: boolean;
             /** @description Признак нахождения рецепта в избранном. */
             isFavorite: boolean;
+            /**
+             * Format: int32
+             * @description Количество пользователей, добавивших рецепт в избранное.
+             */
+            favoriteCount: number | string;
             /** @description Признак того, что отображаемая ревизия закреплена в избранном. */
             isDisplayedRevisionSaved: boolean;
             /** @description Состояние ревизии: Current, UpdateAvailable, Historical или SourceUnavailable. */
@@ -1090,8 +1175,6 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
-            /** @description Советы и примечания к рецепту. */
-            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.
@@ -1124,6 +1207,8 @@ export interface components {
             ingredients: components["schemas"]["IngredientResponse"][];
             /** @description Шаги приготовления. */
             steps: components["schemas"]["PreparationStepResponse"][];
+            /** @description Советы и примечания к рецепту. */
+            advice?: null | string;
         };
         /** @description Запрос на регистрацию пользователя. */
         RegisterUserRequest: {
@@ -1220,12 +1305,12 @@ export interface components {
              * Format: date
              * @description Дата начала диапазона меню, по которому создан список.
              */
-            sourceStartDate: string;
+            sourceStartDate: null | string;
             /**
              * Format: date
              * @description Дата окончания диапазона меню, по которому создан список.
              */
-            sourceEndDate: string;
+            sourceEndDate: null | string;
             /**
              * Format: date-time
              * @description Момент создания списка.
@@ -1319,8 +1404,6 @@ export interface components {
             title: string;
             /** @description Краткое описание. */
             description: null | string;
-            /** @description Советы и примечания к рецепту. */
-            advice: null | string;
             /**
              * Format: int32
              * @description Количество персон в исходном рецепте.
@@ -1351,6 +1434,8 @@ export interface components {
             steps: components["schemas"]["PreparationStepRequest"][];
             /** @description Теги рецепта. */
             tags: string[];
+            /** @description Советы и примечания к рецепту. */
+            advice?: null | string;
         };
         /** @description Публичный профиль пользователя. */
         UserProfileResponse: {
@@ -1680,6 +1765,48 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAdminUsers: {
+        parameters: {
+            query?: {
+                search?: string;
+                page?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUsersPageResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2058,6 +2185,8 @@ export interface operations {
                 category?: string;
                 favoritesOnly?: boolean;
                 availableOnly?: boolean;
+                sort?: string;
+                ownership?: string;
                 page?: number | string;
                 pageSize?: number | string;
             };
@@ -2073,7 +2202,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecipeListItemResponse"][];
+                    "application/json": components["schemas"]["RecipeListPageResponse"];
                 };
             };
             /** @description Unauthorized */

@@ -7,6 +7,7 @@ export interface AdminUserListItem {
   registeredAt: string
   roles: string[]
   recipesCount: number
+  favoriteCount: number
 }
 
 export interface AdminUsersPage {

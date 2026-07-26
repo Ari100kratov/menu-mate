@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, LoaderCircle, Search, UsersRound } from "lucide-react"
+import { ChevronLeft, ChevronRight, Heart, LoaderCircle, Search, UsersRound } from "lucide-react"
 import { useState } from "react"
 
 import { useAdminUsersQuery } from "@/features/admin/api/admin.queries"
@@ -65,11 +65,12 @@ export default function AdminUsersPage() {
             className="overflow-hidden rounded-md border"
             aria-label="Зарегистрированные пользователи"
           >
-            <div className="bg-muted/50 text-muted-foreground hidden grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.8fr)_minmax(9rem,0.75fr)_minmax(6rem,0.4fr)] gap-4 px-4 py-3 text-xs font-medium md:grid">
+            <div className="bg-muted/50 text-muted-foreground hidden grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.8fr)_minmax(9rem,0.75fr)_minmax(6rem,0.4fr)_minmax(6rem,0.4fr)] gap-4 px-4 py-3 text-xs font-medium md:grid">
               <span>Пользователь</span>
               <span>Роли</span>
               <span>Регистрация</span>
               <span className="text-right">Рецепты</span>
+              <span className="text-right">Лайки</span>
             </div>
             <div className="divide-y">
               {users.map((user) => (
@@ -101,7 +102,7 @@ export default function AdminUsersPage() {
 
 function AdminUserRow({ user }: { user: AdminUserListItem }) {
   return (
-    <article className="grid gap-3 p-4 md:grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.8fr)_minmax(9rem,0.75fr)_minmax(6rem,0.4fr)] md:items-center md:gap-4">
+    <article className="grid gap-3 p-4 md:grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.8fr)_minmax(9rem,0.75fr)_minmax(6rem,0.4fr)_minmax(6rem,0.4fr)] md:items-center md:gap-4">
       <div className="min-w-0">
         <p className="truncate font-medium">{user.displayName}</p>
         <p className="text-muted-foreground text-sm break-all">{user.email}</p>
@@ -126,6 +127,15 @@ function AdminUserRow({ user }: { user: AdminUserListItem }) {
       <div className="md:text-right">
         <p className="text-muted-foreground mb-1 text-xs md:hidden">Рецепты</p>
         <p className="text-sm font-medium">{formatRecipeCount(user.recipesCount)}</p>
+      </div>
+      <div className="md:text-right">
+        <p className="text-muted-foreground mb-1 text-xs md:hidden">Лайки</p>
+        {user.favoriteCount > 0 ? (
+          <p className="inline-flex items-center gap-1 text-sm font-medium">
+            <Heart className="size-3.5" aria-hidden="true" />
+            {user.favoriteCount}
+          </p>
+        ) : null}
       </div>
     </article>
   )
@@ -190,7 +200,7 @@ function AdminUsersSkeleton() {
       {Array.from({ length: 5 }, (_, index) => (
         <div
           key={index}
-          className="grid gap-3 border-b pb-3 last:border-b-0 last:pb-0 md:grid-cols-4"
+          className="grid gap-3 border-b pb-3 last:border-b-0 last:pb-0 md:grid-cols-5"
         >
           <div className="space-y-2">
             <Skeleton className="h-4 w-40" />

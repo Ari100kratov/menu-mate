@@ -19,6 +19,7 @@ internal static class RecipeMapping
             recipe.RevisionNumber,
             recipe.OwnerUserId == currentUserId,
             isFavorite,
+            0,
             savedRevisionId == recipe.CurrentRevisionId.Value,
             "Current",
             recipe.SourceRecipeId,
