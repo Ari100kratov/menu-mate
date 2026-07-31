@@ -10,11 +10,11 @@ internal sealed class ApiTestClient(HttpClient client)
 
     public HttpClient HttpClient => client;
 
-    public async Task<RegisterUserResponse> RegisterAsync(string email)
+    public async Task<RegisterUserResponse> RegisterAsync(string email, string? displayName = null)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(email, email, Password));
+            new RegisterUserRequest(email, displayName ?? email, Password));
 
         response.EnsureSuccessStatusCode();
 

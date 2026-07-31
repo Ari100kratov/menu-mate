@@ -41,6 +41,28 @@ public sealed class AuthWorkflowTests : IAsyncLifetime, IDisposable
         Assert.NotNull(me);
         Assert.Equal(registered.User.Id, me.Id);
         Assert.Contains("user", me.Roles);
+        Assert.True(me.Preferences.ShowShoppingListPreview);
+    }
+
+    [Fact]
+    public async Task UserShouldUpdateShoppingListPreviewPreference()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("auth-preferences"));
+
+        HttpResponseMessage updateResponse = await httpClient.PutAsJsonAsync(
+            "/api/auth/me/preferences",
+            new UpdateUserPreferencesRequest(ShowShoppingListPreview: false));
+
+        updateResponse.EnsureSuccessStatusCode();
+        UserProfileResponse? updated = await updateResponse.Content.ReadFromJsonAsync<UserProfileResponse>();
+        UserProfileResponse? persisted = await httpClient.GetFromJsonAsync<UserProfileResponse>("/api/auth/me");
+
+        Assert.NotNull(updated);
+        Assert.NotNull(persisted);
+        Assert.False(updated.Preferences.ShowShoppingListPreview);
+        Assert.False(persisted.Preferences.ShowShoppingListPreview);
     }
 
     [Fact]

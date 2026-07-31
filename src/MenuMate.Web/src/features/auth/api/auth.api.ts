@@ -7,6 +7,7 @@ type LoginUserRequest = components["schemas"]["LoginUserRequest"]
 type RegisterUserRequest = components["schemas"]["RegisterUserRequest"]
 type RegisterUserResponse = components["schemas"]["RegisterUserResponse"]
 type TokenResponse = components["schemas"]["TokenResponse"]
+export type UpdateUserPreferencesRequest = components["schemas"]["UpdateUserPreferencesRequest"]
 export type UserProfile = components["schemas"]["UserProfileResponse"]
 
 export async function login(request: LoginUserRequest) {
@@ -40,6 +41,14 @@ export async function refreshSession() {
 
 export async function getCurrentUser() {
   return unwrapApiResponse<UserProfile>(apiClient.GET("/api/auth/me"))
+}
+
+export async function updateUserPreferences(request: UpdateUserPreferencesRequest) {
+  return unwrapApiResponse<UserProfile>(
+    apiClient.PUT("/api/auth/me/preferences", {
+      body: request,
+    }),
+  )
 }
 
 export async function logout() {

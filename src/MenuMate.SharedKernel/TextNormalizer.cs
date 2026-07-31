@@ -18,4 +18,10 @@ public static class TextNormalizer
 
         return string.Join(' ', parts);
     }
+
+    /// <summary>
+    /// Нормализует пользовательский поисковый запрос и считает буквы «ё» и «е» эквивалентными.
+    /// </summary>
+    public static string NormalizeSearchQuery(string value) =>
+        NormalizeSearchText(value).Replace('Ё', 'Е');
 }

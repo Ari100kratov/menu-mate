@@ -11,7 +11,8 @@ internal static class AuthMapping
             user.Id,
             user.Email,
             user.DisplayName,
-            user.Roles.Select(role => role.RoleName).Order(StringComparer.Ordinal).ToArray());
+            user.Roles.Select(role => role.RoleName).Order(StringComparer.Ordinal).ToArray(),
+            new UserPreferencesResponse(user.ShowShoppingListPreview));
 
     public static TokenResponse ToTokenResponse(AccessToken accessToken) =>
         new(accessToken.Value, accessToken.ExpiresAt);

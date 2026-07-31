@@ -7,6 +7,9 @@ import {
   logout,
   refreshSession,
   register,
+  updateUserPreferences,
+  type UserProfile,
+  type UpdateUserPreferencesRequest,
 } from "@/features/auth/api/auth.api"
 import { clearSession, useSessionStore } from "@/shared/auth/session.store"
 
@@ -75,6 +78,42 @@ export function useLogoutMutation() {
       clearSession()
       queryClient.clear()
       void navigate("/login", { replace: true })
+    },
+  })
+}
+
+export function useUpdateUserPreferencesMutation() {
+  const queryClient = useQueryClient()
+  const setUser = useSessionStore((state) => state.setUser)
+
+  return useMutation({
+    mutationFn: (request: UpdateUserPreferencesRequest) => updateUserPreferences(request),
+    onMutate: async (request) => {
+      await queryClient.cancelQueries({ queryKey: authQueryKeys.currentUser })
+      const previous = queryClient.getQueryData<UserProfile>(authQueryKeys.currentUser)
+      const optimistic = previous
+        ? {
+            ...previous,
+            preferences: request,
+          }
+        : undefined
+
+      if (optimistic) {
+        queryClient.setQueryData(authQueryKeys.currentUser, optimistic)
+        setUser(optimistic)
+      }
+
+      return { previous }
+    },
+    onError: (_error, _request, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(authQueryKeys.currentUser, context.previous)
+        setUser(context.previous)
+      }
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKeys.currentUser, user)
+      setUser(user)
     },
   })
 }

@@ -1,13 +1,22 @@
 import { CircleDashed, MessageSquareText, Tag } from "lucide-react"
+import type { ReactNode } from "react"
 
 import type { Recipe } from "@/features/recipes/api/recipes.api"
-import { formatRecipeIngredientQuantity } from "@/features/recipes/model/recipe-ingredient-format"
+import {
+  formatRecipeIngredientQuantity,
+  scaleRecipeIngredientAmount,
+} from "@/features/recipes/model/recipe-ingredient-format"
 import { getProductCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { findStepImage } from "@/features/recipes/model/recipe-images"
 import { RecipeImagePreview } from "@/features/recipes/ui/RecipeImagePreview"
 
 interface RecipeDetailsSectionsProps {
   recipe: Recipe
+}
+
+interface RecipeIngredientsProps extends RecipeDetailsSectionsProps {
+  notice?: ReactNode
+  servings?: number
 }
 
 export function RecipeTags({ tags }: { tags: readonly string[] }) {
@@ -35,10 +44,15 @@ export function RecipeTags({ tags }: { tags: readonly string[] }) {
   )
 }
 
-export function RecipeIngredients({ recipe }: RecipeDetailsSectionsProps) {
+export function RecipeIngredients({
+  recipe,
+  notice,
+  servings = recipe.servings,
+}: RecipeIngredientsProps) {
   return (
     <section className="space-y-3 border-t pt-5">
       <h3 className="type-section-title">Ингредиенты</h3>
+      {notice}
       <div className="space-y-2">
         {recipe.ingredients.map((ingredient) => (
           <div
@@ -55,7 +69,12 @@ export function RecipeIngredients({ recipe }: RecipeDetailsSectionsProps) {
               ) : null}
             </div>
             <div className="type-supporting text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span>{formatRecipeIngredientQuantity(ingredient)}</span>
+              <span>
+                {formatRecipeIngredientQuantity({
+                  ...ingredient,
+                  amount: scaleRecipeIngredientAmount(ingredient.amount, recipe.servings, servings),
+                })}
+              </span>
               <span className="text-muted-foreground/50">·</span>
               <span>{getProductCategoryLabel(ingredient.category)}</span>
             </div>

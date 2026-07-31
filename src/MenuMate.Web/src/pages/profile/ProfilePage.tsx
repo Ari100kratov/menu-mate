@@ -34,7 +34,7 @@ export default function ProfilePage() {
       {logoutMutation.error ? <ErrorAlert error={logoutMutation.error} /> : null}
 
       <ProfileOverview user={currentUserQuery.data} accessTokenExpiresAt={accessTokenExpiresAt} />
-      <ProfileSettings />
+      <ProfileSettings user={currentUserQuery.data} />
     </div>
   )
 }

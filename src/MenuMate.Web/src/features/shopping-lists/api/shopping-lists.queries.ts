@@ -20,11 +20,12 @@ export const shoppingListQueryKeys = {
     ["shopping-list", "menu-preview", startDate, endDate] as const,
 }
 
-export function useShoppingListQuery() {
+export function useShoppingListQuery(enabled = true) {
   return useQuery({
     queryKey: shoppingListQueryKeys.current,
     queryFn: getShoppingList,
     staleTime: 30_000,
+    enabled,
   })
 }
 

@@ -28,6 +28,10 @@ internal static class ShoppingListApplicationErrors
         "ShoppingLists.InvalidServings",
         "Количество порций должно быть больше нуля.");
 
+    public static readonly AppError EmptyMenuSelection = AppError.Validation(
+        "ShoppingLists.EmptyMenuSelection",
+        "В выбранном диапазоне нет ингредиентов для списка покупок.");
+
     public static readonly AppError EmptyList = AppError.NotFound(
         "ShoppingLists.Empty",
         "Список покупок пока пуст.");

@@ -78,6 +78,58 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         Assert.False(Assert.Single(Assert.Single(replacedList.Categories).Items).IsPurchased);
     }
 
+    [Fact]
+    public async Task GenerateWithoutPreviewShouldUseMenuServingsAndAllIngredients()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("shopping-without-preview"));
+
+        RecipeResponse recipe = await CreateRecipeAsync(httpClient);
+        Guid dinnerSlotId = await GetDinnerSlotIdAsync(httpClient);
+        await AddRecipeToMenuAsync(httpClient, dinnerSlotId, recipe.Id, recipe.RevisionId);
+
+        HttpResponseMessage response = await httpClient.PutAsJsonAsync(
+            "/api/shopping-list/from-menu",
+            new GenerateShoppingListRequest(
+                new DateOnly(2026, 6, 1),
+                new DateOnly(2026, 6, 7),
+                Recipes: null));
+
+        response.EnsureSuccessStatusCode();
+        ShoppingListResponse? shoppingList = await response.Content.ReadFromJsonAsync<ShoppingListResponse>();
+        Assert.NotNull(shoppingList);
+        ShoppingListItemResponse item = Assert.Single(Assert.Single(shoppingList.Categories).Items);
+        Assert.Equal("rice", item.Name);
+        Assert.Equal(1000m, item.Amount);
+        Assert.Equal("Gram", item.Unit);
+    }
+
+    [Fact]
+    public async Task EmptyDefaultGenerationShouldNotReplaceCurrentList()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("shopping-empty-defaults"));
+        ShoppingListItemResponse existingItem = await AddManualItemAsync(httpClient);
+
+        HttpResponseMessage response = await httpClient.PutAsJsonAsync(
+            "/api/shopping-list/from-menu",
+            new GenerateShoppingListRequest(
+                new DateOnly(2026, 7, 1),
+                new DateOnly(2026, 7, 7),
+                Recipes: null));
+
+        await ProblemDetailsAssert.HasProblemAsync(
+            response,
+            HttpStatusCode.BadRequest,
+            "ShoppingLists.EmptyMenuSelection");
+        ShoppingListResponse? shoppingList = await httpClient.GetFromJsonAsync<ShoppingListResponse>(
+            "/api/shopping-list");
+        Assert.NotNull(shoppingList);
+        Assert.Equal(existingItem.Id, Assert.Single(Assert.Single(shoppingList.Categories).Items).Id);
+    }
+
     private static async Task<RecipeResponse> CreateRecipeAsync(HttpClient client)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync(

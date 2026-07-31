@@ -4,6 +4,10 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
+  useCurrentUserQuery,
+  useUpdateUserPreferencesMutation,
+} from "@/features/auth/api/auth.queries"
+import {
   useMenuShoppingPreviewQuery,
   useReplaceShoppingListFromMenuMutation,
   useShoppingListQuery,
@@ -32,6 +36,8 @@ export default function ShoppingPreviewPage() {
   const endDate = searchParams.get("endDate") ?? ""
   const previewQuery = useMenuShoppingPreviewQuery(startDate, endDate)
   const currentListQuery = useShoppingListQuery()
+  const currentUserQuery = useCurrentUserQuery()
+  const updatePreferencesMutation = useUpdateUserPreferencesMutation()
   const replaceMutation = useReplaceShoppingListFromMenuMutation()
   const [excluded, setExcluded] = useState<Set<string>>(() => new Set())
   const [servings, setServings] = useState<Record<string, number>>({})
@@ -91,9 +97,22 @@ export default function ShoppingPreviewPage() {
           Снимите отметки с ненужных ингредиентов. Совместимые единицы будут приведены к одной
           системе и объединены.
         </p>
+        <label className="bg-background/70 mt-4 flex cursor-pointer items-center gap-3 rounded-lg border p-3">
+          <Checkbox
+            checked={currentUserQuery.data?.preferences.showShoppingListPreview === false}
+            disabled={currentUserQuery.isPending || updatePreferencesMutation.isPending}
+            onCheckedChange={(checked) => {
+              updatePreferencesMutation.mutate({ showShoppingListPreview: checked !== true })
+            }}
+          />
+          <span className="type-supporting">Больше не показывать предпросмотр</span>
+        </label>
       </section>
 
       {replaceMutation.error ? <ErrorAlert error={replaceMutation.error} /> : null}
+      {updatePreferencesMutation.error ? (
+        <ErrorAlert error={updatePreferencesMutation.error} />
+      ) : null}
       {currentListQuery.error ? <ErrorAlert error={currentListQuery.error} /> : null}
 
       {preview.recipes.length === 0 ? (

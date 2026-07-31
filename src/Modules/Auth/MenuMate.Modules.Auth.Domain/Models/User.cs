@@ -12,12 +12,19 @@ public sealed class User : Entity<Guid>
     private readonly List<UserRole> _roles = [];
     private readonly List<RefreshToken> _refreshTokens = [];
 
-    private User(Guid id, string email, string displayName, string passwordHash, DateTimeOffset createdAt)
+    private User(
+        Guid id,
+        string email,
+        string displayName,
+        string passwordHash,
+        bool showShoppingListPreview,
+        DateTimeOffset createdAt)
         : base(id)
     {
         Email = email;
         DisplayName = displayName;
         PasswordHash = passwordHash;
+        ShowShoppingListPreview = showShoppingListPreview;
         CreatedAt = createdAt;
         UpdatedAt = createdAt;
     }
@@ -36,6 +43,11 @@ public sealed class User : Entity<Guid>
     /// Хеш пароля.
     /// </summary>
     public string PasswordHash { get; private set; }
+
+    /// <summary>
+    /// Показывать ли предпросмотр перед созданием списка покупок из меню.
+    /// </summary>
+    public bool ShowShoppingListPreview { get; private set; }
 
     /// <summary>
     /// Account creation moment.
@@ -82,7 +94,13 @@ public sealed class User : Entity<Guid>
             return Result.Failure<User>(AuthErrors.EmptyPasswordHash);
         }
 
-        return new User(id, EmailNormalizer.Normalize(email), displayName.Trim(), passwordHash, now);
+        return new User(
+            id,
+            EmailNormalizer.Normalize(email),
+            displayName.Trim(),
+            passwordHash,
+            showShoppingListPreview: true,
+            now);
     }
 
     /// <summary>
@@ -93,12 +111,13 @@ public sealed class User : Entity<Guid>
         string email,
         string displayName,
         string passwordHash,
+        bool showShoppingListPreview,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         IEnumerable<UserRole> roles,
         IEnumerable<RefreshToken> refreshTokens)
     {
-        var user = new User(id, email, displayName, passwordHash, createdAt)
+        var user = new User(id, email, displayName, passwordHash, showShoppingListPreview, createdAt)
         {
             UpdatedAt = updatedAt
         };
@@ -126,4 +145,18 @@ public sealed class User : Entity<Guid>
     /// Добавляет refresh token пользователю.
     /// </summary>
     public void AddRefreshToken(RefreshToken refreshToken) => _refreshTokens.Add(refreshToken);
+
+    /// <summary>
+    /// Изменяет пользовательские настройки приложения.
+    /// </summary>
+    public void UpdatePreferences(bool showShoppingListPreview, DateTimeOffset now)
+    {
+        if (ShowShoppingListPreview == showShoppingListPreview)
+        {
+            return;
+        }
+
+        ShowShoppingListPreview = showShoppingListPreview;
+        UpdatedAt = now;
+    }
 }

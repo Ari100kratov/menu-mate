@@ -12,6 +12,8 @@ internal sealed class UserRecord
 
     public string PasswordHash { get; set; } = string.Empty;
 
+    public bool ShowShoppingListPreview { get; set; } = true;
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
@@ -27,6 +29,7 @@ internal sealed class UserRecord
             Email = user.Email,
             DisplayName = user.DisplayName,
             PasswordHash = user.PasswordHash,
+            ShowShoppingListPreview = user.ShowShoppingListPreview,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             Roles = [.. user.Roles.Select(UserRoleRecord.FromDomain)],
@@ -39,8 +42,15 @@ internal sealed class UserRecord
             Email,
             DisplayName,
             PasswordHash,
+            ShowShoppingListPreview,
             CreatedAt,
             UpdatedAt,
             Roles.Select(role => role.ToDomain()),
             RefreshTokens.Select(token => token.ToDomain()));
+
+    public void Apply(User user)
+    {
+        ShowShoppingListPreview = user.ShowShoppingListPreview;
+        UpdatedAt = user.UpdatedAt;
+    }
 }

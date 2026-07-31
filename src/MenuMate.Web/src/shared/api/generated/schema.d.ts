@@ -164,6 +164,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateUserPreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -722,8 +738,8 @@ export interface components {
              * @description Дата окончания диапазона меню.
              */
             endDate: string;
-            /** @description Выбранные блюда и ингредиенты из меню. */
-            recipes: components["schemas"]["MenuShoppingSelectionRequest"][];
+            /** @description Выбранные блюда и ингредиенты из меню; null включает все блюда и ингредиенты. */
+            recipes: null | components["schemas"]["MenuShoppingSelectionRequest"][];
         };
         /** Format: binary */
         IFormFile: string;
@@ -1437,6 +1453,16 @@ export interface components {
             /** @description Советы и примечания к рецепту. */
             advice?: null | string;
         };
+        /** @description Запрос на изменение пользовательских настроек приложения. */
+        UpdateUserPreferencesRequest: {
+            /** @description Показывать ли предпросмотр перед созданием списка покупок из меню. */
+            showShoppingListPreview: boolean;
+        };
+        /** @description Пользовательские настройки приложения. */
+        UserPreferencesResponse: {
+            /** @description Показывать ли предпросмотр перед созданием списка покупок из меню. */
+            showShoppingListPreview: boolean;
+        };
         /** @description Публичный профиль пользователя. */
         UserProfileResponse: {
             /**
@@ -1450,6 +1476,8 @@ export interface components {
             displayName: string;
             /** @description Названия назначенных ролей. */
             roles: string[];
+            /** @description Пользовательские настройки приложения. */
+            preferences: components["schemas"]["UserPreferencesResponse"];
         };
     };
     responses: never;
@@ -1720,6 +1748,48 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateUserPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserPreferencesRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

@@ -135,7 +135,7 @@ export function MenuItemRow({ item, mealSlots, isPending, onUpdate, onRemove }: 
     <article className="bg-background/85 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border p-2.5">
       {item.recipeId ? (
         <Link
-          to={`/recipes/${item.recipeId}?revisionId=${encodeURIComponent(item.recipeRevisionId ?? "")}`}
+          to={`/recipes/${item.recipeId}?revisionId=${encodeURIComponent(item.recipeRevisionId ?? "")}&menuServings=${encodeURIComponent(String(item.servings))}`}
           state={createBackNavigationState(location)}
           className="hover:bg-muted/60 focus-visible:ring-ring/50 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-md p-1 text-left transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
         >

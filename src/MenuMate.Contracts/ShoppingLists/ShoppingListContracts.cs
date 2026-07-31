@@ -54,11 +54,11 @@ public sealed record ShoppingListItemResponse(
 /// </summary>
 /// <param name="StartDate">Дата начала диапазона меню.</param>
 /// <param name="EndDate">Дата окончания диапазона меню.</param>
-/// <param name="Recipes">Выбранные блюда и ингредиенты из меню.</param>
+/// <param name="Recipes">Выбранные блюда и ингредиенты из меню; null включает все блюда и ингредиенты.</param>
 public sealed record GenerateShoppingListRequest(
     DateOnly StartDate,
     DateOnly EndDate,
-    IReadOnlyCollection<MenuShoppingSelectionRequest> Recipes);
+    IReadOnlyCollection<MenuShoppingSelectionRequest>? Recipes);
 
 /// <summary>
 /// Выбор ингредиентов одного блюда меню для нового списка покупок.

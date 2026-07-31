@@ -1,6 +1,7 @@
 using MenuMate.Contracts.Auth;
 using MenuMate.Modules.Auth.Application.Abstractions;
 using MenuMate.Modules.Auth.Infrastructure.Database.Entities;
+using MenuMate.SharedKernel;
 using MenuMate.SharedKernel.Identifiers;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +36,8 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
                 user.Roles
                     .OrderBy(role => role.Role!.Name)
                     .Select(role => role.Role!.Name)
-                    .ToArray()))
+                    .ToArray(),
+                new UserPreferencesResponse(user.ShowShoppingListPreview)))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -46,7 +48,9 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
         int take,
         CancellationToken cancellationToken)
     {
-        string? normalizedSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+        string? normalizedSearch = string.IsNullOrWhiteSpace(search)
+            ? null
+            : TextNormalizer.NormalizeSearchQuery(search);
         IQueryable<UserRecord> query = Users.AsNoTracking();
 
         if (normalizedSearch is not null)
@@ -54,7 +58,9 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
             string pattern = $"%{normalizedSearch}%";
             query = query.Where(user =>
                 EF.Functions.ILike(user.Email, pattern) ||
-                EF.Functions.ILike(user.DisplayName, pattern));
+                EF.Functions.ILike(
+                    user.DisplayName.Replace("ё", "е").Replace("Ё", "Е"),
+                    pattern));
         }
 
         int totalCount = await query.CountAsync(cancellationToken);

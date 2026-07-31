@@ -86,6 +86,25 @@ public sealed class TagsWorkflowTests : IAsyncLifetime, IDisposable
             results.Select(tag => tag.Name));
     }
 
+    [Fact]
+    public async Task SearchShouldIgnoreCaseAndTreatYoAsYe()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("tag-yo-search"));
+
+        HttpResponseMessage createResponse = await httpClient.PostAsJsonAsync(
+            "/api/tags/",
+            new CreateTagRequest("Тёртые овощи"));
+        createResponse.EnsureSuccessStatusCode();
+
+        TagResponse[]? results = await httpClient.GetFromJsonAsync<TagResponse[]>(
+            $"/api/tags?search={Uri.EscapeDataString("ТЕРТЫЕ")}");
+
+        Assert.NotNull(results);
+        Assert.Equal("Тёртые овощи", Assert.Single(results).Name);
+    }
+
     private static async Task<TagResponse[]> GetTagsAsync(HttpClient client)
     {
         TagResponse[]? tags = await client.GetFromJsonAsync<TagResponse[]>("/api/tags");

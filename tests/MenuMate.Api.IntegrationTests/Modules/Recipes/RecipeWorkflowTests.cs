@@ -169,6 +169,31 @@ public sealed class RecipeWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal("Confirmed", catalogTag.Status);
     }
 
+    [Fact]
+    public async Task RecipeSearchShouldIgnoreCaseAndTreatYoAsYe()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("recipe-yo-search"));
+
+        await CreateRecipeAsync(
+            httpClient,
+            CreateRequest("Тёртая свёкла", "Private") with
+            {
+                Description = "Зелёный салат"
+            });
+
+        RecipeListPageResponse? byTitle = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            $"/api/recipes?search={Uri.EscapeDataString("ТЕРТАЯ СВЕКЛА")}");
+        RecipeListPageResponse? byDescription = await httpClient.GetFromJsonAsync<RecipeListPageResponse>(
+            $"/api/recipes?search={Uri.EscapeDataString("зЕЛЕный")}");
+
+        Assert.NotNull(byTitle);
+        Assert.NotNull(byDescription);
+        Assert.Equal("Тёртая свёкла", Assert.Single(byTitle.Items).Title);
+        Assert.Equal("Тёртая свёкла", Assert.Single(byDescription.Items).Title);
+    }
+
     private static async Task<RecipeResponse> CreateRecipeAsync(HttpClient client, CreateRecipeRequest request)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/recipes/", request);

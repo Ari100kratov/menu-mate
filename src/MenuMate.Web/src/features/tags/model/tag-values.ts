@@ -17,5 +17,5 @@ export function serializeTagValues(tags: readonly string[]) {
 }
 
 export function normalizeTagValue(value: string) {
-  return value.trim().toLocaleLowerCase("ru-RU")
+  return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е").replaceAll(/\s+/g, " ")
 }

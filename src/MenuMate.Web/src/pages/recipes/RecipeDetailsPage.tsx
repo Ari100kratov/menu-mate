@@ -16,19 +16,14 @@ import {
 } from "@/shared/lib/back-navigation"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { Button } from "@/shared/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
 
 export default function RecipeDetailsPage() {
   const { recipeId } = useParams<{ recipeId: string }>()
   const [searchParams] = useSearchParams()
   const revisionId = searchParams.get("revisionId") ?? undefined
+  const menuServings = parseMenuServings(searchParams.get("menuServings"))
   const navigate = useNavigate()
   const location = useLocation()
   const recipeQuery = useRecipeQuery(recipeId, revisionId)
@@ -126,7 +121,9 @@ export default function RecipeDetailsPage() {
       {recipe ? (
         <>
           <RecipeDetailsContent
+            key={`${recipe.revisionId}:${String(menuServings ?? "original")}`}
             recipe={recipe}
+            menuServings={menuServings}
             isFavoritePending={favoriteMutation.isPending}
             isDeletePending={deleteRecipeMutation.isPending}
             onToggleFavorite={toggleFavorite}
@@ -153,7 +150,6 @@ export default function RecipeDetailsPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Советы</DialogTitle>
-                  <DialogDescription>Дополнительные рекомендации к рецепту.</DialogDescription>
                 </DialogHeader>
                 <div className="max-h-[60svh] overflow-y-auto px-5 pb-5">
                   <p className="type-body break-words whitespace-pre-wrap">{recipe.advice}</p>
@@ -165,4 +161,13 @@ export default function RecipeDetailsPage() {
       ) : null}
     </div>
   )
+}
+
+function parseMenuServings(value: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const servings = Number(value)
+  return Number.isInteger(servings) && servings >= 1 && servings <= 100 ? servings : null
 }

@@ -8,6 +8,7 @@ using MenuMate.Modules.Auth.Application.LoginUser;
 using MenuMate.Modules.Auth.Application.LogoutUser;
 using MenuMate.Modules.Auth.Application.RefreshUserToken;
 using MenuMate.Modules.Auth.Application.RegisterUser;
+using MenuMate.Modules.Auth.Application.UpdateUserPreferences;
 using MenuMate.Modules.Auth.Domain.Models;
 using MenuMate.Modules.Auth.Domain.ValueObjects;
 using MenuMate.SharedKernel;
@@ -52,6 +53,14 @@ public static class AuthEndpoints
         group.MapGet("/me", GetCurrentUserAsync)
             .RequireAuthorization()
             .WithName("GetCurrentUser")
+            .Produces<UserProfileResponse>()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPut("/me/preferences", UpdateUserPreferencesAsync)
+            .RequireAuthorization()
+            .WithName("UpdateUserPreferences")
+            .Accepts<UpdateUserPreferencesRequest>("application/json")
             .Produces<UserProfileResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden);
@@ -149,6 +158,18 @@ public static class AuthEndpoints
     {
         Result<AdminUsersPageResponse> result = await handler.Handle(
             new GetAdminUsersQuery(search, page ?? 1, pageSize ?? 20),
+            cancellationToken);
+        return result.ToHttpResult(httpContext);
+    }
+
+    private static async Task<IResult> UpdateUserPreferencesAsync(
+        UpdateUserPreferencesRequest request,
+        ICommandHandler<UpdateUserPreferencesCommand, UserProfileResponse> handler,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Result<UserProfileResponse> result = await handler.Handle(
+            new UpdateUserPreferencesCommand(request),
             cancellationToken);
         return result.ToHttpResult(httpContext);
     }

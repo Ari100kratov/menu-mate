@@ -17,6 +17,8 @@ internal interface IAuthRepository
 
     Task AddUserAsync(User user, CancellationToken cancellationToken);
 
+    Task UpdateUserAsync(User user, CancellationToken cancellationToken);
+
     Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
 
     Task RevokeRefreshTokenAsync(Guid refreshTokenId, CancellationToken cancellationToken);

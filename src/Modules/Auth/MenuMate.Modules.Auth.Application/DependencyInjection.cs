@@ -6,6 +6,7 @@ using MenuMate.Modules.Auth.Application.LoginUser;
 using MenuMate.Modules.Auth.Application.LogoutUser;
 using MenuMate.Modules.Auth.Application.RefreshUserToken;
 using MenuMate.Modules.Auth.Application.RegisterUser;
+using MenuMate.Modules.Auth.Application.UpdateUserPreferences;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MenuMate.Modules.Auth.Application;
@@ -26,6 +27,7 @@ public static class AuthApplicationDependencyInjection
         services.AddScoped<ICommandHandler<LogoutUserCommand>, LogoutUserCommandHandler>();
         services.AddScoped<IQueryHandler<GetCurrentUserQuery, UserProfileResponse>, GetCurrentUserQueryHandler>();
         services.AddScoped<IQueryHandler<GetAdminUsersQuery, AdminUsersPageResponse>, GetAdminUsersQueryHandler>();
+        services.AddScoped<ICommandHandler<UpdateUserPreferencesCommand, UserProfileResponse>, UpdateUserPreferencesCommandHandler>();
 
         return services;
     }

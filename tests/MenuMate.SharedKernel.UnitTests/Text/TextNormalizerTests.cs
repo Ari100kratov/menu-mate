@@ -17,6 +17,14 @@ public sealed class TextNormalizerTests
     }
 
     [Fact]
+    public void NormalizeSearchQueryShouldTreatYoAsYe()
+    {
+        string result = TextNormalizer.NormalizeSearchQuery("  Всё\tЗЕЛЁНОЕ ");
+
+        Assert.Equal("ВСЕ ЗЕЛЕНОЕ", result);
+    }
+
+    [Fact]
     public void ProductNameNormalizerShouldLowercaseReplaceYoAndCollapseWhitespace()
     {
         string result = ProductNameNormalizer.Normalize("  Ёлки\tПАЛКИ \r\n");

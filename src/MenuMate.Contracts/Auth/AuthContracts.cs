@@ -29,7 +29,25 @@ public sealed record TokenResponse(string AccessToken, DateTimeOffset ExpiresAt)
 /// <param name="Email">Email пользователя.</param>
 /// <param name="DisplayName">Отображаемое имя пользователя.</param>
 /// <param name="Roles">Названия назначенных ролей.</param>
-public sealed record UserProfileResponse(Guid Id, string Email, string DisplayName, IReadOnlyCollection<string> Roles);
+/// <param name="Preferences">Пользовательские настройки приложения.</param>
+public sealed record UserProfileResponse(
+    Guid Id,
+    string Email,
+    string DisplayName,
+    IReadOnlyCollection<string> Roles,
+    UserPreferencesResponse Preferences);
+
+/// <summary>
+/// Пользовательские настройки приложения.
+/// </summary>
+/// <param name="ShowShoppingListPreview">Показывать ли предпросмотр перед созданием списка покупок из меню.</param>
+public sealed record UserPreferencesResponse(bool ShowShoppingListPreview);
+
+/// <summary>
+/// Запрос на изменение пользовательских настроек приложения.
+/// </summary>
+/// <param name="ShowShoppingListPreview">Показывать ли предпросмотр перед созданием списка покупок из меню.</param>
+public sealed record UpdateUserPreferencesRequest(bool ShowShoppingListPreview);
 
 /// <summary>
 /// Страница пользователей для административного просмотра.

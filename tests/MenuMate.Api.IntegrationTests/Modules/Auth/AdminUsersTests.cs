@@ -41,7 +41,9 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         var targetClient = new ApiTestClient(targetHttpClient);
         var otherClient = new ApiTestClient(otherHttpClient);
 
-        RegisterUserResponse target = await targetClient.RegisterAsync(TestEmail.Create("admin-users-target"));
+        RegisterUserResponse target = await targetClient.RegisterAsync(
+            TestEmail.Create("admin-users-target"),
+            "Алёна Воронцова");
         RecipeResponse recipe = await CreateRecipeAsync(targetHttpClient);
         (await targetHttpClient.PostAsync(
             new Uri($"/api/recipes/{recipe.Id}/favorite", UriKind.Relative),
@@ -52,7 +54,7 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         await adminClient.LoginAsync(admin.User.Email);
 
         AdminUsersPageResponse? searched = await adminHttpClient.GetFromJsonAsync<AdminUsersPageResponse>(
-            $"/api/admin/users?search={Uri.EscapeDataString(target.User.Email)}&page=1&pageSize=20");
+            $"/api/admin/users?search={Uri.EscapeDataString("аЛеНа")}&page=1&pageSize=20");
         AdminUsersPageResponse? firstPage = await adminHttpClient.GetFromJsonAsync<AdminUsersPageResponse>(
             "/api/admin/users?page=1&pageSize=1");
 

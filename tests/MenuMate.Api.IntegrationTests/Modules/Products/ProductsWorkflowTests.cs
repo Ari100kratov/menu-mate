@@ -58,6 +58,20 @@ public sealed class ProductsWorkflowTests : IAsyncLifetime, IDisposable
             product => product.Name.Contains("фасоль", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public async Task SearchShouldIgnoreCaseAndTreatYoAsYe()
+    {
+        using HttpClient httpClient = _factory.CreateClient();
+        var client = new ApiTestClient(httpClient);
+        await client.RegisterAsync(TestEmail.Create("product-yo-search"));
+
+        ProductResponse[]? products = await httpClient.GetFromJsonAsync<ProductResponse[]>(
+            $"/api/products?search={Uri.EscapeDataString("СвЁкЛа")}");
+
+        Assert.NotNull(products);
+        Assert.Contains(products, product => product.Name == "свекла");
+    }
+
     private static async Task CreateRecipeAsync(
         HttpClient client,
         string title,

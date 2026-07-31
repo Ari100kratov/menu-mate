@@ -19,3 +19,4 @@ ADR — короткие записи архитектурных решений,
 - [0015 Ревизии рецептов, библиотека пользователя и копии](0015-recipe-revisions-library-and-forks.md)
 - [0016 Календарь меню и настраиваемые приемы пищи](0016-calendar-menu-and-custom-meal-slots.md)
 - [0017 Единый список покупок и предпросмотр меню](0017-single-shopping-list-and-menu-preview.md)
+- [0018 Настраиваемый предпросмотр списка покупок](0018-optional-shopping-list-preview.md)

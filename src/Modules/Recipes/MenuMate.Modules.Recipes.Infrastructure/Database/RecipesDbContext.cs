@@ -4,6 +4,7 @@ using MenuMate.Modules.Recipes.Application.GetRecipes;
 using MenuMate.Modules.Recipes.Domain.Enums;
 using MenuMate.Modules.Recipes.Infrastructure.Database.Entities;
 using MenuMate.Modules.Recipes.Infrastructure.Database.Source;
+using MenuMate.SharedKernel;
 using MenuMate.SharedKernel.Identifiers;
 using Microsoft.EntityFrameworkCore;
 
@@ -247,7 +248,9 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         CancellationToken cancellationToken)
     {
         Guid[] distinctTagIds = [.. tagIds.Where(tagId => tagId != Guid.Empty).Distinct()];
-        string? searchPattern = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        string? searchPattern = string.IsNullOrWhiteSpace(search)
+            ? null
+            : $"%{TextNormalizer.NormalizeSearchQuery(search)}%";
         IQueryable<RecipeListProjection> filteredRecipes;
         if (catalog)
         {
@@ -393,9 +396,13 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         if (searchPattern is not null)
         {
             query = query.Where(item =>
-                EF.Functions.ILike(item.Revision.Title, searchPattern) ||
+                EF.Functions.ILike(
+                    item.Revision.Title.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern) ||
                 item.Revision.Description != null &&
-                EF.Functions.ILike(item.Revision.Description, searchPattern));
+                EF.Functions.ILike(
+                    item.Revision.Description.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern));
         }
 
         if (tagIds.Length > 0)
@@ -455,9 +462,13 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         if (searchPattern is not null)
         {
             query = query.Where(item =>
-                EF.Functions.ILike(item.Revision.Title, searchPattern) ||
+                EF.Functions.ILike(
+                    item.Revision.Title.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern) ||
                 item.Revision.Description != null &&
-                EF.Functions.ILike(item.Revision.Description, searchPattern));
+                EF.Functions.ILike(
+                    item.Revision.Description.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern));
         }
 
         if (tagIds.Length > 0)
@@ -517,9 +528,13 @@ public sealed class RecipesDbContext(DbContextOptions<RecipesDbContext> options)
         if (searchPattern is not null)
         {
             query = query.Where(item =>
-                EF.Functions.ILike(item.Revision.Title, searchPattern) ||
+                EF.Functions.ILike(
+                    item.Revision.Title.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern) ||
                 item.Revision.Description != null &&
-                EF.Functions.ILike(item.Revision.Description, searchPattern));
+                EF.Functions.ILike(
+                    item.Revision.Description.Replace("ё", "е").Replace("Ё", "Е"),
+                    searchPattern));
         }
 
         if (tagIds.Length > 0)

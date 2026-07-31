@@ -22,6 +22,7 @@ public sealed class UserTests
         Assert.Equal("Пользователь", user.DisplayName);
         Assert.Equal(FixedNow, user.CreatedAt);
         Assert.Equal(FixedNow, user.UpdatedAt);
+        Assert.True(user.ShowShoppingListPreview);
     }
 
     [Theory]
@@ -78,6 +79,18 @@ public sealed class UserTests
         user.AddRefreshToken(token);
 
         Assert.Same(token, Assert.Single(user.RefreshTokens));
+    }
+
+    [Fact]
+    public void UpdatePreferencesShouldDisableShoppingListPreviewAndUpdateTimestamp()
+    {
+        User user = CreateUser();
+        DateTimeOffset changedAt = FixedNow.AddMinutes(5);
+
+        user.UpdatePreferences(showShoppingListPreview: false, changedAt);
+
+        Assert.False(user.ShowShoppingListPreview);
+        Assert.Equal(changedAt, user.UpdatedAt);
     }
 
     private static User CreateUser() =>

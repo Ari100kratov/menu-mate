@@ -2,6 +2,7 @@ import { ChefHat, Clock3, ExternalLink, Globe2, LockKeyhole, Timer, Users } from
 import type { ReactNode } from "react"
 
 import type { Recipe } from "@/features/recipes/api/recipes.api"
+import { formatRecipeServings } from "@/features/recipes/model/recipe-ingredient-format"
 import { findCoverImage } from "@/features/recipes/model/recipe-images"
 import { getRecipeCategoryLabel } from "@/features/recipes/model/recipe-form-options"
 import { RecipeImagePreview } from "./RecipeImagePreview"
@@ -9,9 +10,10 @@ import { RecipeImagePreview } from "./RecipeImagePreview"
 interface RecipeHeroProps {
   recipe: Recipe
   actions: ReactNode
+  servings?: number
 }
 
-export function RecipeHero({ recipe, actions }: RecipeHeroProps) {
+export function RecipeHero({ recipe, actions, servings = recipe.servings }: RecipeHeroProps) {
   const coverImage = findCoverImage(recipe.images)
 
   return (
@@ -36,7 +38,7 @@ export function RecipeHero({ recipe, actions }: RecipeHeroProps) {
             label="Категория"
             value={getRecipeCategoryLabel(recipe.category)}
           />
-          <RecipeMeta icon={Users} label="Количество" value={`${String(recipe.servings)} порции`} />
+          <RecipeMeta icon={Users} label="Количество" value={formatRecipeServings(servings)} />
           {recipe.totalTimeMinutes === null ? null : (
             <RecipeMeta
               icon={Clock3}

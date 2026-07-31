@@ -26,7 +26,7 @@ internal sealed class GenerateShoppingListCommandHandler(
             return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.InvalidDateRange);
         }
 
-        if (command.Request.Recipes.Any(selection => selection.Servings <= 0))
+        if (command.Request.Recipes?.Any(selection => selection.Servings <= 0) == true)
         {
             return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.InvalidServings);
         }
@@ -37,28 +37,41 @@ internal sealed class GenerateShoppingListCommandHandler(
             command.Request.EndDate,
             cancellationToken);
 
-        var selections = command.Request.Recipes
-            .ToDictionary(selection => selection.MenuItemId);
-        ShoppingRecipe[] selectedRecipes =
-        [
-            .. recipes
-                .Where(recipe => selections.ContainsKey(recipe.MenuItemId))
-                .Select(recipe =>
-                {
-                    MenuShoppingSelectionRequest selection = selections[recipe.MenuItemId];
-                    var ingredientIds = selection.IngredientIds.ToHashSet();
-                    return recipe with
+        ShoppingRecipe[] selectedRecipes;
+        if (command.Request.Recipes is null)
+        {
+            selectedRecipes = [.. recipes];
+        }
+        else
+        {
+            var selections = command.Request.Recipes
+                .ToDictionary(selection => selection.MenuItemId);
+            selectedRecipes =
+            [
+                .. recipes
+                    .Where(recipe => selections.ContainsKey(recipe.MenuItemId))
+                    .Select(recipe =>
                     {
-                        TargetServings = selection.Servings,
-                        Ingredients =
-                        [
-                            .. recipe.Ingredients.Where(ingredient =>
-                                ingredientIds.Contains(
-                                    ingredient.LineId == Guid.Empty ? ingredient.ProductId : ingredient.LineId))
-                        ]
-                    };
-                })
-        ];
+                        MenuShoppingSelectionRequest selection = selections[recipe.MenuItemId];
+                        var ingredientIds = selection.IngredientIds.ToHashSet();
+                        return recipe with
+                        {
+                            TargetServings = selection.Servings,
+                            Ingredients =
+                            [
+                                .. recipe.Ingredients.Where(ingredient =>
+                                    ingredientIds.Contains(
+                                        ingredient.LineId == Guid.Empty ? ingredient.ProductId : ingredient.LineId))
+                            ]
+                        };
+                    })
+            ];
+        }
+
+        if (!selectedRecipes.SelectMany(recipe => recipe.Ingredients).Any())
+        {
+            return Result.Failure<ShoppingListResponse>(ShoppingListApplicationErrors.EmptyMenuSelection);
+        }
 
         ShoppingList generatedList = ShoppingListGenerator.Generate(selectedRecipes);
         DateTimeOffset now = timeProvider.GetUtcNow();

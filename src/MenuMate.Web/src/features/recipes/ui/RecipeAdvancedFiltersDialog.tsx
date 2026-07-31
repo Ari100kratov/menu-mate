@@ -7,14 +7,7 @@ import type {
 import { RecipeTagFilter } from "@/features/recipes/ui/RecipeTagFilter"
 import { Button } from "@/shared/ui/button"
 import { Checkbox } from "@/shared/ui/checkbox"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 import { Label } from "@/shared/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 
@@ -60,7 +53,6 @@ export function RecipeAdvancedFiltersDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Расширенные фильтры</DialogTitle>
-          <DialogDescription>Настройте условия и примените их к списку рецептов.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 overflow-y-auto px-5 pb-1">

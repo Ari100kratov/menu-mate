@@ -69,11 +69,13 @@ export interface MenuShoppingPreview {
 export interface ReplaceShoppingListFromMenuRequest {
   startDate: string
   endDate: string
-  recipes: {
-    menuItemId: string
-    servings: number
-    ingredientIds: string[]
-  }[]
+  recipes:
+    | {
+        menuItemId: string
+        servings: number
+        ingredientIds: string[]
+      }[]
+    | null
 }
 
 export function getShoppingList() {

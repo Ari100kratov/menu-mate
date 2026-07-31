@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { useCurrentUserQuery } from "@/features/auth/api/auth.queries"
 import {
   useAddMenuCalendarItemMutation,
   useClearMenuCalendarMutation,
@@ -28,6 +29,11 @@ import { MenuCalendarView } from "@/features/menu-planning/ui/MenuCalendarView"
 import { MenuRangeToolbar } from "@/features/menu-planning/ui/MenuRangeToolbar"
 import { MenuCalendarSkeleton } from "@/features/menu-planning/ui/MenuSkeletons"
 import { RecipePickerPanel } from "@/features/menu-planning/ui/RecipePickerPanel"
+import {
+  useReplaceShoppingListFromMenuMutation,
+  useShoppingListQuery,
+} from "@/features/shopping-lists/api/shopping-lists.queries"
+import { clearCollapsedShoppingCategories } from "@/features/shopping-lists/model/shopping-category-collapse-state"
 import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import {
   AlertDialog,
@@ -59,6 +65,11 @@ export default function MenuPage() {
   const pendingCalendarScrollRef = useRef<number | null>(null)
   const [showMealSlotSettings, setShowMealSlotSettings] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [showReplaceShoppingConfirm, setShowReplaceShoppingConfirm] = useState(false)
+  const currentUserQuery = useCurrentUserQuery()
+  const skipShoppingPreview = currentUserQuery.data?.preferences.showShoppingListPreview === false
+  const currentShoppingListQuery = useShoppingListQuery(skipShoppingPreview)
+  const replaceShoppingListMutation = useReplaceShoppingListFromMenuMutation()
   const calendarQuery = useMenuCalendarQuery(range.startDate, range.endDate)
   const mealSlotsQuery = useMealSlotsQuery()
   const addItemMutation = useAddMenuCalendarItemMutation()
@@ -130,6 +141,23 @@ export default function MenuPage() {
     setSearchParams({})
   }
 
+  function replaceShoppingListFromMenu() {
+    replaceShoppingListMutation.mutate(
+      {
+        startDate: range.startDate,
+        endDate: range.endDate,
+        recipes: null,
+      },
+      {
+        onSuccess: () => {
+          clearCollapsedShoppingCategories()
+          toast.success("Список покупок заменен")
+          void navigate("/shopping")
+        },
+      },
+    )
+  }
+
   if (pickerTarget) {
     return (
       <RecipePickerPanel
@@ -155,6 +183,9 @@ export default function MenuPage() {
   const mealSlots = mealSlotsQuery.data ?? calendar?.mealSlots ?? []
   const hasItemsInRange = Boolean(
     calendar?.items.some((item) => item.date >= range.startDate && item.date <= range.endDate),
+  )
+  const hasShoppingListItems = Boolean(
+    currentShoppingListQuery.data?.categories.some((category) => category.items.length > 0),
   )
 
   return (
@@ -246,7 +277,29 @@ export default function MenuPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={showReplaceShoppingConfirm} onOpenChange={setShowReplaceShoppingConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Заменить текущий список покупок?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Все текущие позиции и отметки будут удалены. В список попадут все ингредиенты из
+              рецептов выбранного диапазона меню.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={replaceShoppingListMutation.isPending}
+              onClick={replaceShoppingListFromMenu}
+            >
+              Заменить список
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {calendarQuery.error ? <ErrorAlert error={calendarQuery.error} /> : null}
+      {currentUserQuery.error ? <ErrorAlert error={currentUserQuery.error} /> : null}
       {mealSlotsQuery.error ? <ErrorAlert error={mealSlotsQuery.error} /> : null}
       {addItemMutation.error ? <ErrorAlert error={addItemMutation.error} /> : null}
       {updateItemMutation.error ? <ErrorAlert error={updateItemMutation.error} /> : null}
@@ -257,6 +310,12 @@ export default function MenuPage() {
       {deleteMealSlotMutation.error ? <ErrorAlert error={deleteMealSlotMutation.error} /> : null}
       {reorderMealSlotsMutation.error ? (
         <ErrorAlert error={reorderMealSlotsMutation.error} />
+      ) : null}
+      {currentShoppingListQuery.error ? (
+        <ErrorAlert error={currentShoppingListQuery.error} />
+      ) : null}
+      {replaceShoppingListMutation.error ? (
+        <ErrorAlert error={replaceShoppingListMutation.error} />
       ) : null}
 
       {calendarQuery.isPending ? (
@@ -296,7 +355,23 @@ export default function MenuPage() {
           className="size-12 rounded-full shadow-lg"
           aria-label="Создать список покупок по выбранному диапазону"
           title="Создать список покупок"
+          disabled={
+            currentUserQuery.isPending ||
+            Boolean(currentUserQuery.error) ||
+            replaceShoppingListMutation.isPending ||
+            (skipShoppingPreview &&
+              (currentShoppingListQuery.isPending || Boolean(currentShoppingListQuery.error)))
+          }
           onClick={() => {
+            if (skipShoppingPreview) {
+              if (hasShoppingListItems) {
+                setShowReplaceShoppingConfirm(true)
+              } else {
+                replaceShoppingListFromMenu()
+              }
+              return
+            }
+
             const query = new URLSearchParams({
               startDate: range.startDate,
               endDate: range.endDate,

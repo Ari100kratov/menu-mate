@@ -30,20 +30,20 @@ public sealed class TagsDbContext(DbContextOptions<TagsDbContext> options)
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            string normalized = TextNormalizer.NormalizeSearchText(search);
+            string normalized = TextNormalizer.NormalizeSearchQuery(search);
             string normalizedWord = $" {normalized} ";
             string containsPattern = $"%{EscapeLikePattern(normalized)}%";
             query = query.Where(tag => EF.Functions.Like(
-                tag.NormalizedName,
+                tag.NormalizedName.Replace("Ё", "Е"),
                 containsPattern,
                 "\\"));
             query = query
-                .OrderBy(tag => tag.NormalizedName == normalized
+                .OrderBy(tag => tag.NormalizedName.Replace("Ё", "Е") == normalized
                     ? 0
-                    : tag.NormalizedName.StartsWith(normalized)
+                    : tag.NormalizedName.Replace("Ё", "Е").StartsWith(normalized)
                         ? 1
-                        : tag.NormalizedName.EndsWith($" {normalized}") ||
-                          tag.NormalizedName.Contains(normalizedWord)
+                        : tag.NormalizedName.Replace("Ё", "Е").EndsWith($" {normalized}") ||
+                          tag.NormalizedName.Replace("Ё", "Е").Contains(normalizedWord)
                             ? 2
                             : 3)
                 .ThenBy(tag => tag.NormalizedName.Length)

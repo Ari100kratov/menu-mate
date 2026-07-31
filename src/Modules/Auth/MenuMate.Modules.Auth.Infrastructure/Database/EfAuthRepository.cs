@@ -48,6 +48,14 @@ internal sealed class EfAuthRepository(AuthDbContext dbContext) : IAuthRepositor
         await dbContext.Users.AddAsync(UserRecord.FromDomain(user), cancellationToken);
     }
 
+    public async Task UpdateUserAsync(User user, CancellationToken cancellationToken)
+    {
+        UserRecord? record = await dbContext.Users
+            .SingleOrDefaultAsync(existing => existing.Id == user.Id, cancellationToken);
+
+        record?.Apply(user);
+    }
+
     public async Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
     {
         await dbContext.RefreshTokens.AddAsync(RefreshTokenRecord.FromDomain(refreshToken), cancellationToken);

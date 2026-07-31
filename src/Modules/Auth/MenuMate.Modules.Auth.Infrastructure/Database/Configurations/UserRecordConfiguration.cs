@@ -16,6 +16,7 @@ internal sealed class UserRecordConfiguration : IEntityTypeConfiguration<UserRec
         builder.Property(user => user.Email).HasMaxLength(320).IsRequired();
         builder.Property(user => user.DisplayName).HasMaxLength(120).IsRequired();
         builder.Property(user => user.PasswordHash).HasMaxLength(512).IsRequired();
+        builder.Property(user => user.ShowShoppingListPreview).HasDefaultValue(true).IsRequired();
         builder.HasIndex(user => user.Email).IsUnique();
 
         builder.HasMany(user => user.Roles)
