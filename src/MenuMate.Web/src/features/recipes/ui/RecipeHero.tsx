@@ -97,7 +97,7 @@ function RecipeMeta({
 }: {
   icon: typeof ChefHat
   label: string
-  value: string
+  value: ReactNode
 }) {
   return (
     <div className="flex min-w-0 items-start gap-2.5">

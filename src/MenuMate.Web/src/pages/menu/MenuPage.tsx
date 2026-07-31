@@ -348,7 +348,7 @@ export default function MenuPage() {
         />
       )}
 
-      <PageFloatingActions>
+      <PageFloatingActions reserveContentSpace>
         <Button
           type="button"
           size="icon-lg"

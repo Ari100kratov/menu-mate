@@ -131,7 +131,7 @@ export default function RecipesPage() {
         />
       )}
 
-      <PageFloatingActions>
+      <PageFloatingActions reserveContentSpace>
         <RecipeCreateMenu iconOnly className="size-12 rounded-full shadow-lg" />
         <ScrollToTopButton className="size-12 rounded-full shadow-lg" />
       </PageFloatingActions>

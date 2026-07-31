@@ -32,16 +32,17 @@ export function scaleRecipeIngredientAmount(
 }
 
 export function formatRecipeServings(servings: number) {
+  return `${String(servings)} ${getRecipeServingsLabel(servings)}`
+}
+
+function getRecipeServingsLabel(servings: number) {
   const lastTwoDigits = Math.abs(servings) % 100
   const lastDigit = lastTwoDigits % 10
-  const label =
-    lastTwoDigits >= 11 && lastTwoDigits <= 14
-      ? "порций"
-      : lastDigit === 1
-        ? "порция"
-        : lastDigit >= 2 && lastDigit <= 4
-          ? "порции"
-          : "порций"
-
-  return `${String(servings)} ${label}`
+  return lastTwoDigits >= 11 && lastTwoDigits <= 14
+    ? "порций"
+    : lastDigit === 1
+      ? "порция"
+      : lastDigit >= 2 && lastDigit <= 4
+        ? "порции"
+        : "порций"
 }

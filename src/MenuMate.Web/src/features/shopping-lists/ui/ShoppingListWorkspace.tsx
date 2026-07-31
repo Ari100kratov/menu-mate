@@ -283,7 +283,7 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
         </div>
       )}
 
-      <PageFloatingActions>
+      <PageFloatingActions reserveContentSpace>
         <Button
           type="button"
           size="icon-lg"

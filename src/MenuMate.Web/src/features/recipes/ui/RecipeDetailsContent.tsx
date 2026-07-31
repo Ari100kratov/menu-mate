@@ -34,9 +34,11 @@ export function RecipeDetailsContent({
 }: RecipeDetailsContentProps) {
   const location = useLocation()
   const [showOriginalIngredients, setShowOriginalIngredients] = useState(false)
+  const adjustedMenuServings =
+    menuServings !== null && menuServings !== recipe.servings ? menuServings : null
   const displayedServings = showOriginalIngredients
     ? recipe.servings
-    : (menuServings ?? recipe.servings)
+    : (adjustedMenuServings ?? recipe.servings)
   const canUpdateSavedRevision =
     recipe.revisionState === "Current" &&
     !recipe.isOwnedByCurrentUser &&
@@ -125,37 +127,34 @@ export function RecipeDetailsContent({
           recipe={recipe}
           servings={displayedServings}
           notice={
-            menuServings !== null ? (
-              <Alert>
-                <Info />
+            adjustedMenuServings !== null ? (
+              <Alert className="border-primary/25 bg-primary/5">
+                <Info className="text-primary" />
                 <AlertTitle>Количество для меню</AlertTitle>
                 <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                  {menuServings === recipe.servings ? (
+                  {showOriginalIngredients ? (
                     <span>
-                      Количество ингредиентов соответствует блюду в меню:{" "}
-                      {formatRecipeServings(menuServings)}.
+                      Показаны исходные количества: {formatRecipeServings(recipe.servings)}.
                     </span>
                   ) : (
-                    <>
-                      <span>
-                        {showOriginalIngredients
-                          ? `Показаны исходные количества: ${formatRecipeServings(recipe.servings)}.`
-                          : `Ингредиенты пересчитаны автоматически: ${String(recipe.servings)} → ${formatRecipeServings(menuServings)}.`}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setShowOriginalIngredients((current) => !current)
-                        }}
-                      >
-                        {showOriginalIngredients
-                          ? `Показать для меню (${formatRecipeServings(menuServings)})`
-                          : "Показать исходные количества"}
-                      </Button>
-                    </>
+                    <span>
+                      Ингредиенты пересчитаны автоматически: {String(recipe.servings)} →{" "}
+                      {formatRecipeServings(adjustedMenuServings)}.
+                    </span>
                   )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="bg-background/70"
+                    onClick={() => {
+                      setShowOriginalIngredients((current) => !current)
+                    }}
+                  >
+                    {showOriginalIngredients
+                      ? `Показать для меню (${formatRecipeServings(adjustedMenuServings)})`
+                      : "Показать исходные количества"}
+                  </Button>
                 </AlertDescription>
               </Alert>
             ) : null
