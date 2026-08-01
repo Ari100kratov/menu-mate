@@ -2,23 +2,56 @@ import { CloudAlert, RefreshCw, WifiOff } from "lucide-react"
 
 import type { ShoppingOfflineStatus } from "@/features/shopping-lists/model/use-shopping-list-offline"
 import { cn } from "@/shared/lib/utils"
+import { Button } from "@/shared/ui/button"
 
-export function ShoppingOfflineStatusBar({ status }: { status: ShoppingOfflineStatus }) {
+interface ShoppingOfflineStatusBarProps {
+  status: ShoppingOfflineStatus
+  onRetry: () => void
+}
+
+export function ShoppingOfflineStatusBar({ status, onRetry }: ShoppingOfflineStatusBarProps) {
   const content = getStatusContent(status)
   const Icon = content.icon
+  const detail = getStatusDetail(status, content.savedText)
 
   return (
     <div className="fixed right-20 bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-30 md:right-20 md:bottom-6 md:left-[17.5rem]">
       <div
         className={cn(
-          "mx-auto flex min-h-11 max-w-3xl items-center gap-2 rounded-full border px-4 py-2 shadow-lg backdrop-blur",
+          "bg-card mx-auto flex min-h-11 max-w-3xl items-center gap-2 rounded-full border py-1.5 pr-1.5 pl-3 shadow-md",
           content.className,
         )}
-        role="status"
-        aria-live="polite"
       >
-        <Icon className={cn("size-4 shrink-0", status.mode === "syncing" && "animate-spin")} />
-        <span className="type-supporting min-w-0 truncate">{content.text}</span>
+        <div className="min-w-0 flex-1" role="status" aria-live="polite">
+          <div className="flex min-w-0 items-center gap-2">
+            <Icon
+              className={cn(
+                "size-4 shrink-0",
+                content.iconClassName,
+                status.mode === "syncing" && "animate-spin",
+              )}
+            />
+            <span className="type-supporting block min-w-0 truncate">{content.text}</span>
+          </div>
+          {detail ? (
+            <span className="block min-w-0 truncate text-[11px] leading-tight tracking-tight opacity-75">
+              {detail}
+            </span>
+          ) : null}
+        </div>
+        {status.mode !== "syncing" ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="hover:bg-background/50 size-9 shrink-0 rounded-full"
+            aria-label="Проверить соединение"
+            title="Проверить соединение"
+            onClick={onRetry}
+          >
+            <RefreshCw className="size-4" />
+          </Button>
+        ) : null}
       </div>
     </div>
   )
@@ -28,30 +61,38 @@ function getStatusContent(status: ShoppingOfflineStatus) {
   if (status.mode === "syncing") {
     return {
       icon: RefreshCw,
-      className: "border-primary/25 bg-primary/10 text-foreground",
-      text:
-        status.pendingCount > 0
-          ? `Синхронизация · ${formatPendingCount(status.pendingCount)}`
-          : "Синхронизация списка",
+      iconClassName: "text-primary-foreground",
+      className: "border-primary bg-primary text-primary-foreground",
+      text: "Синхронизация",
+      savedText: null,
     }
   }
 
   if (status.mode === "waiting") {
     return {
       icon: CloudAlert,
-      className: "border-accent/40 bg-accent/90 text-accent-foreground",
-      text: `Офлайн-режим · ${formatPendingCount(status.pendingCount)}`,
+      iconClassName: "text-accent-foreground",
+      className: "border-accent bg-accent text-accent-foreground",
+      text: "Офлайн",
+      savedText: "Список сохранен на устройстве",
     }
   }
 
   return {
     icon: WifiOff,
-    className: "border-accent/40 bg-accent/90 text-accent-foreground",
-    text:
-      status.pendingCount > 0
-        ? `Офлайн-режим · ${formatPendingCount(status.pendingCount)}`
-        : "Офлайн-режим · список сохранен на устройстве",
+    iconClassName: "text-accent-foreground",
+    className: "border-accent bg-accent text-accent-foreground",
+    text: "Офлайн",
+    savedText: "Список сохранен на устройстве",
   }
+}
+
+function getStatusDetail(status: ShoppingOfflineStatus, savedText: string | null) {
+  if (status.pendingCount > 0) {
+    return formatPendingSummary(status.pendingCount, status.mode === "syncing")
+  }
+
+  return savedText
 }
 
 function formatPendingCount(count: number) {
@@ -65,4 +106,8 @@ function formatPendingCount(count: number) {
         : "изменений"
 
   return `${String(count)} ${noun}`
+}
+
+function formatPendingSummary(count: number, isSynchronizing: boolean) {
+  return `${isSynchronizing ? "Отправляем" : "Ожидают"}: ${formatPendingCount(count)}`
 }

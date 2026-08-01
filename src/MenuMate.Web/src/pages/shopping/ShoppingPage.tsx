@@ -22,7 +22,12 @@ export default function ShoppingPage() {
         />
       ) : null}
       {shoppingListState.offlineStatus ? (
-        <ShoppingOfflineStatusBar status={shoppingListState.offlineStatus} />
+        <ShoppingOfflineStatusBar
+          status={shoppingListState.offlineStatus}
+          onRetry={() => {
+            window.location.reload()
+          }}
+        />
       ) : null}
     </div>
   )

@@ -285,7 +285,7 @@ export function useShoppingListOffline() {
     !isBrowserOnline ||
     shoppingListQuery.fetchStatus === "paused" ||
     Boolean(shoppingListQuery.error && hasCachedList)
-  const isReadOnly = isConnectionUnavailable || syncStatus === "syncing" || pendingCount > 0
+  const isReadOnly = isConnectionUnavailable || syncStatus === "waiting"
   const shoppingList = record ? getEffectiveOfflineShoppingList(record) : shoppingListQuery.data
   const error = hasCachedList ? null : (shoppingListQuery.error ?? offlineRecordQuery.error)
 

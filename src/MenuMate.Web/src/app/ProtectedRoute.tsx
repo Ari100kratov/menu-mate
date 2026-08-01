@@ -16,11 +16,20 @@ export function ProtectedRoute() {
   const isBrowserOnline = useNetworkStatus()
   const shouldRefreshSession = !accessToken && !refreshBlocked
   const refreshQuery = useRefreshSessionQuery(shouldRefreshSession)
+  const refetchSession = refreshQuery.refetch
   const offlineRecordQuery = useOfflineShoppingRecordQuery()
   const refreshUnavailable =
     !isBrowserOnline ||
     refreshQuery.fetchStatus === "paused" ||
     isNetworkFailure(refreshQuery.error)
+
+  useEffect(() => {
+    if (!offlineAccess || !isBrowserOnline) {
+      return
+    }
+
+    void refetchSession()
+  }, [isBrowserOnline, offlineAccess, refetchSession])
 
   if (accessToken || refreshQuery.isSuccess) {
     return <Outlet />
