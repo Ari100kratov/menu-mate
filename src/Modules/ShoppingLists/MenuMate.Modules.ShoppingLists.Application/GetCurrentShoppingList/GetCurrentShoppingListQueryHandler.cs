@@ -24,6 +24,6 @@ internal sealed class GetCurrentShoppingListQueryHandler(
         }
 
         DateTimeOffset now = timeProvider.GetUtcNow();
-        return new ShoppingListResponse(Guid.Empty, null, null, now, now, [], string.Empty);
+        return new ShoppingListResponse(Guid.Empty, null, null, now, now, [], string.Empty, string.Empty);
     }
 }

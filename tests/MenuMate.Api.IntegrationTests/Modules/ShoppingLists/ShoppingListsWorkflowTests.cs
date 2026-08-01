@@ -36,6 +36,7 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         Assert.Equal(1000m, item.Amount);
         Assert.Equal("Gram", item.Unit);
         Assert.Contains("1000", shoppingList.Text, StringComparison.Ordinal);
+        Assert.Contains("- rice", shoppingList.RemainingText, StringComparison.Ordinal);
 
         HttpResponseMessage stateResponse = await httpClient.PatchAsJsonAsync(
             $"/api/shopping-list/items/{item.Id}/checked",
@@ -45,6 +46,8 @@ public sealed class ShoppingListsWorkflowTests : IAsyncLifetime, IDisposable
         ShoppingListResponse? updated = await stateResponse.Content.ReadFromJsonAsync<ShoppingListResponse>();
         Assert.NotNull(updated);
         Assert.True(Assert.Single(Assert.Single(updated.Categories).Items).IsPurchased);
+        Assert.Contains("- ✓ rice", updated.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("rice", updated.RemainingText, StringComparison.Ordinal);
 
         ShoppingListItemResponse manualItem = await AddManualItemAsync(httpClient);
         HttpResponseMessage manualStateResponse = await httpClient.PatchAsJsonAsync(

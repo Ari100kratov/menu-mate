@@ -25,6 +25,7 @@ export interface ShoppingList {
   updatedAt: string
   categories: ShoppingListCategory[]
   text: string
+  remainingText: string
 }
 
 export interface ShoppingListItemRequest {

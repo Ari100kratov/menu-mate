@@ -13,7 +13,9 @@ public static class ShoppingListTextFormatter
     /// <summary>
     /// Формирует текст списка покупок.
     /// </summary>
-    public static string Format(ShoppingList shoppingList)
+    public static string Format(
+        ShoppingList shoppingList,
+        ShoppingListTextScope scope = ShoppingListTextScope.All)
     {
         ArgumentNullException.ThrowIfNull(shoppingList);
 
@@ -21,6 +23,15 @@ public static class ShoppingListTextFormatter
 
         foreach (ShoppingListCategory category in shoppingList.Categories)
         {
+            ShoppingListItem[] items =
+            [
+                .. category.Items.Where(item => scope == ShoppingListTextScope.All || !item.IsPurchased)
+            ];
+            if (items.Length == 0)
+            {
+                continue;
+            }
+
             if (builder.Length > 0)
             {
                 builder.AppendLine();
@@ -28,9 +39,9 @@ public static class ShoppingListTextFormatter
 
             builder.AppendLine(category.Name);
 
-            foreach (ShoppingListItem item in category.Items)
+            foreach (ShoppingListItem item in items)
             {
-                builder.Append("- [ ] ");
+                builder.Append(item.IsPurchased ? "- ✓ " : "- ");
                 builder.Append(item.Name);
 
                 string amountText = FormatAmount(item);
@@ -75,4 +86,20 @@ public static class ShoppingListTextFormatter
         string amount = item.Amount.Value.ToString("0.##", CultureInfo.InvariantCulture);
         return unit.Length == 0 ? amount : $"{amount} {unit}";
     }
+}
+
+/// <summary>
+/// Набор позиций, включаемых в текстовую версию списка покупок.
+/// </summary>
+public enum ShoppingListTextScope
+{
+    /// <summary>
+    /// Все позиции с текущими отметками.
+    /// </summary>
+    All,
+
+    /// <summary>
+    /// Только позиции, которые еще не куплены.
+    /// </summary>
+    Remaining
 }

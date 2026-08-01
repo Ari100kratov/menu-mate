@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes"
 import { useState, type ReactNode } from "react"
 
 import { Toaster } from "@/shared/ui/sonner"
+import { PwaStatus } from "@/shared/pwa/PwaStatus"
 
 interface AppProvidersProps {
   children: ReactNode
@@ -26,6 +27,7 @@ export function AppProviders({ children }: AppProvidersProps) {
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster position="top-right" />
+        <PwaStatus />
       </QueryClientProvider>
     </ThemeProvider>
   )

@@ -9,7 +9,8 @@ namespace MenuMate.Contracts.ShoppingLists;
 /// <param name="CreatedAt">Момент создания списка.</param>
 /// <param name="UpdatedAt">Момент последнего изменения списка.</param>
 /// <param name="Categories">Категории списка покупок.</param>
-/// <param name="Text">Текстовая версия для копирования.</param>
+/// <param name="Text">Полная текстовая версия с текущими отметками.</param>
+/// <param name="RemainingText">Текстовая версия только с некупленными позициями.</param>
 public sealed record ShoppingListResponse(
     Guid Id,
     DateOnly? SourceStartDate,
@@ -17,7 +18,8 @@ public sealed record ShoppingListResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyCollection<ShoppingListCategoryResponse> Categories,
-    string Text);
+    string Text,
+    string RemainingText);
 
 /// <summary>
 /// Категория списка покупок.

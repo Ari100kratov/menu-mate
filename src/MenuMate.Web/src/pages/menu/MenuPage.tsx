@@ -35,6 +35,7 @@ import {
 } from "@/features/shopping-lists/api/shopping-lists.queries"
 import { clearCollapsedShoppingCategories } from "@/features/shopping-lists/model/shopping-category-collapse-state"
 import { createBackNavigationState } from "@/shared/lib/back-navigation"
+import { useNetworkStatus } from "@/shared/lib/network-status"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,6 +67,7 @@ export default function MenuPage() {
   const [showMealSlotSettings, setShowMealSlotSettings] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showReplaceShoppingConfirm, setShowReplaceShoppingConfirm] = useState(false)
+  const isBrowserOnline = useNetworkStatus()
   const currentUserQuery = useCurrentUserQuery()
   const skipShoppingPreview = currentUserQuery.data?.preferences.showShoppingListPreview === false
   const currentShoppingListQuery = useShoppingListQuery(skipShoppingPreview)
@@ -354,8 +356,11 @@ export default function MenuPage() {
           size="icon-lg"
           className="size-12 rounded-full shadow-lg"
           aria-label="Создать список покупок по выбранному диапазону"
-          title="Создать список покупок"
+          title={
+            isBrowserOnline ? "Создать список покупок" : "Создание списка недоступно без интернета"
+          }
           disabled={
+            !isBrowserOnline ||
             currentUserQuery.isPending ||
             Boolean(currentUserQuery.error) ||
             replaceShoppingListMutation.isPending ||

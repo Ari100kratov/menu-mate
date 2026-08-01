@@ -13,6 +13,7 @@ import {
 import { useCurrentUserQuery, useLogoutMutation } from "@/features/auth/api/auth.queries"
 import { isAdministrator } from "@/features/auth/model/roles"
 import { createBackNavigationState, getBackNavigationState } from "@/shared/lib/back-navigation"
+import { useSessionStore } from "@/shared/auth/session.store"
 import { cn } from "@/shared/lib/utils"
 import { AppMark } from "@/shared/ui/app-mark"
 import { Button } from "@/shared/ui/button"
@@ -26,12 +27,15 @@ interface PageChrome {
 
 export function AppShell() {
   const location = useLocation()
-  const currentUserQuery = useCurrentUserQuery()
+  const offlineAccess = useSessionStore((state) => state.offlineAccess)
+  const cachedUser = useSessionStore((state) => state.user)
+  const currentUserQuery = useCurrentUserQuery(!offlineAccess)
   const logoutMutation = useLogoutMutation()
   const chrome = getPageChrome(location.pathname)
-  const navigationItems = getWorkspaceNavigation(
-    isAdministrator(currentUserQuery.data?.roles ?? []),
-  )
+  const currentUser = currentUserQuery.data ?? cachedUser
+  const navigationItems = offlineAccess
+    ? getWorkspaceNavigation(false).filter((item) => item.path === "/shopping")
+    : getWorkspaceNavigation(isAdministrator(currentUser?.roles ?? []))
   const backNavigation = chrome.backTo ? getBackNavigationState(location.state) : undefined
   const accountBackState = location.pathname.startsWith(accountNavigationItem.path)
     ? undefined
@@ -44,7 +48,7 @@ export function AppShell() {
   return (
     <div className="bg-background min-h-svh">
       <DesktopSidebar
-        displayName={currentUserQuery.data?.displayName ?? "Пользователь"}
+        displayName={currentUser?.displayName ?? "Пользователь"}
         navigationItems={navigationItems}
         accountBackState={accountBackState}
         onLogout={() => {

@@ -9,7 +9,6 @@ import type {
 import {
   useAddShoppingListItemMutation,
   useRemoveShoppingListItemMutation,
-  useSetShoppingListItemStateMutation,
   useUpdateShoppingListItemMutation,
 } from "@/features/shopping-lists/api/shopping-lists.queries"
 import {
@@ -38,19 +37,26 @@ import { PageFloatingActions } from "@/shared/ui/page-floating-actions"
 import { ScrollToTopButton } from "@/shared/ui/scroll-to-top-button"
 import { ShoppingListItemForm } from "./ShoppingListItemForm"
 import { ShoppingListItemRow } from "./ShoppingListItemRow"
+import { ShoppingListShareButton, ShoppingListShareDialog } from "./ShoppingListShareDialog"
 
 interface ShoppingListWorkspaceProps {
   shoppingList: ShoppingList
+  isReadOnly: boolean
+  onItemStateChange: (itemId: string, isPurchased: boolean) => void
 }
 
 type ShoppingDialogItem = ShoppingListItem | "new"
 
-export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspaceProps) {
+export function ShoppingListWorkspace({
+  shoppingList,
+  isReadOnly,
+  onItemStateChange,
+}: ShoppingListWorkspaceProps) {
   const addItemMutation = useAddShoppingListItemMutation()
   const updateItemMutation = useUpdateShoppingListItemMutation()
-  const stateMutation = useSetShoppingListItemStateMutation()
   const removeItemMutation = useRemoveShoppingListItemMutation()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [dialogItem, setDialogItem] = useState<ShoppingDialogItem>("new")
   const [collapsedCategoryNamesByList, setCollapsedCategoryNamesByList] = usePersistentState(
     shoppingCategoryCollapseStorageKey,
@@ -70,7 +76,7 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
       ),
     [shoppingList.categories],
   )
-  const isFormSubmitting = addItemMutation.isPending || updateItemMutation.isPending
+  const isFormSubmitting = isReadOnly || addItemMutation.isPending || updateItemMutation.isPending
   const sourcePeriod = formatSourcePeriod(shoppingList.sourceStartDate, shoppingList.sourceEndDate)
   const isAllPurchased = itemCount > 0 && purchasedCount === itemCount
 
@@ -185,7 +191,6 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
 
       {addItemMutation.error ? <ErrorAlert error={addItemMutation.error} /> : null}
       {updateItemMutation.error ? <ErrorAlert error={updateItemMutation.error} /> : null}
-      {stateMutation.error ? <ErrorAlert error={stateMutation.error} /> : null}
       {removeItemMutation.error ? <ErrorAlert error={removeItemMutation.error} /> : null}
 
       {itemCount === 0 ? (
@@ -251,13 +256,11 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
                           key={item.id}
                           item={item}
                           isPending={
-                            (stateMutation.isPending &&
-                              stateMutation.variables.itemId === item.id) ||
-                            (removeItemMutation.isPending &&
-                              removeItemMutation.variables === item.id)
+                            removeItemMutation.isPending && removeItemMutation.variables === item.id
                           }
+                          isEditingDisabled={isReadOnly}
                           onCheckedChange={(isPurchased) => {
-                            stateMutation.mutate({ itemId: item.id, request: { isPurchased } })
+                            onItemStateChange(item.id, isPurchased)
                           }}
                           onEdit={() => {
                             openEditDialog(item)
@@ -289,12 +292,27 @@ export function ShoppingListWorkspace({ shoppingList }: ShoppingListWorkspacePro
           size="icon-lg"
           className="size-12 rounded-full shadow-lg"
           aria-label="Добавить покупку"
+          disabled={isReadOnly}
           onClick={openCreateDialog}
         >
           <Plus className="size-5" />
         </Button>
+        {itemCount > 0 ? (
+          <ShoppingListShareButton
+            onClick={() => {
+              setShareDialogOpen(true)
+            }}
+          />
+        ) : null}
         <ScrollToTopButton className="size-12 rounded-full shadow-lg" />
       </PageFloatingActions>
+
+      <ShoppingListShareDialog
+        open={shareDialogOpen}
+        allText={shoppingList.text}
+        remainingText={shoppingList.remainingText}
+        onOpenChange={setShareDialogOpen}
+      />
 
       <Dialog
         open={dialogOpen}

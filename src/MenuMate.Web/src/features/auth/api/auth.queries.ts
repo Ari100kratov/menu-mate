@@ -11,6 +11,8 @@ import {
   type UserProfile,
   type UpdateUserPreferencesRequest,
 } from "@/features/auth/api/auth.api"
+import { offlineShoppingRecordQueryKey } from "@/features/shopping-lists/api/shopping-list-offline.queries"
+import { clearOfflineShoppingRecord } from "@/features/shopping-lists/model/shopping-list-offline.storage"
 import { clearSession, useSessionStore } from "@/shared/auth/session.store"
 
 export const authQueryKeys = {
@@ -18,7 +20,7 @@ export const authQueryKeys = {
   refresh: ["auth", "refresh"] as const,
 }
 
-export function useCurrentUserQuery() {
+export function useCurrentUserQuery(enabled = true) {
   const setUser = useSessionStore((state) => state.setUser)
 
   return useQuery({
@@ -29,6 +31,7 @@ export function useCurrentUserQuery() {
       return user
     },
     staleTime: 60_000,
+    enabled,
   })
 }
 
@@ -74,10 +77,16 @@ export function useLogoutMutation() {
 
   return useMutation({
     mutationFn: logout,
-    onSettled: () => {
-      clearSession()
-      queryClient.clear()
-      void navigate("/login", { replace: true })
+    networkMode: "always",
+    onSettled: async () => {
+      try {
+        await clearOfflineShoppingRecord()
+      } finally {
+        clearSession()
+        queryClient.removeQueries({ queryKey: offlineShoppingRecordQueryKey })
+        queryClient.clear()
+        void navigate("/login", { replace: true })
+      }
     },
   })
 }

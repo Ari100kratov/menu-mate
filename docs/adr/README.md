@@ -20,3 +20,4 @@ ADR — короткие записи архитектурных решений,
 - [0016 Календарь меню и настраиваемые приемы пищи](0016-calendar-menu-and-custom-meal-slots.md)
 - [0017 Единый список покупок и предпросмотр меню](0017-single-shopping-list-and-menu-preview.md)
 - [0018 Настраиваемый предпросмотр списка покупок](0018-optional-shopping-list-preview.md)
+- [0019 Офлайн-режим списка покупок](0019-offline-shopping-list.md)

@@ -1339,8 +1339,10 @@ export interface components {
             updatedAt: string;
             /** @description Категории списка покупок. */
             categories: components["schemas"]["ShoppingListCategoryResponse"][];
-            /** @description Текстовая версия для копирования. */
+            /** @description Полная текстовая версия с текущими отметками. */
             text: string;
+            /** @description Текстовая версия только с некупленными позициями. */
+            remainingText: string;
         };
         SystemResponse: {
             name: string;

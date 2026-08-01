@@ -8,6 +8,7 @@ import { Checkbox } from "@/shared/ui/checkbox"
 interface ShoppingListItemRowProps {
   item: ShoppingListItem
   isPending: boolean
+  isEditingDisabled: boolean
   onCheckedChange: (checked: boolean) => void
   onEdit: () => void
   onRemove: () => void
@@ -16,6 +17,7 @@ interface ShoppingListItemRowProps {
 export function ShoppingListItemRow({
   item,
   isPending,
+  isEditingDisabled,
   onCheckedChange,
   onEdit,
   onRemove,
@@ -58,7 +60,7 @@ export function ShoppingListItemRow({
           variant="ghost"
           size="icon"
           aria-label="Редактировать"
-          disabled={isPending}
+          disabled={isPending || isEditingDisabled}
           onClick={onEdit}
         >
           <Pencil className="size-4" />
@@ -68,7 +70,7 @@ export function ShoppingListItemRow({
           variant="ghost"
           size="icon"
           aria-label="Удалить"
-          disabled={isPending}
+          disabled={isPending || isEditingDisabled}
           onClick={onRemove}
         >
           <Trash2 className="size-4" />

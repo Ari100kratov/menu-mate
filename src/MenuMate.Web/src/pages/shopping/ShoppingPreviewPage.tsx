@@ -1,6 +1,6 @@
 import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/features/shopping-lists/api/shopping-lists.queries"
 import { clearCollapsedShoppingCategories } from "@/features/shopping-lists/model/shopping-category-collapse-state"
 import { ShoppingPreviewSkeleton } from "@/features/shopping-lists/ui/ShoppingSkeletons"
+import { useNetworkStatus } from "@/shared/lib/network-status"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,7 @@ export default function ShoppingPreviewPage() {
   const [excluded, setExcluded] = useState<Set<string>>(() => new Set())
   const [servings, setServings] = useState<Record<string, number>>({})
   const [showReplaceConfirm, setShowReplaceConfirm] = useState(false)
+  const isBrowserOnline = useNetworkStatus()
 
   const currentItemCount = useMemo(
     () =>
@@ -51,6 +53,11 @@ export default function ShoppingPreviewPage() {
       ) ?? 0,
     [currentListQuery.data],
   )
+
+  if (!isBrowserOnline) {
+    return <Navigate to="/shopping" replace />
+  }
+
   const totalIngredientCount =
     previewQuery.data?.recipes.reduce((total, recipe) => total + recipe.ingredients.length, 0) ?? 0
   const selectedCount = totalIngredientCount - excluded.size

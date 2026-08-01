@@ -24,7 +24,60 @@ public sealed class ShoppingListTextFormatterTests
         string text = ShoppingListTextFormatter.Format(list);
 
         Assert.Contains("Молочные продукты", text, StringComparison.Ordinal);
-        Assert.Contains("- [ ] Молоко 750 мл (для кофе)", text, StringComparison.Ordinal);
+        Assert.Contains("- Молоко 750 мл (для кофе)", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FormatShouldPreservePurchasedStateInFullList()
+    {
+        var list = ShoppingList.FromItems(
+            [
+                new ShoppingListItem(
+                    Guid.CreateVersion7(),
+                    "Сыр",
+                    "СЫР",
+                    300m,
+                    ShoppingUnit.Gram,
+                    ShoppingProductCategory.Dairy,
+                    null,
+                    true)
+            ]);
+
+        string text = ShoppingListTextFormatter.Format(list);
+
+        Assert.Contains("- ✓ Сыр 300 г", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FormatRemainingShouldExcludePurchasedItemsAndEmptyCategories()
+    {
+        var list = ShoppingList.FromItems(
+            [
+                new ShoppingListItem(
+                    Guid.CreateVersion7(),
+                    "Сыр",
+                    "СЫР",
+                    300m,
+                    ShoppingUnit.Gram,
+                    ShoppingProductCategory.Dairy,
+                    null,
+                    true),
+                new ShoppingListItem(
+                    Guid.CreateVersion7(),
+                    "Яблоки",
+                    "ЯБЛОКИ",
+                    1m,
+                    ShoppingUnit.Kilogram,
+                    ShoppingProductCategory.Produce,
+                    null)
+            ]);
+
+        string text = ShoppingListTextFormatter.Format(list, ShoppingListTextScope.Remaining);
+
+        Assert.DoesNotContain("Молочные продукты", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Сыр", text, StringComparison.Ordinal);
+        Assert.Contains("Овощи и фрукты", text, StringComparison.Ordinal);
+        Assert.Contains("- Яблоки 1 кг", text, StringComparison.Ordinal);
     }
 
     [Theory]

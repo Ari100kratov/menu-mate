@@ -33,10 +33,11 @@ Unit-тестами покрываются:
 
 ## Frontend
 
-Отдельного frontend test runner сейчас нет. Обязательный quality gate состоит из:
+Frontend использует Vitest для чистой UI-модели и браузерных адаптеров, которые можно проверить без запуска полного приложения. Обязательный quality gate состоит из:
 
 ```powershell
 cd src/MenuMate.Web
+pnpm test
 pnpm lint
 pnpm format
 pnpm build

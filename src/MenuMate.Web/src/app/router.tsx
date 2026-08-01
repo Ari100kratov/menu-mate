@@ -19,6 +19,7 @@ import RecipeImportPage from "@/pages/recipes/RecipeImportPage"
 import RecipesPage from "@/pages/recipes/RecipesPage"
 import ShoppingPage from "@/pages/shopping/ShoppingPage"
 import ShoppingPreviewPage from "@/pages/shopping/ShoppingPreviewPage"
+import { useSessionStore } from "@/shared/auth/session.store"
 
 export const router = createBrowserRouter([
   {
@@ -105,5 +106,6 @@ export const router = createBrowserRouter([
 ])
 
 function LastWorkspaceSectionRedirect() {
-  return <Navigate to={getLastWorkspaceSection()} replace />
+  const offlineAccess = useSessionStore((state) => state.offlineAccess)
+  return <Navigate to={offlineAccess ? "/shopping" : getLastWorkspaceSection()} replace />
 }

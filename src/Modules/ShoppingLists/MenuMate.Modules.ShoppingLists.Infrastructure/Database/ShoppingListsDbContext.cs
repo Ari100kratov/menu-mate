@@ -146,7 +146,8 @@ public sealed class ShoppingListsDbContext(DbContextOptions<ShoppingListsDbConte
                             .Select(ToResponse)
                     ]))
             ],
-            ShoppingListTextFormatter.Format(grouped));
+            ShoppingListTextFormatter.Format(grouped),
+            ShoppingListTextFormatter.Format(grouped, ShoppingListTextScope.Remaining));
     }
 
     private static ShoppingListItemResponse ToResponse(SavedShoppingListItem item) =>
