@@ -40,7 +40,7 @@ function getStatusContent(status: ShoppingOfflineStatus) {
     return {
       icon: CloudAlert,
       className: "border-accent/40 bg-accent/90 text-accent-foreground",
-      text: `Ожидаем связь · ${formatPendingCount(status.pendingCount)}`,
+      text: `Офлайн-режим · ${formatPendingCount(status.pendingCount)}`,
     }
   }
 
