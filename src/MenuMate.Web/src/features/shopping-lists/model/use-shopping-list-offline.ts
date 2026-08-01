@@ -243,13 +243,13 @@ export function useShoppingListOffline() {
       () => {
         setShowSynchronizationStatus(isSynchronizationActive)
       },
-      isSynchronizationActive ? 500 : 0,
+      isSynchronizationActive && pendingCount <= 1 ? 500 : 0,
     )
 
     return () => {
       window.clearTimeout(timeout)
     }
-  }, [isSynchronizationActive])
+  }, [isSynchronizationActive, pendingCount])
 
   useEffect(() => {
     function retryOnFocus() {

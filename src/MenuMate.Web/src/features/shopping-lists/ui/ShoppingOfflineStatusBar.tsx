@@ -1,4 +1,5 @@
 import { CloudAlert, RefreshCw, WifiOff } from "lucide-react"
+import { useState } from "react"
 
 import type { ShoppingOfflineStatus } from "@/features/shopping-lists/model/use-shopping-list-offline"
 import { cn } from "@/shared/lib/utils"
@@ -10,15 +11,25 @@ interface ShoppingOfflineStatusBarProps {
 }
 
 export function ShoppingOfflineStatusBar({ status, onRetry }: ShoppingOfflineStatusBarProps) {
+  const [isRetrying, setIsRetrying] = useState(false)
   const content = getStatusContent(status)
   const Icon = content.icon
   const detail = getStatusDetail(status, content.savedText)
 
+  function handleRetry() {
+    if (isRetrying) {
+      return
+    }
+
+    setIsRetrying(true)
+    window.setTimeout(onRetry, 600)
+  }
+
   return (
-    <div className="fixed right-20 bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-30 md:right-20 md:bottom-6 md:left-[17.5rem]">
+    <div className="fixed right-[4.5rem] bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-30 md:right-20 md:bottom-6 md:left-[17.5rem]">
       <div
         className={cn(
-          "bg-card mx-auto flex min-h-11 max-w-3xl items-center gap-2 rounded-full border py-1.5 pr-1.5 pl-3 shadow-md",
+          "bg-card mx-auto flex min-h-11 max-w-3xl items-center gap-1.5 rounded-full border py-2 pr-1 pl-3 shadow-md",
           content.className,
         )}
       >
@@ -31,10 +42,12 @@ export function ShoppingOfflineStatusBar({ status, onRetry }: ShoppingOfflineSta
                 status.mode === "syncing" && "animate-spin",
               )}
             />
-            <span className="type-supporting block min-w-0 truncate">{content.text}</span>
+            <span className="block min-w-0 truncate text-[15px] leading-5 font-medium">
+              {content.text}
+            </span>
           </div>
           {detail ? (
-            <span className="block min-w-0 truncate text-[11px] leading-tight tracking-tight opacity-75">
+            <span className="block min-w-0 text-xs leading-4 tracking-tight opacity-80">
               {detail}
             </span>
           ) : null}
@@ -45,11 +58,12 @@ export function ShoppingOfflineStatusBar({ status, onRetry }: ShoppingOfflineSta
             variant="ghost"
             size="icon"
             className="hover:bg-background/50 size-9 shrink-0 rounded-full"
-            aria-label="Проверить соединение"
-            title="Проверить соединение"
-            onClick={onRetry}
+            aria-label={isRetrying ? "Проверяем соединение" : "Проверить соединение"}
+            aria-disabled={isRetrying}
+            title={isRetrying ? "Проверяем соединение" : "Проверить соединение"}
+            onClick={handleRetry}
           >
-            <RefreshCw className="size-4" />
+            <RefreshCw className={cn("size-4", isRetrying && "animate-spin")} />
           </Button>
         ) : null}
       </div>
