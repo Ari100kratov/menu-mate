@@ -1,7 +1,7 @@
 FROM node:26-alpine AS build
 WORKDIR /app
 
-RUN npm install --global pnpm@11.5.0
+RUN npm install --global pnpm@11.19.0
 COPY src/MenuMate.Web/package.json src/MenuMate.Web/pnpm-lock.yaml src/MenuMate.Web/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 

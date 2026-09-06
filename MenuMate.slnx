@@ -101,12 +101,14 @@
     <Project Path="tests/MenuMate.Common.Infrastructure.UnitTests/MenuMate.Common.Infrastructure.UnitTests.csproj" />
     <Project Path="tests/MenuMate.SharedKernel.UnitTests/MenuMate.SharedKernel.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/tests/Modules/" />
   <Folder Name="/tests/Modules/Auth/">
     <Project Path="tests/Modules/Auth/MenuMate.Modules.Auth.Domain.UnitTests/MenuMate.Modules.Auth.Domain.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/RecipeImports/">
     <Project Path="tests/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Application.UnitTests/MenuMate.Modules.RecipeImports.Application.UnitTests.csproj" />
     <Project Path="tests/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Domain.UnitTests/MenuMate.Modules.RecipeImports.Domain.UnitTests.csproj" />
+    <Project Path="tests/Modules/RecipeImports/MenuMate.Modules.RecipeImports.Infrastructure.UnitTests/MenuMate.Modules.RecipeImports.Infrastructure.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/MenuPlanning/">
     <Project Path="tests/Modules/MenuPlanning/MenuMate.Modules.MenuPlanning.Domain.UnitTests/MenuMate.Modules.MenuPlanning.Domain.UnitTests.csproj" />

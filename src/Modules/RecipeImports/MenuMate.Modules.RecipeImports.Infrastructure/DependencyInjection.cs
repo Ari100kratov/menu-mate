@@ -71,7 +71,7 @@ public static class RecipeImportsInfrastructureDependencyInjection
         {
             ApiKey = ResolveApiKey(configuration),
             BaseUrl = ResolveBaseUrl(configuration),
-            Model = configuration["OpenAI:ImageModel"] ?? "gpt-image-1-mini"
+            Model = configuration["OpenAI:ImageModel"] ?? "gpt-image-2"
         };
 
     private static string ResolveApiKey(IConfiguration configuration)

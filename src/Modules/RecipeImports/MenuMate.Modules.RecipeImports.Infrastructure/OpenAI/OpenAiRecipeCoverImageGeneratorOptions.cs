@@ -6,5 +6,5 @@ internal sealed class OpenAiRecipeCoverImageGeneratorOptions
 
     public string? BaseUrl { get; init; }
 
-    public string Model { get; init; } = "gpt-image-1-mini";
+    public string Model { get; init; } = "gpt-image-2";
 }
