@@ -55,6 +55,8 @@ IResourceBuilder<ProjectResource> api = builder.AddProject<Projects.MenuMate_Api
     .WithEnvironment("OpenAI__BaseUrl", ResolveOpenAiBaseUrl(builder.Configuration))
     .WithEnvironment("OpenAI__Model", builder.Configuration["OpenAI:Model"] ?? "gpt-5.6-luna")
     .WithEnvironment("OpenAI__ImageModel", builder.Configuration["OpenAI:ImageModel"] ?? "gpt-image-2")
+    .WithEnvironment("OpenAI__ImageSize", builder.Configuration["OpenAI:ImageSize"] ?? "832")
+    .WithEnvironment("OpenAI__ImageQuality", builder.Configuration["OpenAI:ImageQuality"] ?? "medium")
     .WithEnvironment("RecipeImports__DraftRetentionDays", builder.Configuration["RecipeImports:DraftRetentionDays"] ?? "7")
     .WithEnvironment("RecipeImports__CleanupIntervalMinutes", builder.Configuration["RecipeImports:CleanupIntervalMinutes"] ?? "60")
     .WithReference(database)

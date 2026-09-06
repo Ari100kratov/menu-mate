@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\..\..\src\Modules\RecipeImports\MenuMate.Modules.RecipeImports.Infrastructure\MenuMate.Modules.RecipeImports.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

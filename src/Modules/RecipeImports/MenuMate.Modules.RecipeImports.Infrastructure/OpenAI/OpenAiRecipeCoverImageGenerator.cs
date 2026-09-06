@@ -38,6 +38,9 @@ internal sealed class OpenAiRecipeCoverImageGenerator(
             throw new RecipeCoverImageGenerationException("Серверный ключ OpenAI не настроен.");
         }
 
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(options.RequestTimeout);
+
         try
         {
             string prompt =
@@ -62,12 +65,12 @@ internal sealed class OpenAiRecipeCoverImageGenerator(
                 prompt,
                 new ImageGenerationOptions
                 {
-                    Quality = new GeneratedImageQuality("high"),
-                    Size = GeneratedImageSize.W1024xH1024,
+                    Quality = new GeneratedImageQuality(options.Quality),
+                    Size = new GeneratedImageSize(options.ImageSize, options.ImageSize),
                     OutputFileFormat = GeneratedImageFileFormat.Jpeg,
                     OutputCompressionFactor = 90
                 },
-                cancellationToken);
+                timeout.Token);
 
             ReadOnlyMemory<byte> imageBytes = image.ImageBytes.ToMemory();
             if (imageBytes.IsEmpty)
@@ -84,6 +87,11 @@ internal sealed class OpenAiRecipeCoverImageGenerator(
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+        {
+            throw new RecipeCoverImageGenerationException(
+                "Генерация фото заняла слишком много времени. Попробуйте еще раз.");
         }
         catch (RecipeCoverImageGenerationException)
         {

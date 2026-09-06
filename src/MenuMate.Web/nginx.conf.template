@@ -22,6 +22,18 @@ server {
     # Backend accepts up to 40 MiB of recipe-import images in one multipart request.
     client_max_body_size 48m;
 
+    # Генерация обложки может занимать больше стандартных 60 секунд.
+    location = /api/recipe-images/generate-cover {
+        proxy_pass http://api:8080;
+        proxy_http_version 1.1;
+        proxy_read_timeout 180s;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $original_forwarded_proto;
+        proxy_set_header X-Forwarded-Host $http_host;
+    }
+
     location /api/ {
         proxy_pass http://api:8080;
         proxy_http_version 1.1;
