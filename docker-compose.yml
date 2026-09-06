@@ -48,7 +48,9 @@ services:
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__BaseUrl: ${OPENAI_BASE_URL:-}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-5.6-luna}
-      OpenAI__ImageModel: ${OPENAI_IMAGE_MODEL:-gpt-image-1-mini}
+      OpenAI__ImageModel: ${OPENAI_IMAGE_MODEL:-gpt-image-2}
+      OpenAI__ImageSize: ${OPENAI_IMAGE_SIZE:-832}
+      OpenAI__ImageQuality: ${OPENAI_IMAGE_QUALITY:-medium}
       RecipeImports__DraftRetentionDays: ${RECIPE_IMPORT_DRAFT_RETENTION_DAYS:-7}
       RecipeImports__CleanupIntervalMinutes: ${RECIPE_IMPORT_CLEANUP_INTERVAL_MINUTES:-60}
       Diagnostics__ExposeApiDocs: ${EXPOSE_API_DOCS:-false}

@@ -66,13 +66,37 @@ public static class RecipeImportsInfrastructureDependencyInjection
             Model = configuration["OpenAI:Model"] ?? "gpt-5.6-luna"
         };
 
-    private static OpenAiRecipeCoverImageGeneratorOptions CreateImageOptions(IConfiguration configuration) =>
+    internal static OpenAiRecipeCoverImageGeneratorOptions CreateImageOptions(IConfiguration configuration) =>
         new()
         {
             ApiKey = ResolveApiKey(configuration),
             BaseUrl = ResolveBaseUrl(configuration),
-            Model = configuration["OpenAI:ImageModel"] ?? "gpt-image-2"
+            Model = configuration["OpenAI:ImageModel"] ?? "gpt-image-2",
+            ImageSize = GetImageSize(configuration["OpenAI:ImageSize"]),
+            Quality = GetImageQuality(configuration["OpenAI:ImageQuality"])
         };
+
+    private static int GetImageSize(string? value)
+    {
+        if (value is null)
+        {
+            return 832;
+        }
+
+        if (int.TryParse(value, out int size) && size >= 816 && size <= 2880 && size % 16 == 0)
+        {
+            return size;
+        }
+
+        throw new InvalidOperationException("OpenAI:ImageSize must be a multiple of 16 between 816 and 2880 pixels.");
+    }
+
+    private static string GetImageQuality(string? value) => value switch
+    {
+        null => "medium",
+        "low" or "medium" or "high" or "auto" => value,
+        _ => throw new InvalidOperationException("OpenAI:ImageQuality must be low, medium, high or auto.")
+    };
 
     private static string ResolveApiKey(IConfiguration configuration)
     {
@@ -119,20 +143,22 @@ public static class RecipeImportsInfrastructureDependencyInjection
     private static ImageClient CreateImageClient(OpenAiRecipeCoverImageGeneratorOptions options)
     {
         ApiKeyCredential credential = new(options.ApiKey);
-        if (string.IsNullOrWhiteSpace(options.BaseUrl))
+        OpenAIClientOptions clientOptions = new()
         {
-            return new ImageClient(options.Model, credential);
+            NetworkTimeout = options.RequestTimeout,
+            RetryPolicy = new System.ClientModel.Primitives.ClientRetryPolicy(0)
+        };
+        if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+        {
+            if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out Uri? baseUrl))
+            {
+                throw new InvalidOperationException("OpenAI:BaseUrl must be an absolute URI.");
+            }
+
+            clientOptions.Endpoint = baseUrl;
         }
 
-        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out Uri? baseUrl))
-        {
-            throw new InvalidOperationException("OpenAI:BaseUrl must be an absolute URI.");
-        }
-
-        return new ImageClient(
-            options.Model,
-            credential,
-            new OpenAIClientOptions { Endpoint = baseUrl });
+        return new ImageClient(options.Model, credential, clientOptions);
     }
 
     private static RecipeImportStorageOptions CreateStorageOptions(IConfiguration configuration) =>
