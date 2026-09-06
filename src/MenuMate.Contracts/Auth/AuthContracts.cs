@@ -6,7 +6,12 @@ namespace MenuMate.Contracts.Auth;
 /// <param name="Email">Email пользователя.</param>
 /// <param name="DisplayName">Отображаемое имя пользователя.</param>
 /// <param name="Password">Пароль в открытом виде.</param>
-public sealed record RegisterUserRequest(string Email, string DisplayName, string Password);
+/// <param name="PrivacyPolicyVersion">Версия принятой политики конфиденциальности.</param>
+public sealed record RegisterUserRequest(
+    string Email,
+    string DisplayName,
+    string Password,
+    string PrivacyPolicyVersion);
 
 /// <summary>
 /// Запрос на выпуск токенов по email и паролю.
@@ -14,6 +19,61 @@ public sealed record RegisterUserRequest(string Email, string DisplayName, strin
 /// <param name="Email">Email пользователя.</param>
 /// <param name="Password">Пароль в открытом виде.</param>
 public sealed record LoginUserRequest(string Email, string Password);
+
+/// <summary>
+/// Запрос на подтверждение текущего адреса электронной почты.
+/// </summary>
+public sealed record ConfirmEmailVerificationRequest(string Email, string Code);
+
+/// <summary>
+/// Запрос на повторную отправку кода подтверждения.
+/// </summary>
+public sealed record ResendEmailVerificationRequest(string Email);
+
+/// <summary>
+/// Запрос ссылки для сброса пароля.
+/// </summary>
+public sealed record RequestPasswordResetRequest(string Email);
+
+/// <summary>
+/// Завершение сброса пароля.
+/// </summary>
+public sealed record CompletePasswordResetRequest(string Token, string NewPassword);
+
+/// <summary>
+/// Изменение отображаемого имени.
+/// </summary>
+public sealed record UpdateDisplayNameRequest(string DisplayName);
+
+/// <summary>
+/// Запрос изменения email с подтверждением текущего пароля.
+/// </summary>
+public sealed record RequestEmailChangeRequest(string NewEmail, string CurrentPassword);
+
+/// <summary>
+/// Подтверждение нового email одноразовым кодом.
+/// </summary>
+public sealed record ConfirmEmailChangeRequest(string Code);
+
+/// <summary>
+/// Изменение пароля авторизованного пользователя.
+/// </summary>
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+/// <summary>Подтверждение актуальной политики конфиденциальности.</summary>
+public sealed record AcceptPrivacyPolicyRequest(string PrivacyPolicyVersion);
+
+/// <summary>Необратимое удаление учетной записи после повторной проверки пароля.</summary>
+public sealed record DeleteAccountRequest(string CurrentPassword);
+
+/// <summary>Публичные реквизиты актуальной политики конфиденциальности.</summary>
+public sealed record PrivacyPolicyResponse(
+    string Version,
+    DateTimeOffset EffectiveAt,
+    string OperatorName,
+    string ContactEmail,
+    int TechnicalLogRetentionDays,
+    int BackupRetentionDays);
 
 /// <summary>
 /// Access token, возвращаемый auth endpoints.
@@ -28,12 +88,18 @@ public sealed record TokenResponse(string AccessToken, DateTimeOffset ExpiresAt)
 /// <param name="Id">Идентификатор пользователя.</param>
 /// <param name="Email">Email пользователя.</param>
 /// <param name="DisplayName">Отображаемое имя пользователя.</param>
+/// <param name="EmailVerificationStatus">Состояние подтверждения email.</param>
+/// <param name="PrivacyPolicyAcceptedVersion">Принятая пользователем версия политики.</param>
+/// <param name="RequiresPrivacyPolicyAcceptance">Требуется ли принять актуальную версию.</param>
 /// <param name="Roles">Названия назначенных ролей.</param>
 /// <param name="Preferences">Пользовательские настройки приложения.</param>
 public sealed record UserProfileResponse(
     Guid Id,
     string Email,
     string DisplayName,
+    string EmailVerificationStatus,
+    string? PrivacyPolicyAcceptedVersion,
+    bool RequiresPrivacyPolicyAcceptance,
     IReadOnlyCollection<string> Roles,
     UserPreferencesResponse Preferences);
 
@@ -84,6 +150,10 @@ public sealed record AdminUserListItemResponse(
 /// <summary>
 /// Ответ после регистрации.
 /// </summary>
-/// <param name="User">Профиль зарегистрированного пользователя.</param>
-/// <param name="Tokens">Выпущенная пара токенов.</param>
-public sealed record RegisterUserResponse(UserProfileResponse User, TokenResponse Tokens);
+/// <param name="Email">Адрес, на который отправлен код.</param>
+/// <param name="CodeExpiresAt">Срок действия кода.</param>
+/// <param name="ResendAvailableAt">Момент, после которого код можно отправить повторно.</param>
+public sealed record RegisterUserResponse(
+    string Email,
+    DateTimeOffset CodeExpiresAt,
+    DateTimeOffset ResendAvailableAt);

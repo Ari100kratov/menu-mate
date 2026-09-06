@@ -21,3 +21,5 @@ ADR — короткие записи архитектурных решений,
 - [0017 Единый список покупок и предпросмотр меню](0017-single-shopping-list-and-menu-preview.md)
 - [0018 Настраиваемый предпросмотр списка покупок](0018-optional-shopping-list-preview.md)
 - [0019 Офлайн-режим списка покупок](0019-offline-shopping-list.md)
+- [0020 Жизненный цикл учётной записи и транзакционная почта](0020-account-lifecycle-and-transactional-email.md)
+- [0021 Версионируемая политика конфиденциальности и удаление аккаунта](0021-privacy-policy-and-account-deletion.md)

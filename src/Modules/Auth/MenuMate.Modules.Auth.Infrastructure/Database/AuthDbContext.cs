@@ -21,6 +21,8 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
 
     internal DbSet<RefreshTokenRecord> RefreshTokens => Set<RefreshTokenRecord>();
 
+    internal DbSet<AccountActionRecord> AccountActions => Set<AccountActionRecord>();
+
     /// <inheritdoc />
     public async Task<UserProfileResponse?> GetUserProfileAsync(
         UserId userId,
@@ -33,6 +35,13 @@ public sealed class AuthDbContext(DbContextOptions<AuthDbContext> options)
                 user.Id,
                 user.Email,
                 user.DisplayName,
+                user.EmailVerificationStatus == Domain.Models.EmailVerificationStatus.Verified
+                    ? "Verified"
+                    : user.EmailVerificationStatus == Domain.Models.EmailVerificationStatus.LegacyUnverified
+                        ? "LegacyUnverified"
+                        : "PendingVerification",
+                user.PrivacyPolicyAcceptedVersion,
+                user.PrivacyPolicyAcceptedVersion != Application.PrivacyPolicyDefaults.CurrentVersion,
                 user.Roles
                     .OrderBy(role => role.Role!.Name)
                     .Select(role => role.Role!.Name)

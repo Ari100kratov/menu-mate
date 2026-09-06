@@ -37,6 +37,10 @@ export class ApiException extends Error {
 }
 
 export function toApiException(error: unknown, status?: number) {
+  if (isProblemDetails(error) && isSafeGatewayError(error.code)) {
+    return new ApiException({ ...error, status: error.status ?? status })
+  }
+
   if (isInternalServerError(status)) {
     return new ApiException({
       status,
@@ -55,6 +59,10 @@ export function toApiException(error: unknown, status?: number) {
   }
 
   return new Error(formatUnknownError(error, status))
+}
+
+function isSafeGatewayError(code: string | undefined) {
+  return code === "Auth.EmailDeliveryFailed" || code === "Auth.RegistrationEmailDeliveryFailed"
 }
 
 export function getApiErrorMessages(error: unknown): string[] {

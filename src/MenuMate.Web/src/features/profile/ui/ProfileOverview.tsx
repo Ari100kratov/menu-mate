@@ -1,17 +1,11 @@
-import { Clock3, KeyRound, Mail, UserRound } from "lucide-react"
+import { KeyRound, Mail, ShieldCheck, UserRound } from "lucide-react"
 
 import type { UserProfile } from "@/features/auth/api/auth.api"
 import { formatRole } from "@/features/auth/model/roles"
-import { formatDateTime } from "@/features/profile/ui/profile-format"
 import { PageSection } from "@/shared/ui/page"
 import { ProfileField } from "./ProfileField"
 
-interface ProfileOverviewProps {
-  user: UserProfile
-  accessTokenExpiresAt: string | null
-}
-
-export function ProfileOverview({ user, accessTokenExpiresAt }: ProfileOverviewProps) {
+export function ProfileOverview({ user }: { user: UserProfile }) {
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <PageSection>
@@ -21,16 +15,16 @@ export function ProfileOverview({ user, accessTokenExpiresAt }: ProfileOverviewP
           </div>
           <div className="min-w-0">
             <h2 className="truncate text-xl font-semibold tracking-normal">{user.displayName}</h2>
-            <p className="text-muted-foreground text-sm break-all">{user.id}</p>
+            <p className="text-muted-foreground text-sm break-all">{user.email}</p>
           </div>
         </div>
 
         <dl className="grid gap-3 sm:grid-cols-2">
           <ProfileField icon={Mail} label="Email" value={user.email} />
           <ProfileField
-            icon={Clock3}
-            label="Access token"
-            value={formatDateTime(accessTokenExpiresAt)}
+            icon={ShieldCheck}
+            label="Подтверждение email"
+            value={formatEmailStatus(user.emailVerificationStatus)}
           />
         </dl>
       </PageSection>
@@ -54,4 +48,11 @@ export function ProfileOverview({ user, accessTokenExpiresAt }: ProfileOverviewP
       </PageSection>
     </section>
   )
+}
+
+function formatEmailStatus(status: UserProfile["emailVerificationStatus"]) {
+  if (status === "Verified") return "Подтвержден"
+  if (status === "LegacyUnverified") return "Требует подтверждения"
+  if (status === "PendingVerification") return "Ожидает подтверждения"
+  return "Неизвестно"
 }

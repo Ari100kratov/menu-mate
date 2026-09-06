@@ -2,11 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 
 import {
+  acceptPrivacyPolicy,
+  changePassword,
+  completePasswordReset,
+  confirmEmailChange,
+  confirmEmailVerification,
+  deleteAccount,
   getCurrentUser,
+  getPrivacyPolicy,
   login,
   logout,
   refreshSession,
   register,
+  requestEmailChange,
+  requestPasswordReset,
+  resendEmailVerification,
+  updateDisplayName,
   updateUserPreferences,
   type UserProfile,
   type UpdateUserPreferencesRequest,
@@ -17,7 +28,16 @@ import { clearSession, useSessionStore } from "@/shared/auth/session.store"
 
 export const authQueryKeys = {
   currentUser: ["auth", "current-user"] as const,
+  privacyPolicy: ["legal", "privacy-policy"] as const,
   refresh: ["auth", "refresh"] as const,
+}
+
+export function usePrivacyPolicyQuery() {
+  return useQuery({
+    queryKey: authQueryKeys.privacyPolicy,
+    queryFn: getPrivacyPolicy,
+    staleTime: 60 * 60 * 1000,
+  })
 }
 
 export function useCurrentUserQuery(enabled = true) {
@@ -59,14 +79,104 @@ export function useLoginMutation() {
 }
 
 export function useRegisterMutation() {
-  const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   return useMutation({
     mutationFn: register,
+    onSuccess: (response) => {
+      void navigate(`/verify-email?email=${encodeURIComponent(response.email)}`, { replace: true })
+    },
+  })
+}
+
+export function useConfirmEmailVerificationMutation() {
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: confirmEmailVerification,
+    onSuccess: (_response, request) => {
+      void navigate("/login", {
+        replace: true,
+        state: { email: request.email, emailVerified: true },
+      })
+    },
+  })
+}
+
+export function useResendEmailVerificationMutation() {
+  return useMutation({ mutationFn: resendEmailVerification })
+}
+
+export function useRequestPasswordResetMutation() {
+  return useMutation({ mutationFn: requestPasswordReset })
+}
+
+export function useCompletePasswordResetMutation() {
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      completePasswordReset(token, newPassword),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser })
-      void navigate("/recipes", { replace: true })
+      void navigate("/login", { replace: true, state: { passwordReset: true } })
+    },
+  })
+}
+
+export function useUpdateDisplayNameMutation() {
+  const queryClient = useQueryClient()
+  const setUser = useSessionStore((state) => state.setUser)
+
+  return useMutation({
+    mutationFn: updateDisplayName,
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKeys.currentUser, user)
+      setUser(user)
+    },
+  })
+}
+
+export function useRequestEmailChangeMutation() {
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: requestEmailChange,
+    onSuccess: (_response, request) => {
+      void navigate(`/profile/email-change/confirm?email=${encodeURIComponent(request.newEmail)}`)
+    },
+  })
+}
+
+export function useConfirmEmailChangeMutation() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: confirmEmailChange,
+    onSuccess: () => {
+      clearSession()
+      queryClient.clear()
+      void navigate("/login", { replace: true, state: { emailChanged: true } })
+    },
+  })
+}
+
+export function useChangePasswordMutation() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string
+      newPassword: string
+    }) => changePassword(currentPassword, newPassword),
+    onSuccess: () => {
+      clearSession()
+      queryClient.clear()
+      void navigate("/login", { replace: true, state: { passwordChanged: true } })
     },
   })
 }
@@ -86,6 +196,40 @@ export function useLogoutMutation() {
         queryClient.removeQueries({ queryKey: offlineShoppingRecordQueryKey })
         queryClient.clear()
         void navigate("/login", { replace: true })
+      }
+    },
+  })
+}
+
+export function useAcceptPrivacyPolicyMutation() {
+  const queryClient = useQueryClient()
+  const setUser = useSessionStore((state) => state.setUser)
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: acceptPrivacyPolicy,
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKeys.currentUser, user)
+      setUser(user)
+      void navigate("/", { replace: true })
+    },
+  })
+}
+
+export function useDeleteAccountMutation() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: async () => {
+      try {
+        await clearOfflineShoppingRecord()
+      } finally {
+        clearSession()
+        queryClient.removeQueries({ queryKey: offlineShoppingRecordQueryKey })
+        queryClient.clear()
+        void navigate("/login", { replace: true, state: { accountDeleted: true } })
       }
     },
   })

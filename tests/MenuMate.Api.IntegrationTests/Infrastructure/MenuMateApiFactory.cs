@@ -1,5 +1,6 @@
 using MenuMate.Common.Application.Storage;
 using MenuMate.Modules.Auth.Infrastructure.Database;
+using MenuMate.Modules.Auth.Application.Abstractions;
 using MenuMate.Modules.RecipeImports.Infrastructure.Database;
 using MenuMate.Modules.MenuPlanning.Infrastructure.Database;
 using MenuMate.Modules.Products.Infrastructure.Database;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
 
 namespace MenuMate.Api.IntegrationTests;
@@ -22,6 +24,7 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
     private const string TestJwtAudience = "MenuMate.IntegrationTests";
     private const string TestJwtSecret = "integration-tests-secret-at-least-32-bytes";
     private const string TestJwtExpirationInMinutes = "60";
+    private const string TestAccountActionHashSecret = "integration-tests-account-action-secret-at-least-32-bytes";
 
     private readonly PostgreSqlContainer _postgres = CreatePostgresContainer();
     private readonly Dictionary<string, string?> _previousEnvironmentValues = [];
@@ -109,6 +112,12 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
         SetEnvironmentVariable("Jwt__Audience", TestJwtAudience);
         SetEnvironmentVariable("Jwt__Secret", TestJwtSecret);
         SetEnvironmentVariable("Jwt__ExpirationInMinutes", TestJwtExpirationInMinutes);
+        SetEnvironmentVariable("AccountActions__HashSecret", TestAccountActionHashSecret);
+        SetEnvironmentVariable("PublicWeb__BaseUrl", "https://menumate.test");
+        SetEnvironmentVariable("Legal__OperatorName", "MenuMate Integration Tests");
+        SetEnvironmentVariable("Legal__PrivacyContactEmail", "privacy@menumate.test");
+        SetEnvironmentVariable("Legal__TechnicalLogRetentionDays", "1");
+        SetEnvironmentVariable("Legal__BackupRetentionDays", "1");
     }
 
     private void SetEnvironmentVariable(string name, string value)
@@ -141,8 +150,11 @@ internal sealed class MenuMateApiFactory : IAsyncLifetime, IDisposable
             builder.UseEnvironment("IntegrationTests");
             builder.ConfigureTestServices(services =>
             {
+                services.RemoveAll<IHostedService>();
                 services.RemoveAll<IObjectStorageService>();
                 services.AddSingleton<IObjectStorageService>(objectStorage);
+                services.RemoveAll<IAuthEmailSender>();
+                services.AddSingleton<IAuthEmailSender>(new CapturingAuthEmailSender());
             });
         }
     }

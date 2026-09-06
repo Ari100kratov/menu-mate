@@ -1,4 +1,5 @@
 using MenuMate.Modules.MenuPlanning.Application.Abstractions;
+using MenuMate.Common.Application;
 using MenuMate.Modules.MenuPlanning.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -37,6 +38,7 @@ public static class MenuPlanningInfrastructureDependencyInjection
         services.AddScoped<IMenuCalendarReadDbContext>(provider => provider.GetRequiredService<MenuPlanningDbContext>());
         services.AddScoped<IRecipeRevisionAccessReader, RecipeRevisionAccessReader>();
         services.AddScoped<IRecipeCoverImageReader, RecipeCoverImageReader>();
+        services.AddScoped<IUserDataEraser, MenuPlanningUserDataEraser>();
 
         return services;
     }

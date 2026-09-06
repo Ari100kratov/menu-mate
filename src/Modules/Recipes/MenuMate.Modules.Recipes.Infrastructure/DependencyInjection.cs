@@ -1,4 +1,5 @@
 using MenuMate.Common.Application.Statistics;
+using MenuMate.Common.Application;
 using MenuMate.Modules.Recipes.Application.Abstractions;
 using MenuMate.Modules.Recipes.Application.UploadRecipeImage;
 using MenuMate.Modules.Recipes.Infrastructure.Database;
@@ -42,6 +43,7 @@ public static class RecipesInfrastructureDependencyInjection
         services.AddScoped<IRecipesUnitOfWork>(provider => provider.GetRequiredService<RecipesDbContext>());
         services.AddScoped<IRecipesReadDbContext>(provider => provider.GetRequiredService<RecipesDbContext>());
         services.AddScoped<IUserRecipeStatisticsReader, RecipeUserStatisticsReader>();
+        services.AddScoped<IUserDataEraser, RecipesUserDataEraser>();
         services.AddSingleton(CreateRecipeImageStorageOptions(configuration));
 
         return services;

@@ -11,6 +11,9 @@ internal static class AuthMapping
             user.Id,
             user.Email,
             user.DisplayName,
+            user.EmailVerificationStatus.ToString(),
+            user.PrivacyPolicyAcceptedVersion,
+            user.PrivacyPolicyAcceptedVersion != PrivacyPolicyDefaults.CurrentVersion,
             user.Roles.Select(role => role.RoleName).Order(StringComparer.Ordinal).ToArray(),
             new UserPreferencesResponse(user.ShowShoppingListPreview));
 

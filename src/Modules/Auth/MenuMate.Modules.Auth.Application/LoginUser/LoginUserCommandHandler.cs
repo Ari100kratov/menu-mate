@@ -19,6 +19,12 @@ internal sealed class LoginUserCommandHandler(
 {
     public async Task<Result<AuthSession>> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
+        if (AuthInputValidator.ValidateEmail(command.Request.Email).IsFailure ||
+            string.IsNullOrEmpty(command.Request.Password))
+        {
+            return Result.Failure<AuthSession>(AuthErrors.InvalidCredentials);
+        }
+
         User? user = await repository.GetUserByEmailAsync(
             EmailNormalizer.Normalize(command.Request.Email),
             cancellationToken);
@@ -26,6 +32,11 @@ internal sealed class LoginUserCommandHandler(
         if (user is null || !passwordHasher.Verify(command.Request.Password, user.PasswordHash))
         {
             return Result.Failure<AuthSession>(AuthErrors.InvalidCredentials);
+        }
+
+        if (user.EmailVerificationStatus == EmailVerificationStatus.PendingVerification)
+        {
+            return Result.Failure<AuthSession>(AuthErrors.EmailNotVerified);
         }
 
         AccessToken accessToken = tokenProvider.Create(user);

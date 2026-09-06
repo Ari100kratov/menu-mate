@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using MenuMate.Contracts.Auth;
+using MenuMate.Modules.Auth.Application;
 
 namespace MenuMate.Api.IntegrationTests;
 
@@ -24,7 +25,11 @@ public sealed class AuthValidationTests : IAsyncLifetime, IDisposable
 
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(email.ToUpperInvariant(), "Другой пользователь", "Password123!"));
+            new RegisterUserRequest(
+                email.ToUpperInvariant(),
+                "Другой пользователь",
+                "Password123!",
+                PrivacyPolicyDefaults.CurrentVersion));
 
         await ProblemDetailsAssert.HasProblemAsync(response, HttpStatusCode.Conflict, "Auth.EmailNotUnique");
     }

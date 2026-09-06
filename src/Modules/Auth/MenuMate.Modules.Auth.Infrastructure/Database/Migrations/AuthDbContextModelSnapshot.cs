@@ -23,6 +23,66 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.AccountActionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<int>("FailedAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_attempts");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("purpose");
+
+                    b.Property<DateTimeOffset>("ResendAvailableAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resend_available_at");
+
+                    b.Property<string>("SecretHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("secret_hash");
+
+                    b.Property<string>("TargetEmail")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("target_email");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_account_actions");
+
+                    b.HasIndex("Purpose", "SecretHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_account_actions_purpose_secret_hash");
+
+                    b.HasIndex("UserId", "Purpose", "CreatedAt")
+                        .HasDatabaseName("ix_account_actions_user_id_purpose_created_at");
+
+                    b.ToTable("account_actions", "auth");
+                });
+
             modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.RefreshTokenRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -116,11 +176,26 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
+                    b.Property<string>("EmailVerificationStatus")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("email_verification_status");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)")
                         .HasColumnName("password_hash");
+
+                    b.Property<DateTimeOffset?>("PrivacyPolicyAcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("privacy_policy_accepted_at");
+
+                    b.Property<string>("PrivacyPolicyAcceptedVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("privacy_policy_accepted_version");
 
                     b.Property<bool>("ShowShoppingListPreview")
                         .ValueGeneratedOnAdd()
@@ -159,6 +234,16 @@ namespace MenuMate.Modules.Auth.Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_user_roles_role_id");
 
                     b.ToTable("user_roles", "auth");
+                });
+
+            modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.AccountActionRecord", b =>
+                {
+                    b.HasOne("MenuMate.Modules.Auth.Infrastructure.Database.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_account_actions_users_user_id");
                 });
 
             modelBuilder.Entity("MenuMate.Modules.Auth.Infrastructure.Database.Entities.RefreshTokenRecord", b =>

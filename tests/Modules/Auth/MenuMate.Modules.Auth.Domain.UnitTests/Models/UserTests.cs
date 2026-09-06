@@ -16,6 +16,7 @@ public sealed class UserTests
             "  USER@Example.COM ",
             "  Пользователь  ",
             "hash",
+            "2026-08-23",
             FixedNow).Value;
 
         Assert.Equal("user@example.com", user.Email);
@@ -23,6 +24,24 @@ public sealed class UserTests
         Assert.Equal(FixedNow, user.CreatedAt);
         Assert.Equal(FixedNow, user.UpdatedAt);
         Assert.True(user.ShowShoppingListPreview);
+        Assert.Equal(EmailVerificationStatus.PendingVerification, user.EmailVerificationStatus);
+        Assert.Equal("2026-08-23", user.PrivacyPolicyAcceptedVersion);
+        Assert.Equal(FixedNow, user.PrivacyPolicyAcceptedAt);
+    }
+
+    [Fact]
+    public void CreateShouldRejectMissingPrivacyPolicyVersion()
+    {
+        Result<User> result = User.Create(
+            Guid.CreateVersion7(),
+            "user@example.com",
+            "User",
+            "hash",
+            " ",
+            FixedNow);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(AuthErrors.PrivacyPolicyOutdated, result.Error);
     }
 
     [Theory]
@@ -35,7 +54,13 @@ public sealed class UserTests
         string passwordHash,
         string invalidField)
     {
-        Result<User> result = User.Create(Guid.CreateVersion7(), email, displayName, passwordHash, FixedNow);
+        Result<User> result = User.Create(
+            Guid.CreateVersion7(),
+            email,
+            displayName,
+            passwordHash,
+            "2026-08-23",
+            FixedNow);
 
         Assert.True(result.IsFailure);
         Assert.Equal(
@@ -93,6 +118,31 @@ public sealed class UserTests
         Assert.Equal(changedAt, user.UpdatedAt);
     }
 
+    [Fact]
+    public void VerifyEmailShouldMarkAddressAsVerified()
+    {
+        User user = CreateUser();
+        DateTimeOffset changedAt = FixedNow.AddMinutes(5);
+
+        user.VerifyEmail(changedAt);
+
+        Assert.Equal(EmailVerificationStatus.Verified, user.EmailVerificationStatus);
+        Assert.Equal(changedAt, user.UpdatedAt);
+    }
+
+    [Fact]
+    public void AcceptPrivacyPolicyShouldStoreVersionAndTimestamp()
+    {
+        User user = CreateUser();
+        DateTimeOffset changedAt = FixedNow.AddMinutes(10);
+
+        user.AcceptPrivacyPolicy("2026-09-01", changedAt);
+
+        Assert.Equal("2026-09-01", user.PrivacyPolicyAcceptedVersion);
+        Assert.Equal(changedAt, user.PrivacyPolicyAcceptedAt);
+        Assert.Equal(changedAt, user.UpdatedAt);
+    }
+
     private static User CreateUser() =>
-        User.Create(Guid.CreateVersion7(), "user@example.com", "User", "hash", FixedNow).Value;
+        User.Create(Guid.CreateVersion7(), "user@example.com", "User", "hash", "2026-08-23", FixedNow).Value;
 }

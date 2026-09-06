@@ -10,6 +10,8 @@
 4. [Архитектура фронтенда](architecture/frontend.md)
 5. [UX-решения фронтенда](architecture/frontend-ux.md)
 6. [Развёртывание](architecture/deployment.md)
+7. [Учётные записи и настройка почты](architecture/account-and-email-deployment.md)
+8. [Конфиденциальность и удаление аккаунта](architecture/privacy-and-account-deletion.md)
 
 ## Сценарии и интеграции
 
@@ -23,6 +25,7 @@
 - [Стратегия тестирования](engineering/testing.md)
 - [Правила backend-разработки](engineering/backend-guardrails.md)
 - [GitHub Actions и Dependabot](engineering/github.md)
+- [Обновление зависимостей](engineering/dependency-updates.md)
 
 ## Архитектурные решения
 

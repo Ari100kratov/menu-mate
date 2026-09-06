@@ -1,4 +1,5 @@
 using System.ClientModel;
+using MenuMate.Common.Application;
 using MenuMate.Modules.RecipeImports.Application;
 using MenuMate.Modules.RecipeImports.Application.Abstractions;
 using MenuMate.Modules.RecipeImports.Application.Extraction;
@@ -53,6 +54,7 @@ public static class RecipeImportsInfrastructureDependencyInjection
         services.AddScoped<IRecipeImageExtractor, OpenAiRecipeImageExtractor>();
         services.AddScoped<IRecipeCoverImageGenerator, OpenAiRecipeCoverImageGenerator>();
         services.AddScoped<IRecipeImportDraftRepository, EfRecipeImportDraftRepository>();
+        services.AddScoped<IUserDataEraser, RecipeImportsUserDataEraser>();
         services.AddScoped<IRecipeImportsUnitOfWork>(
             provider => provider.GetRequiredService<RecipeImportsDbContext>());
         return services;

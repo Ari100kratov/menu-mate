@@ -1,9 +1,12 @@
 import { useForm } from "@tanstack/react-form"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { z } from "zod"
 
 import { useLoginMutation } from "@/features/auth/api/auth.queries"
 import { AuthFormLayout } from "@/features/auth/ui/AuthFormLayout"
+import { PasswordField } from "@/features/auth/ui/PasswordField"
+import { ApiException } from "@/shared/api/errors"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field"
@@ -18,6 +21,8 @@ type LoginFormValues = z.infer<typeof loginFormSchema>
 
 export default function LoginPage() {
   const loginMutation = useLoginMutation()
+  const location = useLocation()
+  const state = location.state as Record<string, unknown> | null
   const form = useForm({
     defaultValues: {
       email: "",
@@ -42,7 +47,32 @@ export default function LoginPage() {
           void form.handleSubmit()
         }}
       >
+        {state?.emailVerified ||
+        state?.passwordReset ||
+        state?.passwordChanged ||
+        state?.emailChanged ||
+        state?.accountDeleted ? (
+          <Alert>
+            <AlertTitle>Готово</AlertTitle>
+            <AlertDescription>
+              {state.accountDeleted
+                ? "Аккаунт и связанные данные удалены."
+                : state.emailVerified
+                  ? "Email подтвержден. Теперь можно войти."
+                  : "Данные учетной записи обновлены. Войдите заново."}
+            </AlertDescription>
+          </Alert>
+        ) : null}
         {loginMutation.error ? <ErrorAlert error={loginMutation.error} /> : null}
+        {loginMutation.error instanceof ApiException &&
+        loginMutation.error.code === "Auth.EmailNotVerified" ? (
+          <Link
+            className="text-primary block text-sm font-medium underline-offset-4 hover:underline"
+            to={`/verify-email?email=${encodeURIComponent(form.getFieldValue("email"))}`}
+          >
+            Ввести код подтверждения
+          </Link>
+        ) : null}
 
         <FieldGroup>
           <form.Field name="email">
@@ -77,10 +107,9 @@ export default function LoginPage() {
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Пароль</FieldLabel>
-                  <Input
+                  <PasswordField
                     id={field.name}
                     name={field.name}
-                    type="password"
                     autoComplete="current-password"
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -99,6 +128,15 @@ export default function LoginPage() {
         <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
           {loginMutation.isPending ? "Входим..." : "Войти"}
         </Button>
+
+        <div className="text-center">
+          <Link
+            className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+            to="/forgot-password"
+          >
+            Забыли пароль?
+          </Link>
+        </div>
 
         <p className="text-muted-foreground border-t pt-5 text-center text-sm">
           Нет аккаунта?{" "}

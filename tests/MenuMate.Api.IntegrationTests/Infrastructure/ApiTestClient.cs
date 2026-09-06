@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using MenuMate.Contracts.Auth;
+using MenuMate.Modules.Auth.Application;
 
 namespace MenuMate.Api.IntegrationTests;
 
@@ -10,22 +11,28 @@ internal sealed class ApiTestClient(HttpClient client)
 
     public HttpClient HttpClient => client;
 
-    public async Task<RegisterUserResponse> RegisterAsync(string email, string? displayName = null)
+    public async Task<UserProfileResponse> RegisterAsync(string email, string? displayName = null)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(email, displayName ?? email, Password));
+            new RegisterUserRequest(
+                email,
+                displayName ?? email,
+                Password,
+                PrivacyPolicyDefaults.CurrentVersion));
 
         response.EnsureSuccessStatusCode();
 
-        RegisterUserResponse? content = await response.Content.ReadFromJsonAsync<RegisterUserResponse>();
-        Assert.NotNull(content);
+        string code = CapturingAuthEmailSender.GetVerificationCode(email);
+        HttpResponseMessage confirmation = await client.PostAsJsonAsync(
+            "/api/auth/email-verification/confirm",
+            new ConfirmEmailVerificationRequest(email, code));
+        confirmation.EnsureSuccessStatusCode();
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            content.Tokens.AccessToken);
-
-        return content;
+        await LoginAsync(email);
+        UserProfileResponse? profile = await client.GetFromJsonAsync<UserProfileResponse>("/api/auth/me");
+        Assert.NotNull(profile);
+        return profile;
     }
 
     public async Task<TokenResponse> LoginAsync(string email)

@@ -40,7 +40,7 @@ export async function apiFetchJson<TData>(path: string, init?: RequestInit): Pro
     throw toApiException(error, response.status)
   }
 
-  if (response.status === 204) {
+  if (response.status === 202 || response.status === 204) {
     return undefined as TData
   }
 

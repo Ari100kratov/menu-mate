@@ -8,7 +8,11 @@
 dotnet run --project src/MenuMate.AppHost/MenuMate.AppHost.csproj
 ```
 
-AppHost поднимает PostgreSQL, MinIO, одноразовую инициализацию бакетов, мигратор, API и Vite-фронтенд.
+AppHost поднимает PostgreSQL, MinIO, одноразовую инициализацию бакетов, Mailpit, мигратор, API и Vite-фронтенд. Письма локально доступны в Mailpit по адресу `http://localhost:8025`.
+
+Настройка production SMTP, DNS и пошаговое обновление Portainer описаны в документе [«Учётные записи и настройка почты»](account-and-email-deployment.md).
+
+Публичная политика, удаление аккаунта, реквизиты оператора и чек-лист Google Play описаны в документе [«Конфиденциальность и удаление аккаунта»](privacy-and-account-deletion.md).
 
 ## Docker Compose и Portainer
 
@@ -70,7 +74,7 @@ MINIO_PUBLIC_USE_SSL=true
 
 Перед обновлением стека сделайте резервные копии PostgreSQL и MinIO. Смена значения `POSTGRES_PASSWORD` в Portainer не меняет пароль уже созданной роли PostgreSQL: сначала измените пароль в самой БД, затем синхронно обновите переменную окружения.
 
-Секреты `POSTGRES_PASSWORD`, `JWT_SECRET`, `MINIO_ROOT_PASSWORD`, токены Dashboard и ключ OpenAI нельзя оставлять со значениями `change-me-*`. Если секрет был опубликован в чате, issue, логе или истории команд, его следует отозвать и выпустить заново.
+Секреты `POSTGRES_PASSWORD`, `JWT_SECRET`, `ACCOUNT_ACTION_HASH_SECRET`, `EMAIL_SMTP_PASSWORD`, `MINIO_ROOT_PASSWORD`, токены Dashboard и ключ OpenAI нельзя оставлять со значениями `change-me-*`. Если секрет был опубликован в чате, issue, логе или истории команд, его следует отозвать и выпустить заново.
 
 Долгоживущие контейнеры имеют restart policy и ротацию Docker JSON-логов. API и web используют health checks; web стартует только после успешной проверки API. Для более строгого production-контура образы приложения следует собирать в CI и публиковать в registry с неизменяемыми тегами, но для pet-проекта допустима сборка Git-backed стека непосредственно в Portainer.
 

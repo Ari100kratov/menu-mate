@@ -17,6 +17,9 @@ public sealed class User : Entity<Guid>
         string email,
         string displayName,
         string passwordHash,
+        EmailVerificationStatus emailVerificationStatus,
+        string? privacyPolicyAcceptedVersion,
+        DateTimeOffset? privacyPolicyAcceptedAt,
         bool showShoppingListPreview,
         DateTimeOffset createdAt)
         : base(id)
@@ -24,6 +27,9 @@ public sealed class User : Entity<Guid>
         Email = email;
         DisplayName = displayName;
         PasswordHash = passwordHash;
+        EmailVerificationStatus = emailVerificationStatus;
+        PrivacyPolicyAcceptedVersion = privacyPolicyAcceptedVersion;
+        PrivacyPolicyAcceptedAt = privacyPolicyAcceptedAt;
         ShowShoppingListPreview = showShoppingListPreview;
         CreatedAt = createdAt;
         UpdatedAt = createdAt;
@@ -43,6 +49,17 @@ public sealed class User : Entity<Guid>
     /// Хеш пароля.
     /// </summary>
     public string PasswordHash { get; private set; }
+
+    /// <summary>
+    /// Состояние подтверждения email.
+    /// </summary>
+    public EmailVerificationStatus EmailVerificationStatus { get; private set; }
+
+    /// <summary>Последняя принятая версия политики конфиденциальности.</summary>
+    public string? PrivacyPolicyAcceptedVersion { get; private set; }
+
+    /// <summary>Момент принятия политики конфиденциальности.</summary>
+    public DateTimeOffset? PrivacyPolicyAcceptedAt { get; private set; }
 
     /// <summary>
     /// Показывать ли предпросмотр перед созданием списка покупок из меню.
@@ -77,6 +94,7 @@ public sealed class User : Entity<Guid>
         string email,
         string displayName,
         string passwordHash,
+        string privacyPolicyVersion,
         DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -94,11 +112,19 @@ public sealed class User : Entity<Guid>
             return Result.Failure<User>(AuthErrors.EmptyPasswordHash);
         }
 
+        if (string.IsNullOrWhiteSpace(privacyPolicyVersion))
+        {
+            return Result.Failure<User>(AuthErrors.PrivacyPolicyOutdated);
+        }
+
         return new User(
             id,
             EmailNormalizer.Normalize(email),
             displayName.Trim(),
             passwordHash,
+            EmailVerificationStatus.PendingVerification,
+            privacyPolicyVersion,
+            now,
             showShoppingListPreview: true,
             now);
     }
@@ -111,13 +137,25 @@ public sealed class User : Entity<Guid>
         string email,
         string displayName,
         string passwordHash,
+        EmailVerificationStatus emailVerificationStatus,
+        string? privacyPolicyAcceptedVersion,
+        DateTimeOffset? privacyPolicyAcceptedAt,
         bool showShoppingListPreview,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         IEnumerable<UserRole> roles,
         IEnumerable<RefreshToken> refreshTokens)
     {
-        var user = new User(id, email, displayName, passwordHash, showShoppingListPreview, createdAt)
+        var user = new User(
+            id,
+            email,
+            displayName,
+            passwordHash,
+            emailVerificationStatus,
+            privacyPolicyAcceptedVersion,
+            privacyPolicyAcceptedAt,
+            showShoppingListPreview,
+            createdAt)
         {
             UpdatedAt = updatedAt
         };
@@ -157,6 +195,61 @@ public sealed class User : Entity<Guid>
         }
 
         ShowShoppingListPreview = showShoppingListPreview;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Подтверждает текущий адрес электронной почты.
+    /// </summary>
+    public void VerifyEmail(DateTimeOffset now)
+    {
+        EmailVerificationStatus = EmailVerificationStatus.Verified;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Изменяет отображаемое имя.
+    /// </summary>
+    public Result UpdateDisplayName(string displayName, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(displayName);
+        string normalized = displayName.Trim();
+        if (normalized.Length is < 1 or > 120)
+        {
+            return Result.Failure(AuthErrors.InvalidDisplayName);
+        }
+
+        DisplayName = normalized;
+        UpdatedAt = now;
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Устанавливает подтвержденный новый email.
+    /// </summary>
+    public void ChangeEmail(string email, DateTimeOffset now)
+    {
+        Email = EmailNormalizer.Normalize(email);
+        EmailVerificationStatus = EmailVerificationStatus.Verified;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Устанавливает новый хеш пароля.
+    /// </summary>
+    public void ChangePassword(string passwordHash, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
+        PasswordHash = passwordHash;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Фиксирует принятие конкретной версии политики конфиденциальности.</summary>
+    public void AcceptPrivacyPolicy(string version, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+        PrivacyPolicyAcceptedVersion = version;
+        PrivacyPolicyAcceptedAt = now;
         UpdatedAt = now;
     }
 }

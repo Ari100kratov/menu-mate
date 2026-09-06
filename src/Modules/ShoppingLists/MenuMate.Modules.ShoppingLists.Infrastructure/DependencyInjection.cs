@@ -1,4 +1,5 @@
 using MenuMate.Modules.ShoppingLists.Application.Abstractions;
+using MenuMate.Common.Application;
 using MenuMate.Modules.ShoppingLists.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -36,6 +37,7 @@ public static class ShoppingListsInfrastructureDependencyInjection
         services.AddScoped<IShoppingListsUnitOfWork>(provider => provider.GetRequiredService<ShoppingListsDbContext>());
         services.AddScoped<IShoppingListsReadDbContext>(provider => provider.GetRequiredService<ShoppingListsDbContext>());
         services.AddScoped<IShoppingListSourceReader>(provider => provider.GetRequiredService<ShoppingListsDbContext>());
+        services.AddScoped<IUserDataEraser, ShoppingListsUserDataEraser>();
 
         return services;
     }

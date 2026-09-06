@@ -3,13 +3,21 @@ import { Navigate, createBrowserRouter } from "react-router-dom"
 import { AppShell } from "@/app/AppShell"
 import { AdminRoute } from "@/app/AdminRoute"
 import { ProtectedRoute } from "@/app/ProtectedRoute"
+import { PrivacyPolicyGate } from "@/app/PrivacyPolicyGate"
 import { getLastWorkspaceSection } from "@/app/navigation"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage"
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage"
+import VerifyEmailPage from "@/pages/auth/VerifyEmailPage"
 import AdminUsersPage from "@/pages/admin/AdminUsersPage"
 import MenuPage from "@/pages/menu/MenuPage"
 import NotFoundPage from "@/pages/NotFoundPage"
+import AccountDeletionPage from "@/pages/legal/AccountDeletionPage"
+import PrivacyConsentPage from "@/pages/legal/PrivacyConsentPage"
+import PrivacyPolicyPage from "@/pages/legal/PrivacyPolicyPage"
 import ProfilePage from "@/pages/profile/ProfilePage"
+import ConfirmEmailChangePage from "@/pages/profile/ConfirmEmailChangePage"
 import RecipeCreatePage from "@/pages/recipes/RecipeCreatePage"
 import RecipeCopyPage from "@/pages/recipes/RecipeCopyPage"
 import RecipeDetailsPage from "@/pages/recipes/RecipeDetailsPage"
@@ -31,67 +39,62 @@ export const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
+    path: "/verify-email",
+    element: <VerifyEmailPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />,
+  },
+  {
+    path: "/privacy",
+    element: <PrivacyPolicyPage />,
+  },
+  {
+    path: "/account-deletion",
+    element: <AccountDeletionPage />,
+  },
+  {
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/",
-        element: <AppShell />,
+        path: "/privacy/accept",
+        element: <PrivacyConsentPage />,
+      },
+      {
+        element: <PrivacyPolicyGate />,
         children: [
           {
-            index: true,
-            element: <LastWorkspaceSectionRedirect />,
-          },
-          {
-            path: "recipes",
-            element: <RecipesPage />,
-          },
-          {
-            path: "recipes/new",
-            element: <RecipeCreatePage />,
-          },
-          {
-            path: "recipes/import",
-            element: <RecipeImportPage />,
-          },
-          {
-            path: "recipes/import/:draftId",
-            element: <RecipeImportDraftPage />,
-          },
-          {
-            path: "recipes/:recipeId",
-            element: <RecipeDetailsPage />,
-          },
-          {
-            path: "recipes/:recipeId/copy",
-            element: <RecipeCopyPage />,
-          },
-          {
-            path: "recipes/:recipeId/edit",
-            element: <RecipeEditPage />,
-          },
-          {
-            path: "menu",
-            element: <MenuPage />,
-          },
-          {
-            path: "shopping",
-            element: <ShoppingPage />,
-          },
-          {
-            path: "shopping/preview",
-            element: <ShoppingPreviewPage />,
-          },
-          {
-            path: "profile",
-            element: <ProfilePage />,
-          },
-          {
-            path: "admin",
-            element: <AdminRoute />,
+            path: "/",
+            element: <AppShell />,
             children: [
               {
                 index: true,
-                element: <AdminUsersPage />,
+                element: <LastWorkspaceSectionRedirect />,
+              },
+              { path: "recipes", element: <RecipesPage /> },
+              { path: "recipes/new", element: <RecipeCreatePage /> },
+              { path: "recipes/import", element: <RecipeImportPage /> },
+              { path: "recipes/import/:draftId", element: <RecipeImportDraftPage /> },
+              { path: "recipes/:recipeId", element: <RecipeDetailsPage /> },
+              { path: "recipes/:recipeId/copy", element: <RecipeCopyPage /> },
+              { path: "recipes/:recipeId/edit", element: <RecipeEditPage /> },
+              { path: "menu", element: <MenuPage /> },
+              { path: "shopping", element: <ShoppingPage /> },
+              { path: "shopping/preview", element: <ShoppingPreviewPage /> },
+              { path: "profile", element: <ProfilePage /> },
+              {
+                path: "profile/email-change/confirm",
+                element: <ConfirmEmailChangePage />,
+              },
+              {
+                path: "admin",
+                element: <AdminRoute />,
+                children: [{ index: true, element: <AdminUsersPage /> }],
               },
             ],
           },

@@ -12,6 +12,12 @@ internal sealed class UserRecord
 
     public string PasswordHash { get; set; } = string.Empty;
 
+    public EmailVerificationStatus EmailVerificationStatus { get; set; }
+
+    public string? PrivacyPolicyAcceptedVersion { get; set; }
+
+    public DateTimeOffset? PrivacyPolicyAcceptedAt { get; set; }
+
     public bool ShowShoppingListPreview { get; set; } = true;
 
     public DateTimeOffset CreatedAt { get; set; }
@@ -29,6 +35,9 @@ internal sealed class UserRecord
             Email = user.Email,
             DisplayName = user.DisplayName,
             PasswordHash = user.PasswordHash,
+            EmailVerificationStatus = user.EmailVerificationStatus,
+            PrivacyPolicyAcceptedVersion = user.PrivacyPolicyAcceptedVersion,
+            PrivacyPolicyAcceptedAt = user.PrivacyPolicyAcceptedAt,
             ShowShoppingListPreview = user.ShowShoppingListPreview,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
@@ -42,6 +51,9 @@ internal sealed class UserRecord
             Email,
             DisplayName,
             PasswordHash,
+            EmailVerificationStatus,
+            PrivacyPolicyAcceptedVersion,
+            PrivacyPolicyAcceptedAt,
             ShowShoppingListPreview,
             CreatedAt,
             UpdatedAt,
@@ -50,6 +62,12 @@ internal sealed class UserRecord
 
     public void Apply(User user)
     {
+        Email = user.Email;
+        DisplayName = user.DisplayName;
+        PasswordHash = user.PasswordHash;
+        EmailVerificationStatus = user.EmailVerificationStatus;
+        PrivacyPolicyAcceptedVersion = user.PrivacyPolicyAcceptedVersion;
+        PrivacyPolicyAcceptedAt = user.PrivacyPolicyAcceptedAt;
         ShowShoppingListPreview = user.ShowShoppingListPreview;
         UpdatedAt = user.UpdatedAt;
     }

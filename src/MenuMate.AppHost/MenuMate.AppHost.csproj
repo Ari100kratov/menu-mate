@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.3.5" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.5.2" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Keep the package-based DCP/dashboard toolchain until Aspire CLI is provisioned in CI and developer environments. -->
+    <AspireUseCliBundle>false</AspireUseCliBundle>
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
     <UserSecretsId>34faaf39-df3b-4f91-9b88-1b723e1cece5</UserSecretsId>
   </PropertyGroup>
 

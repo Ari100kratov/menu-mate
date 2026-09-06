@@ -35,7 +35,21 @@ services:
       Jwt__Secret: ${JWT_SECRET:?Set JWT_SECRET in Portainer}
       Jwt__Issuer: ${JWT_ISSUER:-MenuMate}
       Jwt__Audience: ${JWT_AUDIENCE:-MenuMate}
-      Jwt__ExpirationInMinutes: ${JWT_EXPIRATION_IN_MINUTES:-60}
+      Jwt__ExpirationInMinutes: ${JWT_EXPIRATION_IN_MINUTES:-15}
+      AccountActions__HashSecret: ${ACCOUNT_ACTION_HASH_SECRET:?Set ACCOUNT_ACTION_HASH_SECRET in Portainer}
+      Email__Enabled: ${EMAIL_ENABLED:-true}
+      Email__Smtp__Host: ${EMAIL_SMTP_HOST:?Set EMAIL_SMTP_HOST in Portainer}
+      Email__Smtp__Port: ${EMAIL_SMTP_PORT:-587}
+      Email__Smtp__Security: ${EMAIL_SMTP_SECURITY:-StartTls}
+      Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
+      Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
+      Email__FromAddress: ${EMAIL_FROM_ADDRESS:?Set EMAIL_FROM_ADDRESS in Portainer}
+      Email__FromName: ${EMAIL_FROM_NAME:-MenuMate}
+      PublicWeb__BaseUrl: ${PUBLIC_WEB_BASE_URL:?Set PUBLIC_WEB_BASE_URL in Portainer}
+      Legal__OperatorName: ${LEGAL_OPERATOR_NAME:?Set LEGAL_OPERATOR_NAME in Portainer}
+      Legal__PrivacyContactEmail: ${LEGAL_PRIVACY_CONTACT_EMAIL:?Set LEGAL_PRIVACY_CONTACT_EMAIL in Portainer}
+      Legal__TechnicalLogRetentionDays: ${LEGAL_TECHNICAL_LOG_RETENTION_DAYS:-30}
+      Legal__BackupRetentionDays: ${LEGAL_BACKUP_RETENTION_DAYS:-30}
       MENUMATE_DATA_PROTECTION_KEYS_PATH: /var/lib/menumate/data-protection-keys
       Minio__Endpoint: minio:9000
       Minio__PublicEndpoint: ${MINIO_PUBLIC_ENDPOINT:?Set MINIO_PUBLIC_ENDPOINT in Portainer}

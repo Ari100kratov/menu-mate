@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using MenuMate.Contracts.Auth;
+using MenuMate.Modules.Auth.Application;
 
 namespace MenuMate.Api.IntegrationTests;
 
@@ -32,16 +32,17 @@ public sealed class AuthWorkflowTests : IAsyncLifetime, IDisposable
         using HttpClient httpClient = _factory.CreateClient();
         var client = new ApiTestClient(httpClient);
 
-        RegisterUserResponse registered = await client.RegisterAsync(email);
+        UserProfileResponse registered = await client.RegisterAsync(email);
         TokenResponse tokens = await client.LoginAsync(email);
         UserProfileResponse? me = await httpClient.GetFromJsonAsync<UserProfileResponse>("/api/auth/me");
 
-        Assert.Equal(email, registered.User.Email);
+        Assert.Equal(email, registered.Email);
         Assert.False(string.IsNullOrWhiteSpace(tokens.AccessToken));
         Assert.NotNull(me);
-        Assert.Equal(registered.User.Id, me.Id);
+        Assert.Equal(registered.Id, me.Id);
         Assert.Contains("user", me.Roles);
         Assert.True(me.Preferences.ShowShoppingListPreview);
+        Assert.Equal("Verified", me.EmailVerificationStatus);
     }
 
     [Fact]
@@ -73,22 +74,34 @@ public sealed class AuthWorkflowTests : IAsyncLifetime, IDisposable
 
         HttpResponseMessage registerResponse = await httpClient.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterUserRequest(email, email, "Password123!"));
+            new RegisterUserRequest(email, email, "Password123!", PrivacyPolicyDefaults.CurrentVersion));
 
         registerResponse.EnsureSuccessStatusCode();
+        Assert.False(registerResponse.Headers.TryGetValues("Set-Cookie", out _));
 
-        string refreshCookie = GetRefreshCookie(registerResponse);
-        JsonElement registerJson = await registerResponse.Content.ReadFromJsonAsync<JsonElement>();
+        HttpResponseMessage pendingLoginResponse = await httpClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, "Password123!"));
+        await ProblemDetailsAssert.HasProblemAsync(
+            pendingLoginResponse,
+            HttpStatusCode.Forbidden,
+            "Auth.EmailNotVerified");
 
-        Assert.True(registerJson.TryGetProperty("tokens", out JsonElement tokensJson));
-        Assert.False(tokensJson.TryGetProperty("refreshToken", out _));
+        HttpResponseMessage confirmationResponse = await httpClient.PostAsJsonAsync(
+            "/api/auth/email-verification/confirm",
+            new ConfirmEmailVerificationRequest(email, CapturingAuthEmailSender.GetVerificationCode(email)));
+        confirmationResponse.EnsureSuccessStatusCode();
 
-        TokenResponse? registerTokens = tokensJson.Deserialize<TokenResponse>(JsonSerializerOptions.Web);
-        Assert.NotNull(registerTokens);
-
+        HttpResponseMessage loginResponse = await httpClient.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginUserRequest(email, "Password123!"));
+        loginResponse.EnsureSuccessStatusCode();
+        string refreshCookie = GetRefreshCookie(loginResponse);
+        TokenResponse? loginTokens = await loginResponse.Content.ReadFromJsonAsync<TokenResponse>();
+        Assert.NotNull(loginTokens);
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Bearer",
-            registerTokens.AccessToken);
+            loginTokens.AccessToken);
         httpClient.DefaultRequestHeaders.Add("Cookie", refreshCookie);
 
         HttpResponseMessage refreshResponse = await httpClient.PostAsync(

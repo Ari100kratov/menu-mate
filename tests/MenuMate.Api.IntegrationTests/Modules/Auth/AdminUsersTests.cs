@@ -41,7 +41,7 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         var targetClient = new ApiTestClient(targetHttpClient);
         var otherClient = new ApiTestClient(otherHttpClient);
 
-        RegisterUserResponse target = await targetClient.RegisterAsync(
+        UserProfileResponse target = await targetClient.RegisterAsync(
             TestEmail.Create("admin-users-target"),
             "Алёна Воронцова");
         RecipeResponse recipe = await CreateRecipeAsync(targetHttpClient);
@@ -49,9 +49,9 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
             new Uri($"/api/recipes/{recipe.Id}/favorite", UriKind.Relative),
             null)).EnsureSuccessStatusCode();
         await otherClient.RegisterAsync(TestEmail.Create("admin-users-other"));
-        RegisterUserResponse admin = await adminClient.RegisterAsync(TestEmail.Create("admin-users-admin"));
-        await PromoteToAdminAsync(admin.User.Id);
-        await adminClient.LoginAsync(admin.User.Email);
+        UserProfileResponse admin = await adminClient.RegisterAsync(TestEmail.Create("admin-users-admin"));
+        await PromoteToAdminAsync(admin.Id);
+        await adminClient.LoginAsync(admin.Email);
 
         AdminUsersPageResponse? searched = await adminHttpClient.GetFromJsonAsync<AdminUsersPageResponse>(
             $"/api/admin/users?search={Uri.EscapeDataString("аЛеНа")}&page=1&pageSize=20");
@@ -61,9 +61,9 @@ public sealed class AdminUsersTests : IAsyncLifetime, IDisposable
         Assert.NotNull(searched);
         Assert.NotNull(firstPage);
         AdminUserListItemResponse user = Assert.Single(searched.Items);
-        Assert.Equal(target.User.Id, user.Id);
-        Assert.Equal(target.User.Email, user.Email);
-        Assert.Equal(target.User.DisplayName, user.DisplayName);
+        Assert.Equal(target.Id, user.Id);
+        Assert.Equal(target.Email, user.Email);
+        Assert.Equal(target.DisplayName, user.DisplayName);
         Assert.Contains("user", user.Roles);
         Assert.Equal(1, user.RecipesCount);
         Assert.Equal(1, user.FavoriteCount);

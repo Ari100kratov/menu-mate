@@ -36,6 +36,11 @@ IResourceBuilder<ContainerResource> minioInit = builder
         """)
     .WaitFor(minio);
 
+IResourceBuilder<ContainerResource> mailpit = builder
+    .AddContainer("mailpit", "axllent/mailpit", "latest")
+    .WithEndpoint(port: 1025, targetPort: 1025, name: "smtp")
+    .WithHttpEndpoint(port: 8025, targetPort: 8025, name: "http");
+
 IResourceBuilder<ProjectResource> migrator = builder.AddProject<Projects.MenuMate_Migrator>("migrator")
     .WithEnvironment("ConnectionStrings__Database", database)
     .WithReference(database)
@@ -57,9 +62,22 @@ IResourceBuilder<ProjectResource> api = builder.AddProject<Projects.MenuMate_Api
     .WithEnvironment("OpenAI__ImageModel", builder.Configuration["OpenAI:ImageModel"] ?? "gpt-image-1-mini")
     .WithEnvironment("RecipeImports__DraftRetentionDays", builder.Configuration["RecipeImports:DraftRetentionDays"] ?? "7")
     .WithEnvironment("RecipeImports__CleanupIntervalMinutes", builder.Configuration["RecipeImports:CleanupIntervalMinutes"] ?? "60")
+    .WithEnvironment("AccountActions__HashSecret", "local-development-account-action-secret-at-least-32-bytes")
+    .WithEnvironment("Email__Enabled", "true")
+    .WithEnvironment("Email__Smtp__Host", "localhost")
+    .WithEnvironment("Email__Smtp__Port", "1025")
+    .WithEnvironment("Email__Smtp__Security", "None")
+    .WithEnvironment("Email__FromAddress", "no-reply@menumate.local")
+    .WithEnvironment("Email__FromName", "MenuMate")
+    .WithEnvironment("PublicWeb__BaseUrl", "http://localhost:5173")
+    .WithEnvironment("Legal__OperatorName", "MenuMate (локальная разработка)")
+    .WithEnvironment("Legal__PrivacyContactEmail", "privacy@menumate.local")
+    .WithEnvironment("Legal__TechnicalLogRetentionDays", "30")
+    .WithEnvironment("Legal__BackupRetentionDays", "30")
     .WithReference(database)
     .WaitFor(database)
     .WaitFor(minio)
+    .WaitFor(mailpit)
     .WaitForCompletion(minioInit)
     .WaitForCompletion(migrator)
     .WithHttpHealthCheck("/health");

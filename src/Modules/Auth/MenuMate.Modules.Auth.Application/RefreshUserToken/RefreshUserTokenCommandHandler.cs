@@ -32,6 +32,11 @@ internal sealed class RefreshUserTokenCommandHandler(
             return Result.Failure<AuthSession>(AuthErrors.InvalidRefreshToken);
         }
 
+        if (user.EmailVerificationStatus == EmailVerificationStatus.PendingVerification)
+        {
+            return Result.Failure<AuthSession>(AuthErrors.InvalidRefreshToken);
+        }
+
         await repository.RevokeRefreshTokenAsync(token.Id, cancellationToken);
 
         AccessToken accessToken = tokenProvider.Create(user);
