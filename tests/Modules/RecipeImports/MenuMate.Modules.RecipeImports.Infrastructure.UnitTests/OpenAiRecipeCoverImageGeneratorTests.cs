@@ -18,7 +18,7 @@ public sealed class OpenAiRecipeCoverImageGeneratorTests
     [Theory]
     [InlineData(832, "medium")]
     [InlineData(1024, "high")]
-    public async Task GenerateAsyncSendsCompleteRecipeAndConfiguredOptionsReturnsJpeg(int size, string quality)
+    public async Task GenerateAsyncSendsOnlyVisualRecipeDataAndConfiguredOptionsReturnsJpeg(int size, string quality)
     {
         CreateRecipeRequest recipe = new(
             "Тыквенный суп", "Густой крем-суп", 2, "Soup", "Private", 40, 15, null,
@@ -49,13 +49,18 @@ public sealed class OpenAiRecipeCoverImageGeneratorTests
         JsonElement data = payload.RootElement;
         Assert.Equal(recipe.Title, data.GetProperty("title").GetString());
         Assert.Equal(recipe.Description, data.GetProperty("description").GetString());
-        Assert.Equal(recipe.Advice, data.GetProperty("advice").GetString());
-        Assert.Equal(recipe.Servings, data.GetProperty("servings").GetInt32());
+        Assert.Equal(
+            ["title", "description", "ingredients", "steps", "tags"],
+            data.EnumerateObject().Select(property => property.Name));
+        Assert.Equal(
+            ["productName", "amount", "unit", "comment", "isOptional"],
+            data.GetProperty("ingredients")[0].EnumerateObject().Select(property => property.Name));
         Assert.Equal("Тыква", data.GetProperty("ingredients")[0].GetProperty("productName").GetString());
         Assert.Equal(500, data.GetProperty("ingredients")[0].GetProperty("amount").GetInt32());
         Assert.Equal("Очистить", data.GetProperty("ingredients")[0].GetProperty("comment").GetString());
         Assert.Equal(2, data.GetProperty("steps").GetArrayLength());
         Assert.Equal("Измельчить в пюре.", data.GetProperty("steps")[1].GetProperty("text").GetString());
+        Assert.Equal("осенний", data.GetProperty("tags")[0].GetString());
     }
 
 
