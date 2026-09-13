@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query"
+import { useRef } from "react"
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import { generateRecipeCoverImage } from "@/features/imports/api/imports.api"
-import { type Recipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
+import { type Recipe, updateRecipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
 import {
   recipeQueryKeys,
   useCopyRecipeMutation,
@@ -26,6 +27,7 @@ export default function RecipeCopyPage() {
   const queryClient = useQueryClient()
   const sourceQuery = useRecipeQuery(recipeId, revisionId)
   const copyMutation = useCopyRecipeMutation()
+  const createdRecipeIdRef = useRef<string>(undefined)
 
   if (!recipeId || !revisionId) {
     return <Navigate to="/recipes" replace />
@@ -34,58 +36,55 @@ export default function RecipeCopyPage() {
   const sourceRecipeId = recipeId
   const sourceRevisionId = revisionId
 
-  function handleSubmit(values: RecipeFormValues, coverFile: File | null) {
+  async function handleSubmit(
+    values: RecipeFormValues,
+    coverFile: File | null,
+    onSaved: () => void,
+  ) {
     const sourceCover = sourceQuery.data ? findCoverImage(sourceQuery.data.images) : undefined
-    copyMutation.mutate(
-      {
+    let targetRecipeId = createdRecipeIdRef.current
+    if (targetRecipeId) {
+      await updateRecipe(targetRecipeId, toRecipeRequest(values))
+    } else {
+      const recipe = await copyMutation.mutateAsync({
         recipeId: sourceRecipeId,
         request: {
           sourceRevisionId,
           recipe: toRecipeRequest(values),
           copySourceCover: Boolean(sourceCover && !coverFile),
         },
-      },
-      {
-        onSuccess: (recipe) => {
-          toast.success("Копия рецепта создана")
-          void navigate(
-            `/recipes/${recipe.id}?revisionId=${encodeURIComponent(recipe.revisionId)}`,
-            {
-              replace: true,
-              state: getParentBackState(location.state),
-            },
-          )
-          if (coverFile) {
-            void uploadCover(recipe.id, values.title, coverFile)
-          }
-        },
-      },
-    )
+      })
+      targetRecipeId = recipe.id
+      createdRecipeIdRef.current = targetRecipeId
+    }
+    if (coverFile) await uploadCover(targetRecipeId, values.title, coverFile)
+    onSaved()
+    toast.success("Копия рецепта создана")
+    await navigate(`/recipes/${targetRecipeId}`, {
+      replace: true,
+      state: getParentBackState(location.state),
+    })
   }
 
   async function uploadCover(targetRecipeId: string, title: string, coverFile: File) {
-    try {
-      const image = await uploadRecipeImage(targetRecipeId, {
-        file: coverFile,
-        scope: "Cover",
-        altText: title,
-      })
-      queryClient.setQueriesData<Recipe>({ queryKey: recipeQueryKeys.details() }, (recipe) =>
-        recipe?.id === targetRecipeId
-          ? {
-              ...recipe,
-              images: [
-                ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
-                image,
-              ],
-            }
-          : recipe,
-      )
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.details() })
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
-    } catch {
-      toast.warning("Копия создана, но обложку загрузить не удалось")
-    }
+    const image = await uploadRecipeImage(targetRecipeId, {
+      file: coverFile,
+      scope: "Cover",
+      altText: title,
+    })
+    queryClient.setQueriesData<Recipe>({ queryKey: recipeQueryKeys.details() }, (recipe) =>
+      recipe?.id === targetRecipeId
+        ? {
+            ...recipe,
+            images: [
+              ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+              image,
+            ],
+          }
+        : recipe,
+    )
+    void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.details() })
+    void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
   }
 
   const source = sourceQuery.data

@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react"
 
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/ui/dialog"
+import { safeImageUrl } from "@/shared/lib/safe-image-url"
 
 interface RecipeImageLightboxProps {
   imageUrl: string
@@ -237,7 +238,7 @@ function ZoomableImage({
         style={{
           transform: `translate3d(${String(transform.x)}px, ${String(transform.y)}px, 0) scale(${String(transform.scale)})`,
         }}
-        src={imageUrl}
+        src={safeImageUrl(imageUrl)}
         alt={imageAlt}
         draggable={false}
         decoding="async"

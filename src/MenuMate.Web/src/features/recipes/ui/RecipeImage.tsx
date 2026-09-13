@@ -1,6 +1,8 @@
-import { useState, type ComponentProps } from "react"
+import { useEffect, useRef, useState, type ComponentProps } from "react"
 
 import { cn } from "@/shared/lib/utils"
+import { observeImageVisibility } from "@/shared/lib/observe-image-visibility"
+import { safeImageUrl } from "@/shared/lib/safe-image-url"
 
 interface RecipeImageProps extends Omit<ComponentProps<"img">, "className" | "onLoad"> {
   frameClassName?: string
@@ -17,10 +19,21 @@ export function RecipeImage({
   ...props
 }: RecipeImageProps) {
   const [loadedSource, setLoadedSource] = useState<string>()
-  const isLoaded = loadedSource === src
+  const frameRef = useRef<HTMLSpanElement>(null)
+  const [isNearViewport, setIsNearViewport] = useState(false)
+  const shouldRender = loading === "eager" || isNearViewport
+  const isLoaded = shouldRender && loadedSource === src
+
+  useEffect(() => {
+    if (loading === "eager" || !frameRef.current) return
+    return observeImageVisibility(frameRef.current, (visible) => {
+      setIsNearViewport(visible)
+      if (!visible) setLoadedSource(undefined)
+    })
+  }, [loading])
 
   return (
-    <span className={cn("bg-muted relative block overflow-hidden", frameClassName)}>
+    <span ref={frameRef} className={cn("bg-muted relative block overflow-hidden", frameClassName)}>
       <span
         aria-hidden="true"
         className={cn(
@@ -30,21 +43,23 @@ export function RecipeImage({
             : "animate-pulse opacity-100 motion-reduce:animate-none",
         )}
       />
-      <img
-        {...props}
-        src={src}
-        alt={alt}
-        loading={loading}
-        decoding={decoding}
-        className={cn(
-          "size-full opacity-0 transition-opacity duration-300",
-          isLoaded && "opacity-100",
-          imageClassName,
-        )}
-        onLoad={() => {
-          setLoadedSource(src)
-        }}
-      />
+      {shouldRender ? (
+        <img
+          {...props}
+          src={safeImageUrl(src)}
+          alt={alt}
+          loading="eager"
+          decoding={decoding}
+          className={cn(
+            "size-full opacity-0 transition-opacity duration-300",
+            isLoaded && "opacity-100",
+            imageClassName,
+          )}
+          onLoad={() => {
+            setLoadedSource(src)
+          }}
+        />
+      ) : null}
     </span>
   )
 }

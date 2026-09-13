@@ -15,7 +15,7 @@ import {
   useUpdateRecipeImportDraftMutation,
 } from "@/features/imports/api/imports.queries"
 import { RecipeImportDraftPageSkeleton } from "@/features/imports/ui/RecipeImportSkeletons"
-import { type Recipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
+import { type Recipe, updateRecipe, uploadRecipeImage } from "@/features/recipes/api/recipes.api"
 import { recipeQueryKeys } from "@/features/recipes/api/recipes.queries"
 import {
   recipeRequestToFormValues,
@@ -25,6 +25,7 @@ import {
 import { RecipeForm } from "@/features/recipes/ui/RecipeForm"
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { getParentBackState } from "@/shared/lib/back-navigation"
+import { safeImageUrl } from "@/shared/lib/safe-image-url"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
@@ -42,6 +43,8 @@ export default function RecipeImportDraftPage() {
   const deleteMutation = useDeleteRecipeImportDraftMutation()
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const [autosaveError, setAutosaveError] = useState<unknown>()
+  const createdRecipeIdRef = useRef<string>(undefined)
+  const [isConfirming, setIsConfirming] = useState(false)
 
   useEffect(
     () => () => {
@@ -54,7 +57,12 @@ export default function RecipeImportDraftPage() {
 
   const handleValuesChange = useCallback(
     (values: RecipeFormValues) => {
-      if (!draftId || draftQuery.data?.status !== "Ready") {
+      if (
+        !draftId ||
+        draftQuery.data?.status !== "Ready" ||
+        isConfirming ||
+        createdRecipeIdRef.current
+      ) {
         return
       }
 
@@ -69,46 +77,54 @@ export default function RecipeImportDraftPage() {
         })
       }, 800)
     },
-    [draftId, draftQuery.data?.status, updateDraft],
+    [draftId, draftQuery.data?.status, updateDraft, isConfirming],
   )
 
-  function handleConfirm(values: RecipeFormValues, coverFile: File | null) {
-    confirmMutation.mutate(toRecipeRequest(values), {
-      onSuccess: (recipe) => {
-        toast.success("Рецепт создан")
-        void navigate(`/recipes/${recipe.id}`, {
-          replace: true,
-          state: getParentBackState(location.state),
-        })
-        if (coverFile) {
-          void uploadCover(recipe.id, values.title, coverFile)
-        }
-      },
-    })
+  async function handleConfirm(
+    values: RecipeFormValues,
+    coverFile: File | null,
+    onSaved: () => void,
+  ) {
+    clearTimeout(autosaveTimerRef.current)
+    setIsConfirming(true)
+    try {
+      let recipeId = createdRecipeIdRef.current
+      if (recipeId) {
+        await updateRecipe(recipeId, toRecipeRequest(values))
+      } else {
+        recipeId = (await confirmMutation.mutateAsync(toRecipeRequest(values))).id
+        createdRecipeIdRef.current = recipeId
+      }
+      if (coverFile) await uploadCover(recipeId, values.title, coverFile)
+      onSaved()
+      toast.success("Рецепт создан")
+      await navigate(`/recipes/${recipeId}`, {
+        replace: true,
+        state: getParentBackState(location.state),
+      })
+    } finally {
+      setIsConfirming(false)
+    }
   }
 
   async function uploadCover(recipeId: string, title: string, coverFile: File) {
-    try {
-      const image = await uploadRecipeImage(recipeId, {
-        file: coverFile,
-        scope: "Cover",
-        altText: title,
-      })
-      queryClient.setQueriesData<Recipe>({ queryKey: recipeQueryKeys.details() }, (recipe) =>
-        recipe?.id === recipeId
-          ? {
-              ...recipe,
-              images: [
-                ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
-                image,
-              ],
-            }
-          : recipe,
-      )
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
-    } catch {
-      toast.warning("Рецепт создан, но обложку загрузить не удалось")
-    }
+    const image = await uploadRecipeImage(recipeId, {
+      file: coverFile,
+      scope: "Cover",
+      altText: title,
+    })
+    queryClient.setQueriesData<Recipe>({ queryKey: recipeQueryKeys.details() }, (recipe) =>
+      recipe?.id === recipeId
+        ? {
+            ...recipe,
+            images: [
+              ...recipe.images.filter((existingImage) => existingImage.scope !== "Cover"),
+              image,
+            ],
+          }
+        : recipe,
+    )
+    void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
   }
 
   function handleDelete() {
@@ -183,7 +199,7 @@ export default function RecipeImportDraftPage() {
                   className="focus-visible:ring-ring rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                 >
                   <img
-                    src={image.readUrl}
+                    src={safeImageUrl(image.readUrl)}
                     alt={`Исходное изображение рецепта ${String(index + 1)}`}
                     className="max-h-[32rem] w-full rounded-lg border object-contain"
                   />
@@ -207,7 +223,10 @@ export default function RecipeImportDraftPage() {
         ) : null}
       </PageSection>
 
-      {draft.status === "Confirmed" && draft.createdRecipeId ? (
+      {draft.status === "Confirmed" &&
+      draft.createdRecipeId &&
+      !isConfirming &&
+      !confirmMutation.isSuccess ? (
         <Alert>
           <CheckCircle2 />
           <AlertTitle>Рецепт уже создан</AlertTitle>
@@ -233,6 +252,7 @@ export default function RecipeImportDraftPage() {
           </p>
           <RecipeForm
             initialValues={recipeRequestToFormValues(draft.recipe)}
+            savedValues={recipeRequestToFormValues(draft.recipe)}
             submitLabel="Создать рецепт"
             isSubmitting={confirmMutation.isPending}
             error={confirmMutation.error}

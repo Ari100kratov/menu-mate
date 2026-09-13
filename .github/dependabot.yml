@@ -19,6 +19,8 @@ updates:
 
   - package-ecosystem: npm
     directory: /src/MenuMate.Web
+    cooldown:
+      default-days: 3
     schedule:
       interval: weekly
       day: monday

@@ -1,24 +1,16 @@
 import { Navigate, createBrowserRouter } from "react-router-dom"
 
 import { AppShell } from "@/app/AppShell"
+import { AppShellSkeleton } from "@/app/AppShellSkeleton"
 import { AdminRoute } from "@/app/AdminRoute"
 import { ProtectedRoute } from "@/app/ProtectedRoute"
 import { getLastWorkspaceSection } from "@/app/navigation"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
-import AdminUsersPage from "@/pages/admin/AdminUsersPage"
-import MenuPage from "@/pages/menu/MenuPage"
 import NotFoundPage from "@/pages/NotFoundPage"
-import ProfilePage from "@/pages/profile/ProfilePage"
-import RecipeCreatePage from "@/pages/recipes/RecipeCreatePage"
-import RecipeCopyPage from "@/pages/recipes/RecipeCopyPage"
 import RecipeDetailsPage from "@/pages/recipes/RecipeDetailsPage"
-import RecipeEditPage from "@/pages/recipes/RecipeEditPage"
-import RecipeImportDraftPage from "@/pages/recipes/RecipeImportDraftPage"
-import RecipeImportPage from "@/pages/recipes/RecipeImportPage"
 import RecipesPage from "@/pages/recipes/RecipesPage"
 import ShoppingPage from "@/pages/shopping/ShoppingPage"
-import ShoppingPreviewPage from "@/pages/shopping/ShoppingPreviewPage"
 import { useSessionStore } from "@/shared/auth/session.store"
 
 export const router = createBrowserRouter([
@@ -32,6 +24,7 @@ export const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
+    HydrateFallback: AppShellSkeleton,
     children: [
       {
         path: "/",
@@ -47,15 +40,21 @@ export const router = createBrowserRouter([
           },
           {
             path: "recipes/new",
-            element: <RecipeCreatePage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/recipes/RecipeCreatePage")).default,
+            }),
           },
           {
             path: "recipes/import",
-            element: <RecipeImportPage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/recipes/RecipeImportPage")).default,
+            }),
           },
           {
             path: "recipes/import/:draftId",
-            element: <RecipeImportDraftPage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/recipes/RecipeImportDraftPage")).default,
+            }),
           },
           {
             path: "recipes/:recipeId",
@@ -63,15 +62,19 @@ export const router = createBrowserRouter([
           },
           {
             path: "recipes/:recipeId/copy",
-            element: <RecipeCopyPage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/recipes/RecipeCopyPage")).default,
+            }),
           },
           {
             path: "recipes/:recipeId/edit",
-            element: <RecipeEditPage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/recipes/RecipeEditPage")).default,
+            }),
           },
           {
             path: "menu",
-            element: <MenuPage />,
+            lazy: async () => ({ Component: (await import("@/pages/menu/MenuPage")).default }),
           },
           {
             path: "shopping",
@@ -79,11 +82,15 @@ export const router = createBrowserRouter([
           },
           {
             path: "shopping/preview",
-            element: <ShoppingPreviewPage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/shopping/ShoppingPreviewPage")).default,
+            }),
           },
           {
             path: "profile",
-            element: <ProfilePage />,
+            lazy: async () => ({
+              Component: (await import("@/pages/profile/ProfilePage")).default,
+            }),
           },
           {
             path: "admin",
@@ -91,7 +98,9 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <AdminUsersPage />,
+                lazy: async () => ({
+                  Component: (await import("@/pages/admin/AdminUsersPage")).default,
+                }),
               },
             ],
           },

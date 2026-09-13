@@ -29,6 +29,16 @@ MenuMate — mobile-first приложение для личной библио�
 
 Понадобятся .NET SDK 10, Node.js 22, pnpm 11 через Corepack и Docker-совместимый container runtime.
 
+AppHost использует Aspire CLI bundle. При первой сборке SDK автоматически подготавливает его через `dnx`, поэтому нужен доступ к NuGet и источникам загрузки Aspire. Режим `DnxPinned` выбирает версию CLI, соответствующую `Aspire.AppHost.Sdk`; отдельная глобальная установка CLI не требуется.
+
+Если первая подготовка не укладывается в тайм-аут SDK, выполните ее отдельно (этот же шаг есть в CI):
+
+```powershell
+$appHostProject = [xml](Get-Content src/MenuMate.AppHost/MenuMate.AppHost.csproj -Raw)
+$aspireSdkVersion = $appHostProject.Project.Sdk.Version
+dotnet dnx --yes "Aspire.Cli@$aspireSdkVersion" -- setup
+```
+
 Сначала установите зависимости фронтенда:
 
 ```powershell

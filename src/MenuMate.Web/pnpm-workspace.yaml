@@ -1,6 +1,10 @@
 packages:
   - "."
 
+# Возраст прямых обновлений контролирует cooldown Dependabot. Проверка pnpm
+# затрагивает также транзитивные версии и ломает установку готового lockfile.
+minimumReleaseAge: 0
+
 overrides:
   "glob@11": "11.1.0"
   "fast-uri@3": "3.1.6"

@@ -56,7 +56,7 @@ export function RecipeImagesPanel({ recipe }: RecipeImagesPanelProps) {
           submitLabel={coverImage ? "Заменить обложку" : "Загрузить обложку"}
           isSubmitting={uploadImageMutation.isPending}
           onSubmit={(values) => {
-            uploadImageMutation.mutate({
+            return uploadImageMutation.mutateAsync({
               ...values,
               scope: "Cover",
             })

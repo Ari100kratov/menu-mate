@@ -34,6 +34,19 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Prepare Aspire CLI bundle
+        shell: pwsh
+        run: |
+          $appHostProject = [xml](Get-Content src/MenuMate.AppHost/MenuMate.AppHost.csproj -Raw)
+          $aspireSdkVersion = $appHostProject.Project.Sdk.Version
+          if (-not $aspireSdkVersion) {
+            throw "Aspire AppHost SDK version was not found."
+          }
+          dotnet dnx --yes "Aspire.Cli@$aspireSdkVersion" -- setup
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
       - name: Restore
         run: dotnet restore MenuMate.slnx
 
@@ -92,6 +105,9 @@ jobs:
 
       - name: Check formatting
         run: pnpm format
+
+      - name: Unit tests
+        run: pnpm test
 
       - name: Build
         run: pnpm build

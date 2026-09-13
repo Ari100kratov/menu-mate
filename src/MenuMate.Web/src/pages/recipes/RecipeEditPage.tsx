@@ -37,34 +37,29 @@ export default function RecipeEditPage() {
     return <Navigate to={`/recipes/${recipeQuery.data.id}`} replace />
   }
 
-  function handleSubmit(values: RecipeFormValues, coverFile: File | null) {
-    updateRecipeMutation.mutate(toRecipeRequest(values), {
-      onSuccess: () => {
-        if (coverFile) {
-          void uploadCover(normalizedRecipeId, values.title, coverFile)
-        }
-
-        toast.success("Рецепт сохранен")
-        void navigate(`/recipes/${normalizedRecipeId}`, {
-          replace: true,
-          state: getParentBackState(location.state),
-        })
-      },
+  async function handleSubmit(
+    values: RecipeFormValues,
+    coverFile: File | null,
+    onSaved: () => void,
+  ) {
+    await updateRecipeMutation.mutateAsync(toRecipeRequest(values))
+    if (coverFile) await uploadCover(normalizedRecipeId, values.title, coverFile)
+    onSaved()
+    toast.success("Рецепт сохранен")
+    await navigate(`/recipes/${normalizedRecipeId}`, {
+      replace: true,
+      state: getParentBackState(location.state),
     })
   }
 
   async function uploadCover(recipeId: string, title: string, coverFile: File) {
-    try {
-      await uploadRecipeImage(recipeId, {
-        file: coverFile,
-        scope: "Cover",
-        altText: title,
-      })
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.details() })
-      void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
-    } catch {
-      toast.warning("Рецепт сохранен, но обложку загрузить не удалось")
-    }
+    await uploadRecipeImage(recipeId, {
+      file: coverFile,
+      scope: "Cover",
+      altText: title,
+    })
+    void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.details() })
+    void queryClient.invalidateQueries({ queryKey: recipeQueryKeys.lists() })
   }
 
   return (

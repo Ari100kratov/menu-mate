@@ -16,9 +16,11 @@ import { useRecipeForm } from "@/features/recipes/ui/useRecipeForm"
 import { Button } from "@/shared/ui/button"
 import { ErrorAlert } from "@/shared/ui/feedback"
 import { getApiErrorMessages } from "@/shared/api/errors"
+import { UnsavedChangesDialog } from "@/shared/ui/unsaved-changes-dialog"
 
 interface RecipeFormProps {
   initialValues: RecipeFormValues
+  savedValues?: RecipeFormValues
   submitLabel: string
   isSubmitting: boolean
   error?: unknown
@@ -26,11 +28,12 @@ interface RecipeFormProps {
   suggestedCover?: RecipeCoverSuggestion
   onValuesChange?: (values: RecipeFormValues) => void
   generateCover?: (values: RecipeFormValues) => Promise<File>
-  onSubmit: (values: RecipeFormValues, coverFile: File | null) => void
+  onSubmit: (values: RecipeFormValues, coverFile: File | null, onSaved: () => void) => Promise<void>
 }
 
 export function RecipeForm({
   initialValues,
+  savedValues,
   submitLabel,
   isSubmitting,
   error,
@@ -47,26 +50,48 @@ export function RecipeForm({
   const [generateCoverError, setGenerateCoverError] = useState<unknown>()
   const formElementRef = useRef<HTMLFormElement>(null)
   const form = useRecipeForm({ initialValues })
+  const initialValuesRef = useRef(JSON.stringify(initialValues))
+  const savedRef = useRef(false)
+  const submittingRef = useRef(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [submitError, setSubmitError] = useState<unknown>()
+
+  function hasUnsavedChanges() {
+    return (
+      !savedRef.current &&
+      (submittingRef.current ||
+        isGeneratingCover ||
+        coverFileRef.current !== null ||
+        JSON.stringify(form.state.values) !==
+          (savedValues ? JSON.stringify(savedValues) : initialValuesRef.current))
+    )
+  }
 
   function handleCoverFileChange(file: File | null) {
     coverFileRef.current = file
     setCoverFile(file)
   }
 
-  useEffect(() => {
-    if (!error) {
-      return
-    }
-
-    toast.error(getApiErrorMessages(error)[0] ?? "Не удалось сохранить рецепт.")
-  }, [error])
-
   async function handleSubmit() {
+    if (submittingRef.current) return
     const validationResult = recipeFormSchema.safeParse(form.state.values)
 
     if (validationResult.success) {
       setShowValidationErrors(false)
-      onSubmit(validationResult.data, coverFileRef.current)
+      submittingRef.current = true
+      setIsSaving(true)
+      setSubmitError(undefined)
+      try {
+        await onSubmit(validationResult.data, coverFileRef.current, () => {
+          savedRef.current = true
+        })
+      } catch (saveError) {
+        setSubmitError(saveError)
+        toast.error(getApiErrorMessages(saveError)[0] ?? "Не удалось сохранить рецепт.")
+      } finally {
+        submittingRef.current = false
+        setIsSaving(false)
+      }
       return
     }
 
@@ -117,9 +142,10 @@ export function RecipeForm({
         void handleSubmit()
       }}
     >
-      {error ? (
+      <UnsavedChangesDialog shouldBlock={hasUnsavedChanges} />
+      {submitError || error ? (
         <div className="mb-4">
-          <ErrorAlert error={error} />
+          <ErrorAlert error={submitError ?? error} />
         </div>
       ) : null}
       {generateCoverError ? (
@@ -133,7 +159,10 @@ export function RecipeForm({
         </form.Subscribe>
       ) : null}
 
-      <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
+      <fieldset
+        disabled={isSaving || isSubmitting}
+        className="bg-card min-w-0 overflow-hidden rounded-xl border shadow-sm"
+      >
         <RecipeCoverPicker
           existingImageUrl={coverImageUrl}
           file={coverFile}
@@ -147,12 +176,16 @@ export function RecipeForm({
         <RecipeAdviceField form={form} />
         <RecipeStepsFields form={form} showValidationErrors={showValidationErrors} />
         <RecipeAdditionalFields form={form} showValidationErrors={showValidationErrors} />
-      </div>
+      </fieldset>
 
       <div className="bg-background/95 sticky bottom-18 z-30 -mx-4 mt-3 border-y px-4 py-2.5 backdrop-blur md:bottom-0 md:mx-0 md:mt-4 md:flex md:justify-end md:rounded-xl md:border md:p-3">
-        <Button type="submit" className="h-11 w-full md:w-auto" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="h-11 w-full md:w-auto"
+          disabled={isSubmitting || isSaving || isGeneratingCover}
+        >
           <Save />
-          {isSubmitting ? "Сохраняем..." : submitLabel}
+          {isSubmitting || isSaving ? "Сохраняем..." : submitLabel}
         </Button>
       </div>
     </form>

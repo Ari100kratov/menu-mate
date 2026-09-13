@@ -4,6 +4,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <AspireCliInvocationMode>DnxPinned</AspireCliInvocationMode>
     <UserSecretsId>34faaf39-df3b-4f91-9b88-1b723e1cece5</UserSecretsId>
   </PropertyGroup>
 

@@ -1,5 +1,5 @@
 import { FileImage, ImagePlus, Trash2 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import {
@@ -11,6 +11,8 @@ import { RecipeImportDraftListSkeleton } from "@/features/imports/ui/RecipeImpor
 import { RecipeImageLightbox } from "@/features/recipes/ui/RecipeImageLightbox"
 import { createBackNavigationState } from "@/shared/lib/back-navigation"
 import { cn } from "@/shared/lib/utils"
+import { safeImageUrl } from "@/shared/lib/safe-image-url"
+import { UnsavedChangesDialog } from "@/shared/ui/unsaved-changes-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +36,7 @@ export default function RecipeImportPage() {
   const createMutation = useCreateRecipeImportDraftMutation()
   const deleteMutation = useDeleteRecipeImportDraftMutation()
   const [files, setFiles] = useState<File[]>([])
+  const uploadedRef = useRef(false)
   const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
 
   useEffect(
@@ -87,6 +90,7 @@ export default function RecipeImportPage() {
 
     createMutation.mutate(files, {
       onSuccess: (draft) => {
+        uploadedRef.current = true
         void navigate(`/recipes/import/${draft.id}`, { state: backNavigationState })
       },
     })
@@ -94,6 +98,7 @@ export default function RecipeImportPage() {
 
   return (
     <div className="space-y-5">
+      <UnsavedChangesDialog shouldBlock={() => files.length > 0 && !uploadedRef.current} />
       <PageSection
         title="Изображения рецепта"
         description="Добавьте до 8 изображений рецепта: снимки экрана, страницы сайта или разворот книги. Поддерживаются JPEG, PNG и WebP до 10 МБ каждое и до 40 МБ суммарно. ИИ объединит их в один черновик."
@@ -156,7 +161,7 @@ export default function RecipeImportPage() {
                         className="focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none"
                       >
                         <img
-                          src={previewUrl}
+                          src={safeImageUrl(previewUrl)}
                           alt={`Предпросмотр выбранного изображения ${String(index + 1)}`}
                           className="max-h-64 w-full rounded-md object-contain"
                         />

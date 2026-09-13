@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field"
 import { Input } from "@/shared/ui/input"
+import { UnsavedChangesDialog } from "@/shared/ui/unsaved-changes-dialog"
 
 const supportedImageContentTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
 
@@ -20,7 +21,7 @@ interface RecipeImageUploadFormProps {
   initialAltText: string
   submitLabel: string
   isSubmitting: boolean
-  onSubmit: (values: { file: File; altText?: string }) => void
+  onSubmit: (values: { file: File; altText?: string }) => Promise<unknown>
 }
 
 export function RecipeImageUploadForm({
@@ -39,17 +40,21 @@ export function RecipeImageUploadForm({
   }
   const form = useForm({
     defaultValues,
-    onSubmit: ({ value }) => {
+    onSubmit: async ({ value }) => {
       if (!value.file) {
         return
       }
 
-      onSubmit({
-        file: value.file,
-        altText: normalizeOptionalText(value.altText),
-      })
-      form.reset()
-      setFileInputKey((currentKey) => currentKey + 1)
+      try {
+        await onSubmit({
+          file: value.file,
+          altText: normalizeOptionalText(value.altText),
+        })
+        form.reset()
+        setFileInputKey((currentKey) => currentKey + 1)
+      } catch {
+        // The parent displays the mutation error; keep the file available for retry.
+      }
     },
   })
 
@@ -63,8 +68,13 @@ export function RecipeImageUploadForm({
         void form.handleSubmit()
       }}
     >
+      <UnsavedChangesDialog
+        shouldBlock={() =>
+          form.state.values.file !== null || form.state.values.altText !== initialAltText
+        }
+      />
       <h4 className="font-medium tracking-normal">{title}</h4>
-      <FieldGroup>
+      <FieldGroup inert={isSubmitting}>
         <form.Field
           name="file"
           validators={{

@@ -12,7 +12,12 @@ interface StepImageEditorProps {
   isDeleting: boolean
   isUploading: boolean
   onDelete: (imageId: string) => void
-  onUpload: (values: { file: File; scope: "Step"; stepNumber: number; altText?: string }) => void
+  onUpload: (values: {
+    file: File
+    scope: "Step"
+    stepNumber: number
+    altText?: string
+  }) => Promise<unknown>
 }
 
 export function StepImageEditor({
@@ -59,7 +64,7 @@ export function StepImageEditor({
           submitLabel={image ? "Заменить" : "Загрузить"}
           isSubmitting={isUploading}
           onSubmit={(values) => {
-            onUpload({
+            return onUpload({
               ...values,
               scope: "Step",
               stepNumber: step.number,
