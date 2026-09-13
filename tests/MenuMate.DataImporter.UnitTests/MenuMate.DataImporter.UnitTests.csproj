@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <ProjectReference Include="..\..\src\MenuMate.DataImporter\MenuMate.DataImporter.csproj" />
     <ProjectReference Include="..\..\src\Modules\Products\MenuMate.Modules.Products.Infrastructure\MenuMate.Modules.Products.Infrastructure.csproj" />
   </ItemGroup>
