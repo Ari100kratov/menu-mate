@@ -6,7 +6,7 @@ COPY src ./src
 RUN dotnet restore src/MenuMate.Migrator/MenuMate.Migrator.csproj
 RUN dotnet publish src/MenuMate.Migrator/MenuMate.Migrator.csproj -c Release -o /app/publish --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS runtime
 WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
